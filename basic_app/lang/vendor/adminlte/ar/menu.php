@@ -1,0 +1,29 @@
+<?php
+
+return [
+
+'company_info' => 'معلومات الشركة',
+    'main_navigation' => 'التنقل الرئيسي',
+    'blog' => 'Blog',
+    'dashboard' => 'لوحة التحكم',
+    'branches' => 'الفروع',
+    'users' => 'المستخدمون',
+    'employees' => 'الموظفون',
+    'settings' => 'الإعدادات',
+    'account_settings' => 'إعدادات الحساب',
+    'profile' => 'الملف الشخصي',
+    'change_password' => 'تغيير كلمة المرور',
+    'multilevel' => 'متعدد المستويات',
+    'pages' => 'Pages',
+    'account_settings' => 'ACCOUNT SETTINGS',
+    'profile' => 'Profile',
+    'change_password' => 'Change Password',
+    'multilevel' => 'Multi Level',
+    'level_one' => 'Level 1',
+    'level_two' => 'Level 2',
+    'level_three' => 'Level 3',
+    'labels' => 'LABELS',
+    'important' => 'Important',
+    'warning' => 'Warning',
+    'information' => 'Information',
+];

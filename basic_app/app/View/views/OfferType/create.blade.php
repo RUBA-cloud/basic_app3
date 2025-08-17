@@ -1,0 +1,151 @@
+@extends('adminlte::page')
+
+@section('title', 'Create Offer')
+
+@section('content')
+<div style="min-height: 100vh; display: flex;">
+
+    <div class="card" style="padding: 24px; width: 100%;">
+        <h2 class="mb-4">Create New Offer</h2>
+
+        <form action="{{ route('offers_type.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <div class="mb-3">
+                <label for="name_en" class="form-label">Name (EN)</label>
+                <input type="text" name="name_en" id="name_en" class="form-control" value="{{ old('name_en') }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="name_ar" class="form-label">Name (AR)</label>
+                <input type="text" name="name_ar" id="name_ar" class="form-control" value="{{ old('name_ar') }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="description_en" class="form-label">Description (EN)</label>
+                <textarea name="description_en" id="description_en" class="form-control">{{ old('description_en') }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="description_ar" class="form-label">Description (AR)</label>
+                <textarea name="description_ar" id="description_ar" class="form-control">{{ old('description_ar') }}</textarea>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" name="is_discount" id="is_discount" class="form-check-input" value="1" {{ old('is_discount') ? 'checked' : '' }}>
+                <label for="is_discount" class="form-check-label">Is Discount Offer</label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" name="is_total_gift" id="is_total_gift" class="form-check-input" value="1" {{ old('is_total_gift') ? 'checked' : '' }}>
+                <label for="is_total_gift" class="form-check-label">Is Total Gift</label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" name="is_total_discount" id="is_total_discount" class="form-check-input" value="1" {{ old('is_total_discount') ? 'checked' : '' }}>
+                <label for="is_total_discount" class="form-check-label">Is Total Discount</label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" name="is_product_count_gift" id="is_product_count_gift" class="form-check-input" value="1" {{ old('is_product_count_gift') ? 'checked' : '' }}>
+                <label for="is_product_count_gift" class="form-check-label">Is Product Gift Offer</label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" value="1" {{ old('is_active') ? 'checked' : '' }}>
+                <label for="is_active" class="form-check-label">Active</label>
+            </div>
+
+            <!-- Discount fields -->
+            <div id="discount_fields" style="display: none;">
+                <div class="mb-3">
+                    <label for="discount_value_product" class="form-label">Discount Value Product</label>
+                    <input type="text" name="discount_value_product" id="discount_value_product" class="form-control" value="{{ old('discount_value_product') }}">
+                </div>
+                <div class="mb-3">
+                    <label for="discount_value_delivery" class="form-label">Discount Value Delivery</label>
+                    <input type="text" name="discount_value_delivery" id="discount_value_delivery" class="form-control" value="{{ old('discount_value_delivery') }}">
+                </div>
+            </div>
+
+            <!-- Total Discount field -->
+            <div id="total_discount_field" style="display: none;">
+                <div class="mb-3">
+                    <label for="total_discount" class="form-label">Total Discount Amount</label>
+                    <input type="text" name="total_discount" id="total_discount" class="form-control" value="{{ old('total_discount') }}">
+                </div>
+            </div>
+
+            <!-- Gift fields -->
+            <div id="gift_fields" style="display: none;">
+                <div class="mb-3">
+                    <label for="products_count_to_get_gift_offer" class="form-label">Products Count to Get Gift</label>
+                    <input type="number" name="products_count_to_get_gift_offer" id="products_count_to_get_gift_offer" class="form-control" value="{{ old('products_count_to_get_gift_offer') }}">
+                </div>
+                <div class="mb-3" id="total_fields">
+                    <label for="total_gift" class="form-label">Total Gift</label>
+                    <input type="number" name="total_gift" id="total_gift" class="form-control" value="{{ old('total_gift') }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const isDiscount = document.getElementById('is_discount');
+    const isProductGift = document.getElementById('is_product_count_gift');
+    const isTotalGift = document.getElementById('is_total_gift');
+    const isTotalDiscount = document.getElementById('is_total_discount');
+
+    const discountFields = document.getElementById('discount_fields');
+    const giftFields = document.getElementById('gift_fields');
+    const totalDiscountField = document.getElementById('total_discount_field');
+
+    function toggleFields() {
+        discountFields.style.display = isDiscount.checked ? 'block' : 'none';
+        giftFields.style.display = isProductGift.checked || isTotalGift.checked ? 'block' : 'none';
+        totalDiscountField.style.display = isTotalDiscount.checked ? 'block' : 'none';
+    }
+
+    function toggleCheckboxes() {
+        const all = [isDiscount, isTotalGift, isProductGift, isTotalDiscount];
+
+        all.forEach(cb => cb.disabled = false);
+
+        if (isDiscount.checked) {
+            disableOther(isDiscount);
+        } else if (isTotalGift.checked) {
+            disableOther(isTotalGift);
+        } else if (isProductGift.checked) {
+            disableOther(isProductGift);
+        } else if (isTotalDiscount.checked) {
+            disableOther(isTotalDiscount);
+        }
+    }
+
+    function disableOther(selectedCheckbox) {
+        const all = [isDiscount, isTotalGift, isProductGift, isTotalDiscount];
+        all.forEach(cb => {
+            if (cb !== selectedCheckbox) cb.disabled = true;
+        });
+    }
+
+    // Initial state
+    toggleFields();
+    toggleCheckboxes();
+
+    // Add listeners
+    [isDiscount, isProductGift, isTotalGift, isTotalDiscount].forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            toggleFields();
+            toggleCheckboxes();
+        });
+    });
+});
+</script>
+@endpush
