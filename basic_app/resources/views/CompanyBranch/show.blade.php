@@ -1,84 +1,95 @@
 @extends('adminlte::page')
-@section('title', 'Branch Info')
+
+@section('title', __('adminlte::adminlte.branch_details'))
 
 @section('content')
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl overflow-y-auto max-h-[90vh] relative">
+<div class="container py-4">
 
-        {{-- Close Button --}}
-        <button onclick="window.history.back()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold">
-            &times;
-        </button>
+    {{-- Header --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 mb-0 text-dark fw-bold">
+            <i class="fas fa-code-branch me-2 text-primary"></i>
+            {{ __('adminlte::adminlte.branch_details') }}
+        </h2>
 
-        <div class="p-8 space-y-8">
-            {{-- Header --}}
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 class="text-2xl font-semibold text-gray-800">
-                    Branch Details
-                </h2>
-                @if($branch->is_main_branch)
-                    <span class="bg-violet-100 text-violet-800 text-sm px-3 py-1 rounded-md">Main Branch</span>
-                @endif
+        @if($branch->is_main_branch)
+            <span class="badge bg-purple text-white px-3 py-2">
+                <i class="fas fa-star me-1"></i>
+                {{ __('adminlte::adminlte.main_branch') }}
+            </span>
+        @endif
+    </div>
+
+    {{-- Card --}}
+    <x-adminlte-card theme="light" theme-mode="outline" class="shadow-sm">
+        <div class="row g-4">
+
+            {{-- Image --}}
+            <div class="col-lg-4 col-md-5">
+                <div class="border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center p-2 h-100">
+                    <img
+                        src="{{ $branch->image ? asset($branch->image) : 'https://placehold.co/500x300?text=Branch+Image' }}"
+                        alt="Branch Image"
+                        class="img-fluid rounded-3"
+                        style="max-height: 280px; object-fit: cover;"
+                    >
+                </div>
             </div>
 
-            {{-- Body --}}
-            <div class="flex flex-col lg:flex-row gap-8">
+            {{-- Details --}}
+            <div class="col-lg-8 col-md-7">
+                <div class="row gy-3">
 
-                {{-- Image --}}
-                <div class="flex-1 min-w-[280px]">
-                    <div class="bg-gray-100 rounded-lg p-4 flex justify-center items-center">
-                        <img
-                            src="{{ $branch->image ? asset($branch->image) : 'https://placehold.co/400x250?text=Branch+Image' }}"
-                            alt="Branch Image"
-                            class="rounded-md object-cover max-h-[250px] w-full"
-                        >
-                    </div>
-                </div>
-
-                {{-- Details --}}
-                <div class="flex-[2] space-y-5">
-                    {{-- Name --}}
-                    <div>
-                        <div class="text-sm text-gray-500">Branch Name (AR)</div>
-                        <div class="font-semibold text-lg text-gray-800">{{ $branch->name_ar }}</div>
+                    {{-- Branch Name --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.branch_name_ar') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $branch->name_ar }}</div>
                     </div>
 
                     {{-- Status --}}
-                    <div class="space-x-2">
-                        <span class="{{ $branch->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700' }} text-sm px-3 py-1 rounded-md">
-                            {{ $branch->is_active ? 'Active' : 'Inactive' }}
-                        </span>
+                    <div class="col-12">
+                        @if($branch->is_active)
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
+                            </span>
+                        @else
+                            <span class="badge bg-danger px-3 py-2">
+                                <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
+                            </span>
+                        @endif
                     </div>
 
                     {{-- Contact Info --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        @foreach(['Phone' => $branch->phone, 'Email' => $branch->email, 'Fax' => $branch->fax] as $label => $value)
-                            <div>
-                                <div class="text-sm text-gray-500">{{ $label }}</div>
-                                <div class="font-medium">{{ $value ?? '-' }}</div>
-                            </div>
-                        @endforeach
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.company_phone') }}</small>
+                        <div class="fw-semibold">{{ $branch->phone ?? '-' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.company_email') }}</small>
+                        <div class="fw-semibold">{{ $branch->email ?? '-' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.fax') }}</small>
+                        <div class="fw-semibold">{{ $branch->fax ?? '-' }}</div>
                     </div>
 
                     {{-- Addresses --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <div class="text-sm text-gray-500">Address (EN)</div>
-                            <div class="font-medium">{{ $branch->address_en ?? '-' }}</div>
-                        </div>
-                        <div>
-                            <div class="text-sm text-gray-500">Address (AR)</div>
-                            <div class="font-medium">{{ $branch->address_ar ?? '-' }}</div>
-                        </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.company_address_en') }}</small>
+                        <div class="fw-semibold">{{ $branch->address_en ?? '-' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.company_address_ar') }}</small>
+                        <div class="fw-semibold">{{ $branch->address_ar ?? '-' }}</div>
                     </div>
 
                     {{-- Location --}}
-                    <div>
-                        <div class="text-sm text-gray-500">Location</div>
-                        <div class="font-medium">
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.location') }}</small>
+                        <div>
                             @if($branch->location)
-                                <a href="{{ $branch->location }}" target="_blank" class="text-indigo-600 hover:underline">
-                                    View on Map
+                                <a href="{{ $branch->location }}" target="_blank" class="text-primary fw-semibold">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ __('adminlte::adminlte.view_on_map') }}
                                 </a>
                             @else
                                 -
@@ -86,50 +97,50 @@
                         </div>
                     </div>
 
-                    {{-- Working Days/Hours --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <div class="text-sm text-gray-500">Working Days</div>
-                            <div class="font-medium">
-                                @php
-                                    $days = $branch->working_days ? explode(',', $branch->working_days) : [];
-                                    $days = array_map('trim', $days);
-                                @endphp
-                                {{ $days ? implode(', ', $days) : '-' }}
-                            </div>
+                    {{-- Working Days / Hours --}}
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.working_days') }}</small>
+                        <div class="fw-semibold">
+                            @php
+                                $days = $branch->working_days ? explode(',', $branch->working_days) : [];
+                                $days = array_map('trim', $days);
+                            @endphp
+                            {{ $days ? implode(', ', $days) : '-' }}
                         </div>
-                        <div>
-                            <div class="text-sm text-gray-500">Working Hours</div>
-                            <div class="font-medium">
-                                {{ $branch->working_hours_from ?? '-' }} - {{ $branch->working_hours_to ?? '-' }}
-                            </div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.working_hours') }}</small>
+                        <div class="fw-semibold">
+                            {{ $branch->working_hours_from ?? '-' }} - {{ $branch->working_hours_to ?? '-' }}
                         </div>
                     </div>
 
-                    {{-- Company Info (if needed) --}}
-                    {{--
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <div class="text-sm text-gray-500">Company (EN)</div>
-                            <div class="font-medium">{{ optional($branch->companyInfo)->name_en ?? '-' }}</div>
+                    {{-- Company Info --}}
+                    @if ($branch->companyInfo)
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ __('adminlte::adminlte.company_name_en') }}</small>
+                            <div class="fw-semibold">{{ $branch->companyInfo->name_en ?? '-' }}</div>
                         </div>
-                        <div>
-                            <div class="text-sm text-gray-500">Company (AR)</div>
-                            <div class="font-medium">{{ optional($branch->companyInfo)->name_ar ?? '-' }}</div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ __('adminlte::adminlte.company_name_ar') }}</small>
+                            <div class="fw-semibold">{{ $branch->companyInfo->name_ar ?? '-' }}</div>
                         </div>
-                    </div>
-                    --}}
+                    @endif
 
-                    {{-- Edit Button --}}
-                    <div class="pt-4">
+                    {{-- Actions --}}
+                    <div class="col-12 pt-3">
                         <a href="{{ route('companyBranch.edit', $branch->id) }}"
-                           class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-md transition-all">
-                            Edit Branch
+                           class="btn btn-primary px-4 py-2">
+                            <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
+                        </a>
+                        <a href="{{route('companyBranch.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                            <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
                         </a>
                     </div>
+
                 </div>
             </div>
         </div>
-    </div>
+    </x-adminlte-card>
 </div>
 @endsection

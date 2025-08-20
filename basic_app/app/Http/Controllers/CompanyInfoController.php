@@ -38,6 +38,24 @@ class CompanyInfoController extends Controller
         return view('CompanyInfo.history', compact('company'));
     }
 
+    public function searchHistory(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $company = CompanyInfoHistory::with('user')
+            ->where('name_en', 'like', '%' . $searchTerm . '%')
+            ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
+            ->orWhere('address_en', 'like', '%' . $searchTerm . '%')
+            ->orWhere('address_ar', 'like', '%' . $searchTerm . '%')
+            ->orWhere('about_us_en', 'like', '%' . $searchTerm . '%')
+            ->orWhere('about_us_ar', 'like', '%' . $searchTerm . '%')
+            ->orWhere('email', 'like', '%' . $searchTerm . '%')
+            ->orWhere('phone', 'like', '%' . $searchTerm . '%')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('CompanyInfo.history', compact('company'));
+    }
+
     /**
      * Show a specific history entry.
      */
@@ -64,7 +82,6 @@ class CompanyInfoController extends Controller
 
             // Delete old logo if exists
             if ($company && $company->image) {
-                $oldPath = str_replace(asset('storage/') . '/', '', $company->image);
                 Storage::disk('public')->delete($oldPath);
             }
         }

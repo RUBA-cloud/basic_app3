@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Edit Branch')
+@section('title', __('adminlte::adminlte.branch_name_en'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
@@ -15,7 +15,7 @@
             {{-- Branch Image --}}
             <x-upload-image
                 :image="$branch->image"
-                label="Branch Image"
+                label="{{ __('adminlte::adminlte.image') }}"
                 name="image"
                 id="image"
             />
@@ -24,7 +24,7 @@
             <x-form.textarea
                 id="name_en"
                 name="name_en"
-                label="Branch Name (English)"
+                label="{{ __('adminlte::adminlte.branch_name_en')}}"
                 :value="old('name_en', $branch->name_en)"
             />
 
@@ -32,7 +32,7 @@
             <x-form.textarea
                 id="name_ar"
                 name="name_ar"
-                label="اسم الفرع (Arabic)"
+                label="{{ __('adminlte::adminlte.branch_name_ar')}}"
                 dir="rtl"
                 :value="old('name_ar', $branch->name_ar)"
             />
@@ -41,7 +41,7 @@
             <x-form.textarea
                 id="phone"
                 name="phone"
-                label="Branch Phone"
+                label="{{ __('adminlte::adminlte.phone')}}"
                 :value="old('phone', $branch->phone)"
                 rows="1"
             />
@@ -50,7 +50,7 @@
             <x-form.textarea
                 id="email"
                 name="email"
-                label="Branch Email (البريد الالكتروني)"
+                 label="{{ __('adminlte::adminlte.email')}}"
                 :value="old('email', $branch->email)"
                 rows="1"
             />
@@ -59,7 +59,7 @@
             <x-form.textarea
                 id="address_en"
                 name="address_en"
-                label="Branch Address (English)"
+            label="{{ __('adminlte::adminlte.branch_address_en')}}"
                 :value="old('address_en', $branch->address_en)"
             />
 
@@ -67,7 +67,7 @@
             <x-form.textarea
                 id="address_ar"
                 name="address_ar"
-                label="عنوان الفرع (Arabic)"
+            label="{{ __('adminlte::adminlte.branch_address_ar')}}"
                 dir="rtl"
                 :value="old('address_ar', $branch->address_ar)"
             />
@@ -76,7 +76,7 @@
             <x-form.textarea
                 id="fax"
                 name="fax"
-                label="Branch Fax"
+            label="{{ __('adminlte::adminlte.fax')}}"
                 :value="old('fax', $branch->fax)"
                 rows="1"
             />
@@ -85,17 +85,18 @@
             <x-form.textarea
                 id="location"
                 name="location"
-                label="Branch Location (URL/Map)"
+            label="{{ __('adminlte::adminlte.location')}}"
                 :value="old('location', $branch->location)"
                 rows="1"
             />
 
             {{-- Working Days/Hours --}}
             <x-working-days-hours :branch="$branch" />
-<input type="checkbox" name="is_active" value="1" {{ old('is_active', $branch?->is_active) ? 'checked' : '' }}/> Active            {{-- Submit Button --}}
-            <button type="submit" style="width:100%; background:#6C63FF; color:#fff; font-size:1.1rem; font-weight:600; border:none; border-radius:24px; padding:14px 0; cursor:pointer; box-shadow:0 4px 16px 0 rgba(108,99,255,0.15); transition:background 0.2s;">
-                Save Branch
-            </button>
+<input type="checkbox" name="is_active" value="1" {{ old('is_active', $branch?->is_active) ? 'checked' : '' }}/> {{ __('adminlte::adminlte.active')}}"            {{-- Submit Button --}}
+<x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit" theme="success"
+                class="full-width-btn" icon="fas fa-save"/>
         </form>
     </div>
 </div>

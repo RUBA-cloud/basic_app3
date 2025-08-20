@@ -6,7 +6,6 @@ use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 use App\Models\CompanyBranch;
 use App\Models\CategoryHistory;
-use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -21,11 +20,11 @@ class CategoryController extends Controller
     public function index($isHistory = false)
     {
         if ($isHistory) {
-            $categories = CategoryHistory::with('user')->get()->sortByDesc('created_at');
+            $categories = CategoryHistory::with('user')->paginate(10);
             return view('Category.history', compact('categories'));
         }
 
-        $categories = Category::with('user')->where('is_active', 1)->get()->sortByDesc('created_at');
+        $categories = Category::with('user')->where('is_active', 1)->paginate(10);
         return view('Category.index', compact('categories', 'isHistory'));
     }
 

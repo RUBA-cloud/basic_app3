@@ -22,7 +22,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\OfferTypeController;
 // Auth routes with email verification
-Auth::routes(['verify' => true]);
 
 // Remove LoginController as a resource controller (login is already handled by Auth::routes())
 // If you really need custom login logic, use explicit routes instead
@@ -32,14 +31,9 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 // Email Verification routes
-Route::get('/verify', [VerificationController::class, 'verify'])->name('verify');
-Route::post('/resend-verification', [VerificationController::class, 'resend'])->name('verify.resend');
-Route::put('reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
-Route::put('reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
-
-
 
 Route::group(['middleware' => [SetLocale::class]], function () {
+Auth::routes(['verify' => true]);
 
     // Your normal routes here
     Route::get('/',[HomeController::class, 'index'])->name('home');
@@ -54,13 +48,18 @@ Route::group(['middleware' => [SetLocale::class]], function () {
         }
     })->name('change.language');
 
-
+Route::get('/verify', [VerificationController::class, 'verify'])->name('verify');
+Route::post('/resend-verification', [VerificationController::class, 'resend'])->name('verify.resend');
+Route::put('reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
+Route::put('reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
 
 Route::resource('categories', CategoryController::class);
-// Home route
-Route::get('/home/{lang}', [HomeController::class, 'index'])->name('home');
+// Home route-
 // Company Info routes
-Route::resource('companyInfo', CompanyInfoController::class);
+Route::resource('/companyInfo', CompanyInfoController::class);
+Route::post('/compnyInfo_search', [CompanyInfoController::class, 'searchHistory'])->name('compnyInfo_search');
+Route::post('/compnyBranch_search', [CompanyBranchController::class, 'search']);
+Route::post('/compnyBranch_search_history', [CompanyBranchController::class, 'searchHistory']);
 // Company Branch routes
 Route::resource('companyBranch', CompanyBranchController::class);
 Route::get('/branches/{isHistory?}', [CompanyBranchController::class, 'index'])->name('branches.index');

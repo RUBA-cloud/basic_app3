@@ -15,6 +15,7 @@
         </a>
     </div>
 
+
         <form method="POST" action="{{ route('companyInfo.store') }}" enctype="multipart/form-data">
             @csrf
 

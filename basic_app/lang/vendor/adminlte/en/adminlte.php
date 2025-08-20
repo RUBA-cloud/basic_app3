@@ -1,9 +1,13 @@
 
 <?php
 return [
+    'no_image' => 'No image uploaded',
     'company_info' => 'Company Information',
     'view_history' => 'View History',
     'choose_file' => 'Choose File',
+
+
+ 'browse' => 'Browse',
     // Company fields
     'company_name_en' => 'Company Name (English)',
     'company_name_en_placeholder' => 'Enter company name in English',
@@ -119,4 +123,74 @@ return [
     'updated_at' => 'Updated At',
     'user' => 'User',
     'user_id' => 'User ID',
+
+
+    'confirm_password_message' => 'Please confirm your password before continuing.',
+    'confirm_password' => 'Confirm Password',
+    'password' => 'Password',
+    'password_confirmation' => 'Confirm Password',
+
+    'company_branch' => 'Company Branch',
+    'branches' => 'Branches',
+    'branch_name_en' => 'Branch Name (English)',
+    'branch_name_ar' => 'Branch Name (Arabic)',
+    'branch_email' => 'Branch Email',
+    'branch_address_en' => 'Branch Address (English)',
+    'branch_address_ar' => 'Branch Address (Arabic)',
+    'branch_phone' => 'Branch Phone',
+    'branch_phone_placeholder' => 'Enter branch phone number',
+    'branch_is_active' => 'Is Active',
+    'branch_is_active_placeholder' => 'Is this branch active?',
+    'branch_user_id' => 'User ID',
+    'branch_user_name' => 'User Name',
+    'branch_created_at' => 'Created At',
+    'branch_updated_at' => 'Updated At',
+    'branch_location' => 'Branch Location',
+    'branch_location_placeholder' => 'Enter branch location',
+    'branch_info' => 'Branch Information',
+    'branch_info_details' => 'Branch Information Details',
+    'branch_info_updated' => 'Branch information updated successfully.',
+    'branch_info_created' => 'Branch information created successfully.',
+    'branch_info_deleted' => 'Branch information deleted successfully.',
+    'branch_info_not_found' => 'Branch information not found.',
+    'branch_info_save_error' => 'Error saving branch information. Please try again.',
+    'branch_info_delete_confirm' => 'Are you sure you want to delete this branch information?',
+    'branch_info_delete_success' => 'Branch information deleted successfully.',
+    'branch_info_delete_error' => 'Error deleting branch information. Please try again.',
+    'branch_info_update_success' => 'Branch information updated successfully.',
+    'branch_info_update_error' => 'Error updating branch information. Please try again.',
+    'branch_info_create_success' => 'Branch information created successfully.',
+    'working_days'=>'Working Days',
+    'working_time'=>' Working Time ',
+    'from'=>'From','to'=>'To',
+    'add'=>'Add',
+    ///
+     'saturday'=>'Saturday',
+    'sunday'=>'Sunday',
+    'monday'=>'Monday',
+    'tuesday'=>'Tuesday',
+    'wednesday'=>'Wedensady',
+    'thursday'=>'Thursday',
+    'friday'=>'Friday',
+'decative'=>'Inactive',
+'reactive'=>'Reactive',
+'active'=>'Active',
+'fax'=>'Fax',
+'main_branch'=> 'Main Branch',
+'company_branch_history'=>'Company Branch History',
+"user_name"=>' User Name',
+"user_id"=>'User Id',
+"company_branch"=>"Company branch",
+"branch_details"=>"Branch Details",
+'yes'=>'Yes',
+    'no'=>'No',
+    'error_validation'=>' Validation Error Message',
+    /// Categories
+"company_Categories"=>"Company Category",
+"select_branch"=>"Select Branchا",
+/// Categories
+"company_categories"=>"تصنيفات",
+
+"company_categories_history"=>"Company Category History",
+
 ];

@@ -18,4 +18,5 @@ return [
     'important' => 'Importante',
     'warning' => 'Advertencia',
     'information' => 'Información',
+    "category"=>'Category'
 ];

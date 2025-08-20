@@ -5,19 +5,23 @@
     'edit_route' => null,
     'delete_route' => null,
     'reactive_route' => null,
-    'searchRoute' => null
+    'search_route' => null
 ])
 
 @php
     $hasActions = $details_route || $edit_route || $delete_route || $reactive_route;
     $searchQuery = request('search');
 @endphp
+<x-adminlte-card >
 <div class="mb-3">
-  <form method="GET" action="{{ $searchRoute ?? request()->url() }}">
+  <form method="post" action="{{ $search_route}}">
+    @csrf
+    <input type="hidden" name="search" value="{{ $searchQuery }}">
     <div class="input-group">
       <input
         type="text"
         name="search"
+        onchange="this.form.submit()"
         value="{{ $searchQuery }}"
         class="form-control"
         placeholder="{{ __('adminlte::adminlte.search') }}"
@@ -32,8 +36,8 @@
 
 
 {{-- Table --}}
-<div class="table-responsive">
-    <table class="table table-bordered table-hover text-nowrap w-100">
+<div>
+    <table class="table table-bordered table-hover text-nowrap table-responsive-md">
         <thead class="thead-light">
             <tr>
                 <th>#</th>
@@ -64,7 +68,7 @@
                             @switch($field['type'] ?? null)
                                 @case('bool')
                                     <span class="badge {{ $data ? 'bg-success' : 'bg-danger' }}">
-                                        {{ $data ? 'Yes' : 'No' }}
+                                        {{ $data ?  __('adminlte::adminlte.yes'): __('adminlte::adminlte.no')}}
                                     </span>
                                     @break
                                 @case('color')
@@ -77,7 +81,7 @@
                                              class="img-thumbnail"
                                              style="width: 40px; height: 40px; object-fit: cover;">
                                     @else
-                                        <span class="text-muted">{{ __('adminlte::adminlte.details') }}</span>
+                                      <label class="text-muted">{{ __('adminlte::adminlte.no_image') }}</label>
                                     @endif
                                     @break
                                 @default
@@ -89,7 +93,7 @@
                     {{-- Action Buttons --}}
                     @if ($hasActions)
                         <td>
-                            <div class="btn-group btn-group-sm d-flex flex-wrap gap-1">
+                            <div class="btn-group btn-group-sm d-flex flex-wrap gap-1" style="padding: 5px">
                                 @if ($details_route)
                                     <a href="{{ route($details_route, $item->id) }}"
                                        onclick="openDialog(event, '{{ route($details_route, $item->id) }}')"
@@ -98,14 +102,14 @@
 
                                 @if ($item->is_active ?? true)
                                     @if ($edit_route)
-                                        <a href="{{ route($edit_route, $item->id) }}" class="btn btn-success mb-1">{{__('adminlte::adminlte.delete') }}</a>
+                                        <a href="{{ route($edit_route, $item->id) }}" class="btn btn-success mb-1">{{__('adminlte::adminlte.edit') }}</a>
                                     @endif
 
                                     @if ($delete_route)
                                         <form action="{{ route($delete_route, $item->id) }}" method="POST" onsubmit="return confirm('Are you sure?')" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger mb-1">{{__('adminlte::adminlte.edit') }}</button>
+                                            <button type="submit" class="btn btn-danger mb-1">{{__('adminlte::adminlte.delete') }}</button>
                                         </form>
                                     @endif
                                 @else
@@ -124,7 +128,7 @@
             @empty
                 <tr>
                     <td colspan="{{ count($fields) + ($hasActions ? 1 : 0) }}" class="text-center text-muted">
-                      {{ __('adminlte::adminlte.no_data')   }}
+                      {{ __('adminlte::adminlte.no_data_found')}}
                     </td>
                 </tr>
             @endforelse
@@ -154,7 +158,7 @@
         </div>
     </div>
 </div>
-
+</x-adminlte-card>
 @push('scripts')
 <script>
     function openDialog(event, url) {

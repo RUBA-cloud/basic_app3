@@ -21,7 +21,7 @@ class CompanyBranchController extends Controller
     public function index(bool $isHistory = false)
     {
         if ($isHistory) {
-            $branches = CompanyBranchesHistory::with('user')->get();
+            $branches = CompanyBranchesHistory::with('user')->paginate(10);
             return view('CompanyBranch.history', compact('branches'));
         }
         $branches = CompanyBranch::with('user')->where('is_active',true)->paginate(10);
@@ -35,6 +35,43 @@ class CompanyBranchController extends Controller
     {
         return view('CompanyBranch.create');
     }
+
+
+    public function searchHistory(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $branches = CompanyBranchesHistory::with('user')
+            ->where('name_en', 'like', '%' . $searchTerm . '%')
+            ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
+            ->orWhere('address_en', 'like', '%' . $searchTerm . '%')
+            ->orWhere('address_ar', 'like', '%' . $searchTerm . '%')
+            ->orWhere('email', 'like', '%' . $searchTerm . '%')
+            ->orWhere('phone', 'like', '%' . $searchTerm . '%')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+            return view('CompanyBranch.history', compact('branches'));
+    }
+
+
+    public function search(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $branches = CompanyBranch::with('user')
+            ->where('name_en', 'like', '%' . $searchTerm . '%')
+            ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
+            ->orWhere('address_en', 'like', '%' . $searchTerm . '%')
+            ->orWhere('address_ar', 'like', '%' . $searchTerm . '%')
+            ->orWhere('email', 'like', '%' . $searchTerm . '%')
+            ->orWhere('phone', 'like', '%' . $searchTerm . '%')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+            return view('CompanyBranch.index', compact('branches'));
+    }
+
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -133,6 +170,7 @@ class CompanyBranchController extends Controller
             if (!empty($company['image'])) {
                 $historyData['image'] = $branch['image'];
             }
+            $historyData["company_info_id"] =$branch->company_id;
             CompanyBranchesHistory::create($historyData);
 
             $branch->update($validated);
@@ -154,6 +192,8 @@ class CompanyBranchController extends Controller
         $historyData = $branch->toArray();
         unset($historyData['id']);
         $historyData['is_active']=false;
+                    $historyData["company_info_id"] =$branch->company_id;
+
         if (!empty($branch['image']))
                 $historyData['image'] = $branch['image'];
         CompanyBranchesHistory::create($historyData);

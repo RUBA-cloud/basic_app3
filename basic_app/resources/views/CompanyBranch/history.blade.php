@@ -1,47 +1,50 @@
 @extends('adminlte::page')
 
-@section('title', 'Company Branches')
+@section('title', __('adminlte::adminlte.company_branch'))
 
 @section('content')
-<div style="min-height: 100vh; display: flex;">
-    {{-- Sidebar --}}
-    <x-sidebar />
+<div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
+
 
     {{-- Main Content --}}
     <main style="flex: 1; padding: 40px 32px;">
         <div class="card_table">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin: 0;">
-                    Company Branches
-                </h2>
-                <a href="{{route('branches.index',false) }}"
-                   style="background: #f7f7fa; color: #6C63FF; font-weight: 600; border-radius: 12px; padding: 10px 28px; text-decoration: none; border: 1.5px solid #6C63FF;">
-                    <i class="fas fa-history" style="margin-right: 8px;"></i> Go Back
-                </a>
-            </div>
+            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">{{ __('adminlte::adminlte.company_branch') }}</h2>
+             {{-- Action Buttons --}}
 
+                {{-- filepath: /Users/rubahammad/Desktop/basic_app3/basic_app/resources/views/CompanyBranch/index.blade.php --}}
+<x-action_buttons
+    addRoute="companyBranch.create"
+    historyRoute="companyBranch.index"
+    :showAdd="false"
+/>
             {{-- Define Table Fields --}}
             @php
                 $fields = [
-                    ['key' => 'name_en', 'label' => 'Branch Name (EN)'],
-                    ['key' => 'name_ar', 'label' => 'Branch Name (AR)'],
-                    ['key' => 'phone', 'label' => 'Phone'],
-                    ['key' => 'email', 'label' => 'Email'],
-                    ['key' => 'address_en', 'label' => 'Address (EN)'],
-                    ['key' => 'address_ar', 'label' => 'Address (AR)'],
-                    ['key' => 'is_main_branch', 'label' => 'Main Branch', 'type' => 'bool'],
-                    ['key' => 'is_active', 'label' => 'Active', 'type' => 'bool'],
-                    ['key' => 'user.name', 'label' => 'User Name'],
-                    ['key' => 'user.id', 'label' => 'User ID'],
+                    ['key' => 'name_en', 'label' => __('adminlte::adminlte.branch_name_en')],
+                    ['key' => 'name_ar', 'label' => __('adminlte::adminlte.branch_name_ar')],
+                    ['key' => 'email', 'label' => __('adminlte::adminlte.email')],
+                    ['key' => 'address_en', 'label' => __('adminlte::adminlte.company_address_en')],
+                    ['key' => 'address_ar', 'label' => __('adminlte::adminlte.company_address_ar')],
+                    ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
+                    ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
+                    ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
+
+
                 ];
             @endphp
 
-            {{-- Table Component --}}
-<x-main_table :fields="$fields" :value="$branches" :details_route="'companyBranch.show'"
-
+ {{-- Table Component --}}
+ <x-main_table :fields="$fields" :value="$branches" :details_route="'companyBranch.show'"
+    :edit_route="'companyBranch.edit'"
+    :delete_route="'companyBranch.destroy'"
+    :search_route="'companyBranch_search_History'"
     :reactive_route="'reactive_branch'"/>
-
         </div>
+
+        {{-- Pagination --}}
+        <div style="margin-top: 24px;">
+            {{ $branches->links() }}
         </div>
     </main>
 </div>

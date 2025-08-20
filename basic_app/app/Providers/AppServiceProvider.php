@@ -61,6 +61,12 @@ class AppServiceProvider extends ServiceProvider
         'icon' => 'fas fa-fw fa-code-branch',
     ],
 
+     // category
+    [
+        'text' => 'category',
+        'url'  => 'categories/',
+        'icon' => 'fas fa-fw fa-code-category',
+    ],
     // Employees
     [
         'text' => 'employees',
