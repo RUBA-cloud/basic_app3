@@ -65,13 +65,13 @@ class AppServiceProvider extends ServiceProvider
     [
         'text' => 'category',
         'url'  => 'categories/',
-        'icon' => 'fas fa-fw fa-code-category',
+        'icon' => 'fa-solid fa-layer-group',
     ],
     // Employees
     [
-        'text' => 'employees',
-        'url'  => 'employees/',
-        'icon' => 'fas fa-fw fa-users',
+        'text' => 'size',
+        'url'  => 'sizes/',
+        'icon' => 'fa-solid fa-expand-wide',
     ],
 
     // Settings Section

@@ -15,6 +15,8 @@ class size extends Model
         'name_en',
         'name_ar',
         'is_active',
+        'descripation',
+        'image',
         'user_id',
     ];
 

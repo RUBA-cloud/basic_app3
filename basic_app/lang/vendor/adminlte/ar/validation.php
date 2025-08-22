@@ -10,7 +10,10 @@ return [
         'address_ar' => 'العنوان بالعربية',
         'location' => 'رابط الموقع',
         'image' => 'الصورة',
-        'branch_id'=>"افرع"
+        'branch_id'=>"افرع",
+         'descripation'=>'الوصف',
+            "price"=>"السعر"
+
     ],
     'messages' => [
         'integer'  => 'The :attribute must be an integer.',

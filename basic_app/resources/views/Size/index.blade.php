@@ -1,6 +1,5 @@
 @extends('adminlte::page')
 
-@section('title', 'Company Sizes')
 
 @section('content')
     <div class="container-fluid">
@@ -8,36 +7,32 @@
         {{-- Page Header --}}
         <div class="row mb-3" style="padding: 24px">
             <div class="col">
-                <h2 class="font-weight-bold text-dark">Company Sizes</h2>
+                <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.size')}}</h2>
             </div>
-            <div class="col-auto" >
-                {{-- Action Buttons --}}
-                <a href="{{ route('sizes.create') }}" class="btn btn-primary mr-2">
-                    <i class="fas fa-plus mr-1"></i> Add
-                </a>
-                <a href="{{ route('sizes.history', ['isHistory' => 'true']) }}" class="btn btn-outline-primary">
-                    <i class="fas fa-history mr-1"></i> History
-                </a>
-            </div>
+           <x-action_buttons
+                addRoute="sizes.create"
+                historyRoute="sizes.history"
+                historyParams="true"
+                :showAdd="true"
+            />
         </div>
+        
 
         {{-- Sizes Table Card --}}
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">List of Sizes</h3>
-            </div>
+   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.size')}}</h2>            </div>
 
             <div class="card-body table-responsive p-0">
-                @php
-                    $fields = [
-                        ['key' => 'name_en', 'label' => 'Name (EN)'],
-                        ['key' => 'name_ar', 'label' => 'Name (AR)'],
-                        ['key' => 'price', 'label' => 'Price'],
-                        ['key' => 'user.name', 'label' => 'User Name'],
-                        ['key' => 'user.id', 'label' => 'User ID'],
-                        ['key' => 'is_active', 'label' => 'Active', 'type' => 'bool'],
-                    ];
-                @endphp
+                  @php
+                $fields = [
+                     ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
+                    ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
+                    ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
+                    ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
+                    ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
+                ];
+            @endphp
 
                 <x-main_table
                     :fields="$fields"
@@ -46,6 +41,7 @@
                     :edit_route="'sizes.edit'"
                     :delete_route="'sizes.destroy'"
                     :reactive_route="'sizes.reactive'"
+                    :search_route="'size_search'"
                 />
             </div>
         </div>

@@ -64,7 +64,8 @@ Route::group(['middleware' => [SetLocale::class]], function () {
     Route::resource('sizes', SizeController::class);
     Route::get('/sizes_history/{isHistory?}', [SizeController::class, 'index'])->name('sizes.history');
     Route::put('/sizes/reactive/{id}', [SizeController::class, 'reactive'])->name('sizes.reactive');
-
+Route::post('/size_search_history', [SizeController::class, 'searchHistory'])->name('size_search_history');
+    Route::post('size_search', [SizeController::class, 'search']);
     // Additional
     Route::resource('additional', AdditonalController::class);
     Route::get('/additional_history/{isHistory?}', [AdditonalController::class, 'index'])->name('additional.history');

@@ -206,7 +206,8 @@ return [
 "name_en"=>"الاسم بالانجليزية",
 "name_ar"=>"الاسم بالعربية",
 "company_category_history"=>" الشرك؛ سجل فئات ",
-"is_active"=>"مفعل"
-
+"is_active"=>"مفعل",
+"price"=>"السعر"
+"descripation"=>"الوصف"
 
 ];

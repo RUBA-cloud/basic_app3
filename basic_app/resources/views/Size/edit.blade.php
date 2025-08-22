@@ -4,46 +4,62 @@
 <div style="min-height: 100vh; display: flex;">
     <div class="card" style="padding: 24px; width: 100%;">
         <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
-            Edit  Company Size
+                    {{ __('adminlte::adminlte.edit') }} {{ __('adminlte::adminlte.size') }}
         </h2>
 
         <form method="POST" action="{{ route('sizes.update',$size->id) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
+    {{-- Category Image --}}
+            <x-upload-image
+                       :image="$branch->image"
+
+                label="{{ __('adminlte::adminlte.image') }}"
+                name="image"
+                id="image"
+            />
 
             {{-- Size Name English --}}
             <x-form.textarea
                 id="name_en"
                 name="name_en"
-                label="Size Name (English)"
-                :value="$size->name_en"
+  label="{{__('adminlte::adminlte.name_en')}}"
+                  :value="$size->name_en"
             />
 
             {{-- Size Name Arabic --}}
             <x-form.textarea
                 id="name_ar"
                 name="name_ar"
-                label="اسم الحجم (Arabic)"
-                dir="rtl"
+  label="{{__('adminlte::adminlte.name_ar')}}"
+                  dir="rtl"
                 :value="$size->name_ar"
             />
     <x-form.textarea
                 id="price"
                 name="price"
-                label="Price"
-                dir="rtl"
+  label="{{__('adminlte::adminlte.price')}}"
                 :value="$size->price"
             />
+              <x-form.textarea
+                id="descripation"
+                name="descripation"
+                label="{{__('adminlte::adminlte.descripation')}}"
+                :value="$size->descripation"/>
+                
 
             {{-- Is Active Checkbox --}}
             <div class="form-group" style="margin: 20px 0;">
-                <input type="checkbox" name="is_active" value="1" {{ $size->is_active ? 'checked' : '' }}/> Active
+                <input type="checkbox" name="is_active" value="1" {{ $size->is_active ? 'checked' : '' }}/> {{__('adminlte::adminlte.is_active')}}
             </div>
 
-            {{-- Submit Button --}}
-            <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-size: 1rem; font-weight: 600; border-radius: 8px; background-color: #6C63FF; color: #fff; border: none; cursor: pointer;">
-                <i class="fas fa-save" style="margin-right: 8px;"></i> Save
-            </button>
+            <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
         </form>
     </div>
 </div>

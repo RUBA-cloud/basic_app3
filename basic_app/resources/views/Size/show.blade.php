@@ -1,36 +1,80 @@
 @extends('adminlte::page')
 
-@section('title', 'Size Info')
-
-@section('content_header')
-    <h1>Size Info</h1>
-@stop
+@section('title', __('adminlte::adminlte.size'))
 
 @section('content')
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <x-adminlte-card theme="light" theme-mode="outline" title="{{ $size->name_en }}">
-                {{-- Subtitle --}}
-                <h5 class="text-muted">{{ $size->name_ar }}</h5>
+<div class="container py-4">
+{{-- Header --}}
+ <h2 class="h4 mb-0 text-dark fw-bold">
+            <i class="fas fa-code-branch me-2 text-primary"></i>
+            @if (app()->getLocale() === 'ar') {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.size') }}@else{{ __('adminlte::adminlte.size') }} {{ __('adminlte::adminlte.details') }}@endif
+        </h2>
+    {{-- Card --}}
+    <x-adminlte-card theme="light" theme-mode="outline" class="shadow-sm">
+        <div class="row g-4">
 
-                {{-- Status Badge --}}
-                <p class="mt-3">
-                    <x-adminlte-badge label="{{ $size->is_active ? 'Active' : 'Inactive' }}" theme="{{ $size->is_active ? 'success' : 'danger' }}" />
+            {{-- Image --}}
+            <div class="col-lg-4 col-md-5">
+                <div class="border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center p-2 h-100">
+                    <img
+                        src="{{ $size->image ? asset($size->image) : 'https://placehold.co/500x300?text=Branch+Image' }}"
+                        alt="Branch Image"
+                        class="img-fluid rounded-3"
+                        style="max-height: 280px; object-fit: cover;"
+                    >
+                </div>
+            </div>
 
-                </p>
+            {{-- Details --}}
+            <div class="col-lg-8 col-md-7">
+                <div class="row gy-3">
+ {{-- Name in English --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $size->name_en }}</div>
+                    </div>
+                    {{-- Name in Arabic --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $size->name_ar }}</div>
+                    </div>
+                     <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.price') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $size->price }}</div>
+                    </div>
 
-                {{-- Size Details --}}
-                <p class="text-muted mb-0">
-                    <i>Size ID:</i> {{ $size->id }}
-                </p>
+                    {{-- Status --}}
+                    <div class="col-12">
+                        @if($size->is_active)
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
+                            </span>
+                        @else
+                            <span class="badge bg-danger px-3 py-2">
+                                <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
+                            </span>
+                        @endif
+                    </div>
 
-                {{-- Action Button --}}
-                <x-slot name="footerSlot">
-                    <a href="{{ route('sizes.edit', $size->id) }}" class="btn btn-primary">
-                        <i class="fas fa-edit mr-1"></i> Edit Size
-                    </a>
-                </x-slot>
-            </x-adminlte-card>
+                    {{-- Description --}}
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.descripation') }}</small>
+                        <div class="fw-semibold">{{ $size->descripation ?? '-' }}</div>
+                    </div>
+
+                    {{-- Actions --}}
+                    <div class="col-12 pt-3">
+                        <a href="{{ route('sizes.edit', $size->id) }}" class="btn btn-primary px-4 py-2">
+                            <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
+                        </a>
+                        <a href="{{ route('sizes.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                            <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
         </div>
-    </div>
-@stop
+    </x-adminlte-card>
+</div>
+@endsection

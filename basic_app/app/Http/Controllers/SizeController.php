@@ -24,7 +24,11 @@ class SizeController extends Controller
             return view('Size.history', compact('sizes'));
         }
 
-        $sizes = Size::with('user')->where('is_active', 1)->orderByDesc('created_at')->paginate(10);
+        $sizes = Size::with('user')
+            ->where('is_active', 1)
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
         return view('Size.index', compact('sizes', 'history'));
     }
 
@@ -35,19 +39,24 @@ class SizeController extends Controller
     {
         return view('Size.create');
     }
+
+    /**
+     * Display the specified resource.
+     */
     public function show($id)
     {
-        $size = Size::findOrFail($id);
-        if(!$size) {
-        $size = SizeHistory::findOrFail($id);
+        $size = Size::with('user')->find($id);
+
+        if (!$size) {
+            $size = SizeHistory::with('user')->find($id);
+
             if (!$size) {
                 return redirect()->route('sizes.index')->with('error', 'Size not found.');
-        }}
+            }
+        }
 
         return view('Size.show', compact('size'));
     }
-
-
 
     /**
      * Store a newly created resource in storage.
@@ -59,7 +68,7 @@ class SizeController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $logoPath = $request->file('image')->store('size_logo', 'public');
-            $validated['image'] = request()->getSchemeAndHttpHost() . '/storage/' . $logoPath;
+            $validated['image'] = asset('storage/' . $logoPath);
         }
 
         // Create size
@@ -68,6 +77,48 @@ class SizeController extends Controller
         $size->save();
 
         return redirect()->route('sizes.index')->with('success', 'Size created successfully.');
+    }
+
+    /**
+     * Search active sizes
+     */
+    public function search(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $history = false;
+
+        $sizes = Size::with('user')
+            ->where(function ($q) use ($searchTerm) {
+                $q->where('name_en', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('price', 'like', '%' . $searchTerm . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('Size.index', compact('sizes', 'history'));
+    }
+
+    /**
+     * Search size history
+     */
+    public function searchHistory(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $isHistory = true;
+
+        $sizes = SizeHistory::with('user')
+            ->where(function ($q) use ($searchTerm) {
+                $q->where('name_en', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('price', 'like', '%' . $searchTerm . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('Size.history', compact('sizes'));
     }
 
     /**
@@ -87,9 +138,14 @@ class SizeController extends Controller
         $size = Size::findOrFail($id);
         $validated = $request->validated();
 
+        if ($request->hasFile('image')) {
+            $logoPath = $request->file('image')->store('size_logo', 'public');
+            $validated['image'] = asset('storage/' . $logoPath);
+        }
+
         // Store current data in history before update
         $historyData = $size->toArray();
-        unset($historyData['id']); // Remove id to avoid conflict
+        unset($historyData['id']);
         $historyData['user_id'] = auth()->id();
         SizeHistory::create($historyData);
 
@@ -107,16 +163,16 @@ class SizeController extends Controller
     public function destroy(string $id)
     {
         $size = Size::findOrFail($id);
+
         // Store current data in history before soft delete
         $historyData = $size->toArray();
-        $historyData['is_active']= false;
+        $historyData['is_active'] = false;
         unset($historyData['id']);
         $historyData['user_id'] = auth()->id();
         SizeHistory::create($historyData);
 
         // Soft delete by marking as inactive
-
-        $size->delete();
+        $size->update(['is_active' => false]);
 
         return redirect()->route('sizes.index')->with('success', 'Size deleted successfully.');
     }
@@ -127,17 +183,16 @@ class SizeController extends Controller
     public function reactive($id)
     {
         $size = SizeHistory::findOrFail($id);
-        $size->is_active = true;
-        $size->save();
-        if ($size) {
-            $newSize = $size->toArray();
-            $newSize['is_active'] = true;
-            $newSize['user_id'] = auth()->id();
-            unset($newSize['id']); // Remove id to avoid conflict
-           $siz= Size::create($newSize);
-            $siz->user_id = auth()->id();
-            $siz->save();
-        }
+
+        $newSize = $size->toArray();
+        unset($newSize['id']); // Remove id to avoid conflict
+        $newSize['is_active'] = true;
+        $newSize['user_id'] = auth()->id();
+
+        $siz = Size::create($newSize);
+        $siz->user_id = auth()->id();
+        $siz->save();
+
         return redirect()->route('sizes.index')->with('success', 'Size reactivated successfully.');
     }
 }

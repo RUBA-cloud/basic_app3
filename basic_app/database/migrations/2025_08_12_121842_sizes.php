@@ -13,7 +13,7 @@ return new class extends Migration
     {
         //
         Schema::create('sizes', function (Blueprint $table) {
-            $table->id();
+      $table->id();
     $table->string('name_en', 25);
     $table->string('name_ar', 25);
     $table->boolean('is_active')->default(true);

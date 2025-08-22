@@ -1,42 +1,48 @@
 @extends('adminlte::page')
-@section('title', 'Company Sizes History')
+
+
 @section('content')
-<div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
+    <div class="container-fluid">
 
-    {{-- Main Content --}}
-    <main style="flex: 1; padding: 40px 32px;">
-        <div class="card_table">
-            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">Company Sizes History</h2>
-
-            {{-- Action Buttons --}}
-            <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-                <a href="{{ route('sizes.index') }}"
-                   style="background: #f7f7fa; color: #6C63FF; font-weight: 600; border-radius: 12px; padding: 10px 28px; text-decoration: none; border: 1.5px solid #6C63FF;">
-                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Go Back
-                </a>
+        {{-- Page Header --}}
+        <div class="row mb-3" style="padding: 24px">
+            <div class="col">
+                <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.size')}}</h2>
             </div>
+           <x-action_buttons
+                addRoute="sizes.create"
+                historyRoute="sizes.index"
+        
+                :showAdd="false"
+            />
+        </div>
+        
 
-            {{-- Define Table Fields --}}
-            @php
+        {{-- Sizes Table Card --}}
+        <div class="card">
+            <div class="card-header">
+   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.size')}}</h2>            </div>
+
+            <div class="card-body table-responsive p-0">
+                  @php
                 $fields = [
-                    ['key' => 'name_en', 'label' => 'Name (EN)'],
-                    ['key' => 'name_ar', 'label' => 'Name (AR)'],
-            ['key' => 'price', 'label' => 'Price'],
-            ['key' => 'user.name', 'label' => 'User Name'],
-
-                    ['key' => 'user.id', 'label' => 'User ID'],
-                    ['key' => 'is_active', 'label' => 'Active', 'type' => 'bool'],
+                     ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
+                    ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
+                    ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
+                    ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
+                    ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
-
-            {{-- Table Component --}}
-            <x-main_table
+ <x-main_table
                 :fields="$fields"
                 :value="$sizes"
                 :details_route="'sizes.show'"
                 :reactive_route="'sizes.reactive'"
+                 :search_route="'size_search_history'"
+
             />
+            </div>
         </div>
-    </main>
-</div>
+    </div>
 @endsection
+

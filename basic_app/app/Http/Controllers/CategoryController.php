@@ -50,7 +50,7 @@ class CategoryController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $logoPath = $request->file('image')->store('category_logo', 'public');
-            $validated['image'] = request()->getSchemeAndHttpHost() . '/storage/' . $logoPath;
+            $validated['image'] = asset('storage/' . $logoPath);
         }
 
         // Create category
@@ -165,7 +165,7 @@ $isHistory=false;
         // Handle image upload
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('category_logo', 'public');
-            $validated['image'] = request()->getSchemeAndHttpHost() . '/storage/' . $imagePath;
+            $validated['image'] = asset('storage/' . $logoPath);
         }
 
         // Store old data in history

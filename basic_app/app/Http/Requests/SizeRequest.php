@@ -24,6 +24,7 @@ class SizeRequest extends FormRequest
         $sizeId = $this->route('size');
 
         return [
+         'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'name_en' => [
                 'required',
                 'string',
@@ -34,20 +35,21 @@ class SizeRequest extends FormRequest
                 'required',
                 'string',
                 'max:25',
-                Rule::unique('sizes', 'name_ar')->ignore($sizeId)
+                Rule::unique('sizes', 'name_ar')->ignore($sizeId),
             ],
             'is_active' => ['boolean'],
             'price' => ['required', 'numeric', 'min:0'],
+            'descripation'=>["nullable",'string','max:255']
         ];
     }
 
-     public function attributes(): array
-    {
-        return trans('adminlte::validation.attributes');
-    }
+    //  public function attributes(): array
+    // {
+    //     return trans('adminlte::validation.attributes');
+    // }
 
-    public function messages(): array
-    {
-        return trans('adminlte::validation.messages');
-    }
+    // public function messages(): array
+    // {
+    //     return trans('adminlte::validation.messages');
+    // }
 }

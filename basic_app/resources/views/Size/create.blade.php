@@ -3,51 +3,60 @@
 @section('content')
 <div style="min-height: 100vh; display: flex;">
     <div class="card" style="padding: 24px; width: 100%;">
+
         <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
-            Create New Company Size
+                                {{ __('adminlte::adminlte.create') }} {{ __('adminlte::adminlte.size') }}
+
         </h2>
 
         <form method="POST" action="{{ route('sizes.store') }}" enctype="multipart/form-data">
             @csrf
+    {{-- Category Image --}}
+            <x-upload-image
+                :image="old('image')"
+                label="{{ __('adminlte::adminlte.image') }}"
+                name="image"
+                id="image"
+            />
 
             {{-- Size Name English --}}
             <x-form.textarea
                 id="name_en"
                 name="name_en"
-                label="Size Name (English)"
-                :value="old('name_en')"
-            />
+                label="{{__('adminlte::adminlte.name_en')}}"
+                :value="old('name_en')"/>
+                
+            
 
             {{-- Size Name Arabic --}}
             <x-form.textarea
                 id="name_ar"
                 name="name_ar"
-                label="اسم الحجم (Arabic)"
+                label="{{__('adminlte::adminlte.name_ar')}}"
                 dir="rtl"
                 :value="old('name_ar')"
             />
 
-    <x-form.textarea
-                id="price"
-                name="price"
-                label="price"
-                :value="old('price')"
-                dir="rtl"
-                :value="old('name_ar')"
-            />
+    <x-form.textarea     id="price"      name="price" label="{{__('adminlte::adminlte.price')}}"    :value="old('price')"       dir="rtl"     />
 
-
+  <x-form.textarea
+                id="descripation"
+                name="descripation"
+                label="{{__('adminlte::adminlte.descripation')}}"
+                :value="old('descripation')"/>
+                
             {{-- Is Active Checkbox --}}
             <div class="form-group" style="margin: 20px 0;">
-                <input type="checkbox" name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }}/> Active
+                <input type="checkbox" name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }}/> {{__('adminlte::adminlte.is_active')}}
             </div>
 
-        <button type="submit" class="btn_secondary" >
-
-                    Save Size
-                </button>
-
-        </form>
+             <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
     </div>
 </div>
 @endsection

@@ -123,13 +123,10 @@ return [
     'updated_at' => 'Updated At',
     'user' => 'User',
     'user_id' => 'User ID',
-
-
     'confirm_password_message' => 'Please confirm your password before continuing.',
     'confirm_password' => 'Confirm Password',
     'password' => 'Password',
     'password_confirmation' => 'Confirm Password',
-
     'company_branch' => 'Company Branch',
     'branches' => 'Branches',
     'branch_name_en' => 'Branch Name (English)',
@@ -201,6 +198,10 @@ return [
 "name_en"=>"Name (EN)",
 "name_ar"=>"Name (AR)",
 "company_cateory_history"=>"Company Category History",
-"is_active"=>" Active"
+"is_active"=>" Active",
+"size"=>"Size",
+"price"=>"Price",
+"descripation"=>"Descripation"
+
 
 ];

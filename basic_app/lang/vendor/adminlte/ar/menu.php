@@ -26,5 +26,6 @@ return [
     'important' => 'Important',
     'warning' => 'Warning',
     'information' => 'Information',
-    'category'=>'الفذات'
+    'category'=>'الفذات',
+    "size"=>"الاحجام"
 ];

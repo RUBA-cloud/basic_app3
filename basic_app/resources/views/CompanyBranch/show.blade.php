@@ -39,7 +39,11 @@
             {{-- Details --}}
             <div class="col-lg-8 col-md-7">
                 <div class="row gy-3">
-
+{{-- Branch Name --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.branch_name_en') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $branch->name_en}}</div>
+                    </div>
                     {{-- Branch Name --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.branch_name_ar') }}</small>
