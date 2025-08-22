@@ -4,7 +4,6 @@
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
-    <x-sidebar />
 
     <div class="card"  style="padding: 24px; width: 100%;">
         <h2 class="mb-4">Create New Product</h2>

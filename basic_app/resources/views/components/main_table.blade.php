@@ -16,6 +16,7 @@
 <div class="mb-3">
   <form method="post" action="{{ $search_route}}">
     @csrf
+    @method('Post')
     <input type="hidden" name="search" value="{{ $searchQuery }}">
     <div class="input-group">
       <input

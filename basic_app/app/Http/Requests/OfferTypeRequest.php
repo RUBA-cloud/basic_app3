@@ -37,4 +37,13 @@ class OfferTypeRequest extends FormRequest
             'total_amount' => 'nullable|numeric|min:0',
         ];
     }
+     public function attributes(): array
+    {
+        return trans('adminlte::validation.attributes');
+    }
+
+    public function messages(): array
+    {
+        return trans('adminlte::validation.messages');
+    }
 }

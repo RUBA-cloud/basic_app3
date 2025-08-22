@@ -1,15 +1,10 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Auth\LoginController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use App\Http\Middleware\SetLocale;
 use App\Http\Controllers\Auth\VerificationController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\CompanyBranchController;
 use App\Http\Controllers\HomeController;
@@ -21,67 +16,75 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\OfferTypeController;
-// Auth routes with email verification
 
-// Remove LoginController as a resource controller (login is already handled by Auth::routes())
-// If you really need custom login logic, use explicit routes instead
-
-// Dashboard rout–
 Route::get('/', function () {
     return redirect()->route('login');
 });
-// Email Verification routes
 
 Route::group(['middleware' => [SetLocale::class]], function () {
-Auth::routes(['verify' => true]);
+    Auth::routes(['verify' => true]);
 
-    // Your normal routes here
-    Route::get('/',[HomeController::class, 'index'])->name('home');
+    // Home
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    // Language switch route
+    // Language switch
     Route::get('/change-language/{lang}', function ($lang) {
         if (in_array($lang, ['en', 'ar'])) {
             session(['locale' => $lang]);
             app()->setLocale($lang);
             App::setLocale($lang);
-            return redirect()->back();
         }
+        return redirect()->back();
     })->name('change.language');
 
-Route::get('/verify', [VerificationController::class, 'verify'])->name('verify');
-Route::post('/resend-verification', [VerificationController::class, 'resend'])->name('verify.resend');
-Route::put('reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
-Route::put('reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
+    // Verification
+    Route::get('/verify', [VerificationController::class, 'verify'])->name('verify');
+    Route::post('/resend-verification', [VerificationController::class, 'resend'])->name('verify.resend');
 
-Route::resource('categories', CategoryController::class);
-// Home route-
-// Company Info routes
-Route::resource('/companyInfo', CompanyInfoController::class);
-Route::post('/compnyInfo_search', [CompanyInfoController::class, 'searchHistory'])->name('compnyInfo_search');
-Route::post('/compnyBranch_search', [CompanyBranchController::class, 'search']);
-Route::post('/compnyBranch_search_history', [CompanyBranchController::class, 'searchHistory']);
-// Company Branch routes
-Route::resource('companyBranch', CompanyBranchController::class);
-Route::get('/branches/{isHistory?}', [CompanyBranchController::class, 'index'])->name('branches.index');
-Route::get('/category_history/{isHistory?}', [CategoryController::class, 'index'])->name('category_history');
-Route::get('/companyInfoHistory', [CompanyInfoController::class, 'history'])->name('company_histroy');
-Route::resource('sizes', SizeController::class);
-Route::get('/sizes_history/{isHistory?}', [SizeController::class, 'index'])->name('sizes.history');
-Route::put('/reactive/{id?}', [SizeController::class, 'reactive'])->name('sizes.reactive');
-Route::resource('additional', AdditonalController::class);
-Route::get('/additional_history/{isHistory?}', [AdditonalController::class, 'index'])->name('additional.history');
-Route::put('/reactive/{id?}', [AdditonalController::class, 'reactive'])->name('additional.reactive');
-Route::resource('type', TypeController::class);
-Route::get('/type_history/{isHistory?}', [TypeController::class, 'index'])->name('type.history');
-Route::put('/reactive/{id?}', [TypeController::class, 'reactivate'])->name('type.reactive');
-Route::resource('product', ProductController::class);
-Route::put('/reactive/{id?}', [ProductController::class, 'reactivate'])->name('product.reactive');
-Route::get('/product_history/{isHistory?}', [ProductController::class, 'index'])->name('product.history');
-Route::get('users/{id}', [UserController::class, 'index'])->name('user.index');
-Route::resource('offers_type',OfferTypeController::class);
-Route::get('/s_history/{isHistory?}', [OfferTypeController::class, 'index'])->name('offer_type.history');
-Route::put('/offer_type_reactive/{id?}',[OfferTypeController::class,'reactive'])->name('offer_type_reactive');
+    // Categories
+    Route::put('reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
+    Route::post('category-search', [CategoryController::class, 'search'])->name('category-search');
+    Route::post('category-search-history', [CategoryController::class, 'searchHistory'])->name('category-search-history');
+    Route::resource('categories', CategoryController::class);
+    Route::get('/category_history/{isHistory?}', [CategoryController::class, 'index'])->name('category_history');
 
+    // Company Info
+    Route::resource('companyInfo', CompanyInfoController::class);
+    Route::post('/companyInfo_search', [CompanyInfoController::class, 'searchHistory'])->name('companyInfo_search');
+    Route::get('/companyInfoHistory', [CompanyInfoController::class, 'history'])->name('company_history');
 
+    // Company Branch
+    Route::resource('companyBranch', CompanyBranchController::class);
+    Route::put('reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
+    Route::post('/companyBranch_search', [CompanyBranchController::class, 'search'])->name('companyBranch_search');
+    Route::post('/companyBranch_search_history', [CompanyBranchController::class, 'searchHistory'])->name('companyBranch_search_history');
+    Route::get('/branches/{isHistory?}', [CompanyBranchController::class, 'index'])->name('branches.index');
+
+    // Sizes
+    Route::resource('sizes', SizeController::class);
+    Route::get('/sizes_history/{isHistory?}', [SizeController::class, 'index'])->name('sizes.history');
+    Route::put('/sizes/reactive/{id}', [SizeController::class, 'reactive'])->name('sizes.reactive');
+
+    // Additional
+    Route::resource('additional', AdditonalController::class);
+    Route::get('/additional_history/{isHistory?}', [AdditonalController::class, 'index'])->name('additional.history');
+    Route::put('/additional/reactive/{id}', [AdditonalController::class, 'reactive'])->name('additional.reactive');
+
+    // Type
+    Route::resource('type', TypeController::class);
+    Route::get('/type_history/{isHistory?}', [TypeController::class, 'index'])->name('type.history');
+    Route::put('/type/reactive/{id}', [TypeController::class, 'reactivate'])->name('type.reactive');
+
+    // Product
+    Route::resource('product', ProductController::class);
+    Route::get('/product_history/{isHistory?}', [ProductController::class, 'index'])->name('product.history');
+    Route::put('/product/reactive/{id}', [ProductController::class, 'reactivate'])->name('product.reactive');
+
+    // Users
+    Route::resource('users', UserController::class);
+
+    // Offers Type
+    Route::resource('offers_type', OfferTypeController::class);
+    Route::get('/offers_type_history/{isHistory?}', [OfferTypeController::class, 'index'])->name('offer_type.history');
+    Route::put('/offers_type/reactive/{id}', [OfferTypeController::class, 'reactive'])->name('offer_type.reactive');
 });
-

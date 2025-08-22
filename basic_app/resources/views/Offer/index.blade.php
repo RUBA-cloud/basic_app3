@@ -5,7 +5,6 @@
 @section('content')
 <div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
     {{-- Sidebar --}}
-    <x-sidebar />
 
     {{-- Main Content --}}
     <main style="flex: 1; padding: 40px 32px;">

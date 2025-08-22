@@ -3,13 +3,13 @@
     'addRoute' => null,
     'historyRoute' => null,
     'showAdd' => true,
-        'historyParams' => [],
+    'historyParams'=>null
 
 ])
 
 <div style="display: flex; gap: 16px; margin-bottom: 20px;">
     @if($showAdd && $addRoute)
-        <a href="{{ route('companyBranch.create') }}" class="add_button">
+        <a href="{{ route($addRoute) }}" class="add_button">
             <i class="fas fa-plus" style="margin-right: 8px;"></i>
             {{ __('adminlte::adminlte.add') }}
         </a>

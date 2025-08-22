@@ -1,17 +1,22 @@
-@extends('layouts.app')
+@extends('adminlte::page')
 
-@section('title', 'Company  Categories History')
 
 @section('content')
 <div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
-
-
+    {{-- Sidebar --}}
     {{-- Main Content --}}
     <main style="flex: 1; padding: 40px 32px;">
         <div class="card_table">
-            <x-action_buttons addRoute="categories.create" historyRoute="categories.index" :showAdd="false"  />
+            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">{{__('adminlte::adminlte.company_categories')}}</h2>
+            {{-- Action Buttons --}}
+            <x-action_buttons
+                addRoute="categories.create"
+                historyRoute="categories.index"
+                :showAdd="false"
+            />
+
             {{-- Table Field Definitions --}}
-             @php
+            @php
                 $fields = [
                      ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
                     ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
@@ -21,8 +26,17 @@
                 ];
             @endphp
 
-            {{-- Main Table Component --}}
-            <x-main_table :fields="$fields" :value="$categories" :details_route="'categories.show'"    :reactive_route="'reactive_category'"/>
+
+    <x-main_table
+    :fields="$fields"
+    :value="$categories"
+    :search_route="'category-search-history'"
+   :details_route="'categories.show'"
+    :edit_route="'categories.edit'"
+     :reactive_route="'reactive_category'"/>
+
+        </div>
+
         </div>
     </main>
 </div>

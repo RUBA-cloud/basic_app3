@@ -40,4 +40,14 @@ class SizeRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0'],
         ];
     }
+
+     public function attributes(): array
+    {
+        return trans('adminlte::validation.attributes');
+    }
+
+    public function messages(): array
+    {
+        return trans('adminlte::validation.messages');
+    }
 }

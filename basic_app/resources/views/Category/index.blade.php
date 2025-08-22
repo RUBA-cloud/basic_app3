@@ -7,10 +7,8 @@
     {{-- Main Content --}}
     <main style="flex: 1; padding: 40px 32px;">
         <div class="card_table">
-            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">{{__('adminlte::adminlte.comapny_category')}}</h2>
-
-
-{{-- Action Buttons --}}
+            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">{{__('adminlte::adminlte.company_categories')}}</h2>
+            {{-- Action Buttons --}}
             <x-action_buttons
                 addRoute="categories.create"
                 historyRoute="category_history"
@@ -28,11 +26,16 @@
                 ];
             @endphp
 
-            {{-- Main Table Component --}}
-            <x-main_table :fields="$fields" :value="$categories" :details_route="'categories.show'"
+
+    <x-main_table
+    :fields="$fields"
+    :value="$categories"
+    :details_route="'categories.show'"
     :edit_route="'categories.edit'"
-    :delete_route="'categories.destroy'"
-    :reactive_route="'reactive_category'"/>
+    :search_route="'category-search'"/>
+
+        </div>
+
         </div>
     </main>
 </div>

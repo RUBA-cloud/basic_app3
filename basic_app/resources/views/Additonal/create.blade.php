@@ -5,7 +5,6 @@
 @section('content')
 <div style="min-height: 100vh; display: flex;">
     {{-- Sidebar --}}
-    <x-sidebar />
 
     {{-- Main Content --}}
     <div class="card" style="padding: 32px; width: 100%; max-width: 800px; margin: auto;">

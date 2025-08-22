@@ -7,7 +7,12 @@ return [
     'max' => [
         'string' => 'The :attribute may not be greater than :max characters.',
     ],
+                'branch_ids' => 'Branches',
+
+
     'attributes' => [
+                    'integer'  => 'The :attribute must be an integer.',
+
         'name_en' => 'English Name',
         'name_ar' => 'Arabic Name',
         'email' => 'Email',

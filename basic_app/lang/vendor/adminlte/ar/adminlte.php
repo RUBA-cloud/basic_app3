@@ -196,8 +196,17 @@ return [
 "validation"=>"مشكلة في معبومات المدخلة ",
 
 /// Categories
+"create_category"=>"انشاء التصنيفات",
 "company_categories"=>"تصنيفات",
 "select_branch"=>"اختر فرع",
-"company_categories_history"=>"سجل التصنيفات"
+"company_categories_history"=>"سجل التصنيفات",
+"create"=>"انشاء",
+"edit"=>"تعديل",
+"category"=>"فئات",
+"name_en"=>"الاسم بالانجليزية",
+"name_ar"=>"الاسم بالعربية",
+"company_category_history"=>" الشرك؛ سجل فئات ",
+"is_active"=>"مفعل"
+
 
 ];

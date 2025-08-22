@@ -6,6 +6,8 @@ use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 use App\Models\CompanyBranch;
 use App\Models\CategoryHistory;
+use Illuminate\Http\Request;
+
 
 class CategoryController extends Controller
 {
@@ -42,6 +44,7 @@ class CategoryController extends Controller
      */
     public function store(CategoryRequest $request)
     {
+
         $validated = $request->validated();
 
         // Handle image upload
@@ -60,8 +63,37 @@ class CategoryController extends Controller
             $category->branches()->attach($request->branch_ids);
         }
 
-        return redirect()->route('categories.index')->with('success', 'Category created successfully.');
+        return redirect()->route('categories.index')->with('success', '');
     }
+
+        public function searchHistory(Request $request){
+
+        $searchTerm = $request->input('search');
+        $categories = CategoryHistory::with(['user', 'branches']) // eager load user + branch
+        ->whereHas('branches', function ($q) use ($searchTerm) {
+            $q->where('name_en', 'like', '%' . $searchTerm . '%')
+              ->orWhere('name_ar', 'like', '%' . $searchTerm . '%');
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+            return view('Category.history', compact('categories'));
+        }
+       public function search(Request $request)
+{
+    $searchTerm = $request->input('search');
+$isHistory=false;
+    $categories = Category::with(['user', 'branches']) // eager load user + branch
+        ->whereHas('branches', function ($q) use ($searchTerm) {
+            $q->where('name_en', 'like', '%' . $searchTerm . '%')
+              ->orWhere('name_ar', 'like', '%' . $searchTerm . '%');
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+          return view('Category.index', compact('categories', 'isHistory'));
+
+}
 
     /**
      * Display the specified resource.

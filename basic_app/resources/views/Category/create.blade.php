@@ -1,14 +1,11 @@
-@extends('layouts.app')
-
-@section('title', 'Create Category')
+@extends('adminlte::page')
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
-    <x-sidebar />
 
     <div class="card" style="padding: 24px; width: 100%;">
         <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
-            Create New Category
+            {{ __('adminlte::adminlte.create') }} {{ __('adminlte::adminlte.category') }}
         </h2>
 
         <form method="POST" action="{{ route('categories.store') }}" enctype="multipart/form-data">
@@ -17,7 +14,7 @@
             {{-- Category Image --}}
             <x-upload-image
                 :image="old('image')"
-                label="Category Image"
+                label="{{ __('adminlte::adminlte.image') }}"
                 name="image"
                 id="image"
             />
@@ -26,7 +23,7 @@
             <x-form.textarea
                 id="name_en"
                 name="name_en"
-                label="Category Name (English)"
+                label="{{ __('adminlte::adminlte.name_en') }}"
                 :value="old('name_en')"
             />
 
@@ -34,15 +31,14 @@
             <x-form.textarea
                 id="name_ar"
                 name="name_ar"
-                label="اسم الفئة (Arabic)"
-                dir="rtl"
+                label="{{ __('adminlte::adminlte.name_ar') }}"
                 :value="old('name_ar')"
             />
 
             {{-- Category Branch Selection (Multiple) --}}
             <div class="form-group" style="margin-bottom: 20px;">
                 <label for="branch_ids" style="display: block; margin-bottom: 8px; font-weight: 600;">
-                    Select Category Branch(es)
+              {{ __('adminlte::adminlte.select_branch') }}"
                 </label>
                 <select name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required style="width: 100%;">
                     @foreach($branches as $branch)
@@ -52,28 +48,20 @@
                     @endforeach
                 </select>
             </div>
-
             {{-- Is Active Checkbox --}}
             <div class="form-group" style="margin: 20px 0;">
-                <input type="checkbox" name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }}/> Active            {{-- Submit Button --}}
+                <input type="checkbox" name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }}/>
+                <label for="is_active">{{ __('adminlte::adminlte.is_active') }}</label>
             </div>
 
-            <button type="submit"
-                style="
-                    width: 100%;
-                    background: #6C63FF;
-                    color: #fff;
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    border: none;
-                    border-radius: 24px;
-                    padding: 14px 0;
-                    cursor: pointer;
-                    box-shadow: 0 4px 16px 0 rgba(108,99,255,0.15);
-                    transition: background 0.2s;
-                ">
-                Save Category
-            </button>
+            {{-- Submit Button --}}
+            <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="full-width-btn"
+                icon="fas fa-save"
+            />
         </form>
     </div>
 </div>
@@ -85,7 +73,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             $('#branch_ids').select2({
-                placeholder: 'Select one or more branches',
+                placeholder: "{{ __('adminlte::adminlte.select_branches') }}",
                 allowClear: true,
                 width: 'resolve'
             });

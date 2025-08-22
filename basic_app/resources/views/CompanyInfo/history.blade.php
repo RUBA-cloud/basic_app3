@@ -15,7 +15,7 @@
             </div>
             {{-- Action Buttons --}}
             <x-action_buttons
-                addRoute="categories.create"
+                addRoute=""
                 historyRoute="companyInfo.index"
                 :showAdd="false"
 />

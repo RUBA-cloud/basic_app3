@@ -1,170 +1,118 @@
-<div id="dialogContent"
-     class="dialog bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full relative animate-fade-in">
 
-    <div class="dialog-body">
-        <!-- Image -->
-        <div class="dialog-image">
-            <div class="image-container">
-                <img src="{{ $category->image ? asset($category->image) : 'https://placehold.co/300x200?text=Category+Image' }}"
-                     alt="Category Image"
-                     class="category-image">
-            </div>
-        </div>
 
-        <!-- Details -->
-        <div class="dialog-details">
-            <h2 class="category-title">{{ $category->name_en }}</h2>
-            <div class="category-subtitle">
-                <strong>{{ $category->name_ar }}</strong>
-            </div>
 
-            <div class="status-container">
-                @if($category->is_active)
-                    <span class="status-badge active">Active</span>
-                @else
-                    <span class="status-badge inactive">Inactive</span>
-                @endif
-            </div>
+@extends('adminlte::page')
 
-            <div class="branches-container">
-                <h4 class="branches-title">Branches:</h4>
-                @if($category->branches->count())
-                    <ul class="branches-list">
-                        @foreach($category->branches as $branch)
-                            <li>
-                                <a href="{{ route('companyBranch.show', $branch->id) }}" class="branch-link">
-                                    {{ $branch->name_en }}
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="no-branches">No branches available.</p>
-                @endif
-            </div>
+@section('title', __('adminlte::adminlte.category'))
 
-            <div class="edit-button">
-                <a href="{{ route('categories.edit', $category->id) }}"
-                   class="edit-link">
-                    Edit Category
-                </a>
-            </div>
-        </div>
+@section('content')
+<div class="container py-4">
+
+    {{-- Header --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 mb-0 text-dark fw-bold">
+            <i class="fas fa-code-branch me-2 text-primary"></i>
+            @if (app()->getLocale() === 'ar') {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.category') }}@else{{ __('adminlte::adminlte.category') }} {{ __('adminlte::adminlte.details') }}@endif
+        </h2>
+
+        @if($category->is_main_branch)
+            <span class="badge bg-purple text-white px-3 py-2">
+                <i class="fas fa-star me-1"></i>
+                {{ __('adminlte::adminlte.main_branch') }}
+            </span>
+        @endif
     </div>
+
+    {{-- Card --}}
+    <x-adminlte-card theme="light" theme-mode="outline" class="shadow-sm">
+        <div class="row g-4">
+
+            {{-- Image --}}
+            <div class="col-lg-4 col-md-5">
+                <div class="border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center p-2 h-100">
+                    <img
+                        src="{{ $category->image ? asset($category->image) : 'https://placehold.co/500x300?text=Branch+Image' }}"
+                        alt="Branch Image"
+                        class="img-fluid rounded-3"
+                        style="max-height: 280px; object-fit: cover;"
+                    >
+                </div>
+            </div>
+
+            {{-- Details --}}
+            <div class="col-lg-8 col-md-7">
+                <div class="row gy-3">
+
+                    {{-- Branch Name AR --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $category->name_en}}</div>
+                    </div>
+
+                    {{-- Branch Name --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $category->name_ar }}</div>
+                    </div>
+
+                    {{-- Status --}}
+                    <div class="col-12">
+                        @if($category->is_active)
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
+                            </span>
+                        @else
+                            <span class="badge bg-danger px-3 py-2">
+                                <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
+                            </span>
+                        @endif
+                    </div>
+
+                    {{-- Addresses --}}
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.company_address_en') }}</small>
+                        <div class="fw-semibold">{{ $category->address_en ?? '-' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.company_address_ar') }}</small>
+                        <div class="fw-semibold">{{ $category->address_ar ?? '-' }}</div>
+                    </div>
+
+ {{-- Branches --}}
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-secondary">Branches:</h6>
+                        @if($category->branches->count())
+                            <ul class="list-unstyled pl-2">
+                                @foreach($category->branches as $branch)
+                                    <li>
+                                        <a href="{{ route('companyBranch.show', $branch->id) }}" class="text-primary font-weight-bold">
+                                            <i class="fas fa-code-branch mr-1"></i> {{ $branch->name_en }}
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-muted">No branches available.</p>
+                        @endif
+                    </div>
+
+
+
+                    {{-- Actions --}}
+                    <div class="col-12 pt-3">
+                        <a href="{{ route('companyBranch.edit', $category->id) }}"
+                           class="btn btn-primary px-4 py-2">
+                            <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
+                        </a>
+                        <a href="{{route('companyBranch.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                            <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </x-adminlte-card>
 </div>
+@endsection
 
-<style>
-/* Animation */
-@keyframes fade-in {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-.animate-fade-in {
-    animation: fade-in 0.3s ease-out;
-}
-
-/* Layout */
-.dialog-body {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-}
-.dialog-image {
-    flex: 1.2;
-    min-width: 240px;
-}
-.dialog-details {
-    flex: 2;
-    min-width: 240px;
-}
-
-/* Image */
-.image-container {
-    background: #f7f7fa;
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.category-image {
-    max-width: 100%;
-    max-height: 200px;
-    border-radius: 10px;
-    object-fit: cover;
-}
-
-/* Titles & Text */
-.category-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #22223B;
-    margin-bottom: 6px;
-}
-.category-subtitle {
-    color: #888;
-    font-size: 1rem;
-    margin-bottom: 10px;
-}
-.status-container {
-    margin-bottom: 14px;
-}
-.branches-container {
-    margin-bottom: 18px;
-}
-.branches-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #2D3748;
-    margin-bottom: 6px;
-}
-.branches-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.branch-link {
-    color: #6C63FF;
-    font-weight: 600;
-    text-decoration: none;
-}
-.branch-link:hover {
-    text-decoration: underline;
-}
-.no-branches {
-    color: #666;
-}
-
-/* Status Badges */
-.status-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-}
-.status-badge.active {
-    background: #d1fae5;
-    color: #059669;
-}
-.status-badge.inactive {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-/* Button */
-.edit-button {
-    margin-top: 10px;
-}
-.edit-link {
-    display: inline-block;
-    background: #4F46E5;
-    color: #fff;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 8px;
-    text-decoration: none;
-}
-.edit-link:hover {
-    background: #4338CA;
-}
-</style>

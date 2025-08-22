@@ -1,12 +1,13 @@
-@extends('layouts.app')
-@section('title', 'Edit Category')
+@extends('adminlte::page')
+@section('title', __('adminlte'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
-    <x-sidebar />
 
-    <div class="card" style="padding: 24px; width: 100%;">
-        <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">Edit Category</h2>
+    <div class="card p-4 w-100 shadow-sm">
+        <h2 class="mb-4" style="font-size: 1.8rem; font-weight: 700; color: #22223B;">
+            {{ __('adminlte::adminlte.edit_category') }}
+        </h2>
 
         <form method="POST" action="{{ route('categories.update', $category->id) }}" enctype="multipart/form-data">
             @csrf
@@ -15,7 +16,7 @@
             {{-- Category Image --}}
             <x-upload-image
                 :image="$category->image"
-                label="Category Image"
+                label="{{ __('adminlte::adminlte.image') }}"
                 name="image"
                 id="image"
             />
@@ -24,7 +25,7 @@
             <x-form.textarea
                 id="name_en"
                 name="name_en"
-                label="Category Name (English)"
+                label="{{ __('adminlte::adminlte.en') }}"
                 :value="$category->name_en"
             />
 
@@ -32,19 +33,18 @@
             <x-form.textarea
                 id="name_ar"
                 name="name_ar"
-                label="اسم الفئة (Arabic)"
+                label="{{ __('adminlte::adminlte.name_ar') }}"
                 dir="rtl"
                 :value="$category->name_ar"
             />
 
             {{-- Category Branches selection (multiple) --}}
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label for="branch_ids" style="display: block; margin-bottom: 8px; font-weight: 600;">
-                    Select Branch(es)
+            <div class="form-group mb-3">
+                <label for="branch_ids" class="font-weight-bold mb-2">
+                    {{ __('adminlte::adminlte.select_branches') }}
                 </label>
-                <select name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required style="width: 100%;">
+                <select name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required>
                     @php
-                        // Get old selected branches if validation failed; otherwise use saved category branches
                         $selectedBranchIds = old('branch_ids', $category->branches->pluck('id')->toArray());
                     @endphp
                     @foreach($branches as $branch)
@@ -56,27 +56,39 @@
             </div>
 
             {{-- Is Active Checkbox --}}
-            <div class="form-group" style="margin: 20px 0;">
-                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $category?->is_active) ? 'checked' : '' }}/> Active            {{-- Submit Button --}}
+            <div class="form-group form-check mb-4">
+                <input type="checkbox" name="is_active" value="1" class="form-check-input"
+                       id="is_active" {{ old('is_active', $category?->is_active) ? 'checked' : '' }}>
+                <label class="form-check-label" for="is_active">
+                    {{ __('adminlte::adminlte.active') }}
+                </label>
             </div>
 
-            <button type="submit" style="width: 100%; background: #6C63FF; color: #fff; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 24px; padding: 14px 0; cursor: pointer; box-shadow: 0 4px 16px 0 rgba(108,99,255,0.15); transition: background 0.2s;">
-                Save Category
-            </button>
+            {{-- Submit Button --}}
+            <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
         </form>
     </div>
 </div>
 
 {{-- Include Select2 --}}
-@push('scripts')
+@push('css')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@endpush
+
+@push('js')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             $('#branch_ids').select2({
-                placeholder: 'Select one or more branches',
+                placeholder: '{{ __("adminlte::adminlte.select_branch_placeholder") }}',
                 allowClear: true,
-                width: 'resolve'
+                width: '100%'
             });
         });
     </script>

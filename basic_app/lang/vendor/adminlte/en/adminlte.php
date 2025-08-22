@@ -189,8 +189,18 @@ return [
 "company_Categories"=>"Company Category",
 "select_branch"=>"Select Branchا",
 /// Categories
-"company_categories"=>"تصنيفات",
+"create"=>"Create",
+"edit"=>"Edit",
 
+"category"=>"category",
+"company_categories"=>"company Categories",
 "company_categories_history"=>"Company Category History",
+"create"=>"Create",
+"edit"=>"Edit",
+"category"=>"Category",
+"name_en"=>"Name (EN)",
+"name_ar"=>"Name (AR)",
+"company_cateory_history"=>"Company Category History",
+"is_active"=>" Active"
 
 ];
