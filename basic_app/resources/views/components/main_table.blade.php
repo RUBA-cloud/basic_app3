@@ -14,9 +14,8 @@
 @endphp
 <x-adminlte-card >
 <div class="mb-3">
-  <form method="post" action="{{ $search_route}}">
+  <form method="post" action="{{route($search_route)  }}">
     @csrf
-    @method('Post')
     <input type="hidden" name="search" value="{{ $searchQuery }}">
     <div class="input-group">
       <input
@@ -94,23 +93,23 @@
                     {{-- Action Buttons --}}
                     @if ($hasActions)
                         <td>
-                            <div class="btn-group btn-group-sm d-flex flex-wrap gap-1" style="padding: 5px">
+<div class="d-flex flex-wrap gap-3" style="padding: 5px;margin:5px">
                                 @if ($details_route)
                                     <a href="{{ route($details_route, $item->id) }}"
                                        onclick="openDialog(event, '{{ route($details_route, $item->id) }}')"
-                                       class="btn btn-info mb-1">{{ __('adminlte::adminlte.details') }}</a>
+                                       class="btn btn-info mb-1" style="margin: 5px">{{ __('adminlte::adminlte.details') }}</a>
                                 @endif
 
                                 @if ($item->is_active ?? true)
                                     @if ($edit_route)
-                                        <a href="{{ route($edit_route, $item->id) }}" class="btn btn-success mb-1">{{__('adminlte::adminlte.edit') }}</a>
+                                        <a href="{{ route($edit_route, $item->id) }}" style="margin: 5px" class="btn btn-success mb-1">{{__('adminlte::adminlte.edit') }}</a>
                                     @endif
 
                                     @if ($delete_route)
                                         <form action="{{ route($delete_route, $item->id) }}" method="POST" onsubmit="return confirm('Are you sure?')" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger mb-1">{{__('adminlte::adminlte.delete') }}</button>
+                                            <button type="submit" class="btn btn-danger mb-1" style="margin: 5px">{{__('adminlte::adminlte.delete') }}</button>
                                         </form>
                                     @endif
                                 @else

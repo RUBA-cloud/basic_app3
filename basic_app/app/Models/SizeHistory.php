@@ -14,6 +14,7 @@ class SizeHistory extends Model
     protected $fillable = [
         'name_en',
         'name_ar',
+        'descripation',
         'is_active',
         'user_id',
     ];

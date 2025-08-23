@@ -180,9 +180,8 @@ return [
 "company_branch"=>"Company branch",
 "branch_details"=>"Branch Details",
 'yes'=>'Yes',
-    'no'=>'No',
-    'error_validation'=>' Validation Error Message',
-    /// Categories
+'no'=>'No',
+'error_validation'=>' Validation Error Message',
 "company_Categories"=>"Company Category",
 "select_branch"=>"Select Branchا",
 /// Categories
@@ -201,7 +200,8 @@ return [
 "is_active"=>" Active",
 "size"=>"Size",
 "price"=>"Price",
-"descripation"=>"Descripation"
+"descripation"=>"Descripation",
+"type"=>"Type"
 
 
 ];

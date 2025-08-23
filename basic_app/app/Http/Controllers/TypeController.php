@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TypeHistory;
 use App\Http\Requests\TypeRequest;
 use App\Models\Type;
+use Illuminate\Http\Request;
 
 class TypeController extends Controller
 {
@@ -17,15 +18,23 @@ class TypeController extends Controller
     }
 
     public function index($isHistory = false)
-    {
-        // If $ishistory is true, return a history view
-        if ($isHistory) {
-            $types = TypeHistory::with('user')->get()->sortByDesc('created_at');
-            return view('type.history', compact('types'));
-        }
-        $types = Type::with('user')->where('is_active', 1)->get()->sortByDesc('created_at');
-            return view('type.index', compact('types'));
+{
+    if ($isHistory) {
+        $types = TypeHistory::with('user')
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return view('type.history', compact('types'));
     }
+
+    $types = Type::with('user')
+        ->where('is_active', 1)
+        ->orderByDesc('created_at')
+        ->paginate(10);
+
+    return view('type.index', compact('types'));
+}
+
     /**
      * Show the form for creating a new resource.
      */
@@ -112,6 +121,44 @@ class TypeController extends Controller
             return redirect()->route('type.index')->with('error', 'Type not found.');
     }
 }
+
+    public function search(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $history = false;
+
+        $sizes = Type::with('user')
+            ->where(function ($q) use ($searchTerm) {
+                $q->where('name_en', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('name_ar', 'like', '%' . $searchTerm . '%');
+
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('Size.index', compact('sizes', 'history'));
+    }
+
+    /**
+     * Search size history
+     */
+    public function searchHistory(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $isHistory = true;
+
+        $sizes = TypeHistory::with('user')
+            ->where(function ($q) use ($searchTerm) {
+                $q->where('name_en', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('name_ar', 'like', '%' . $searchTerm . '%');
+
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('type.history', compact('sizes'));
+    }
+
 public function reactivate(string $id)
     {
         $type = TypeHistory::findOrFail($id);

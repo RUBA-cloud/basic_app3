@@ -8,19 +8,15 @@
 
     {{-- Main Content --}}
     <main style="flex: 1; padding: 40px 32px;">
-        <div class="card_table">
-            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">{{ __('adminlte::adminlte.company_branch') }}</h2>
+        <div class="card-table" style="padding: 24px">
 
-            {{-- Action Buttons --}}
-
-
-          {{-- filepath: /Users/rubahammad/Desktop/basic_app3/basic_app/resources/views/CompanyBranch/index.blade.php --}}
-<x-action_buttons
+<x-action_buttons label="{{ __('adminlte::adminlte.company_branch') }}"
     addRoute="companyBranch.create"
     historyRoute="branches.index"
     :historyParams="['isHistory' => 'true']"
     :showAdd="true"
 />
+        </div>
             {{-- Define Table Fields --}}
             @php
                 $fields = [
@@ -39,7 +35,7 @@
  <x-main_table :fields="$fields" :value="$branches" :details_route="'companyBranch.show'"
     :edit_route="'companyBranch.edit'"
     :delete_route="'companyBranch.destroy'"
-    :search_route="'compnyBranch_search'"
+    :search_route="'companyBranch_search'"
     :reactive_route="'reactive_branch'"/>
         </div>
 

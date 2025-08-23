@@ -91,7 +91,7 @@ class SizeController extends Controller
             ->where(function ($q) use ($searchTerm) {
                 $q->where('name_en', 'like', '%' . $searchTerm . '%')
                     ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('descripation', 'like', '%' . $searchTerm . '%')
                     ->orWhere('price', 'like', '%' . $searchTerm . '%');
             })
             ->orderBy('created_at', 'desc')
@@ -112,7 +112,7 @@ class SizeController extends Controller
             ->where(function ($q) use ($searchTerm) {
                 $q->where('name_en', 'like', '%' . $searchTerm . '%')
                     ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('descripation', 'like', '%' . $searchTerm . '%')
                     ->orWhere('price', 'like', '%' . $searchTerm . '%');
             })
             ->orderBy('created_at', 'desc')

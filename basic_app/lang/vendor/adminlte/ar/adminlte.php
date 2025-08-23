@@ -171,11 +171,10 @@ return [
 'working_time'=>'ساعات العمل  ',
 'from'=>'من',
 'to'=>'الى',
-    'edit_branch' => 'تعديل الفرع',
-    'delete_branch' => 'حذف الفرع',
-    'add_branch' => 'إضافة فرع',
-    'branch_list' => 'قائمة الفروع',
-    'branch_details' => 'تفاصيل الفرع',
+'edit_branch' => 'تعديل الفرع',
+'delete_branch' => 'حذف الفرع',
+ 'add_branch' => 'إضافة فرع',
+'branch_list' => 'قائمة الفروع','branch_details' => 'تفاصيل الفرع',
     'saturday'=>'السبت',
     'sunday'=>'الاحد',
     'monday'=>'الاثنين',
@@ -207,7 +206,9 @@ return [
 "name_ar"=>"الاسم بالعربية",
 "company_category_history"=>" الشرك؛ سجل فئات ",
 "is_active"=>"مفعل",
-"price"=>"السعر"
+"price"=>"السعر",
+"size"=>"الحجم",
+"type"=>"النوع",
 "descripation"=>"الوصف"
 
 ];

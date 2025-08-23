@@ -28,14 +28,8 @@
                 $fields = [
                     ['key' => 'name_en', 'label' => 'Name (EN)'],
                     ['key' => 'name_ar', 'label' => 'Name (AR)'],
-                    ['key' => 'description_en', 'label' => 'Description (EN)'],
-                    ['key' => 'description_ar', 'label' => 'Description (AR)'],
                     ['key' => 'is_discount', 'label' => 'Is Discount'],
-                    ['key' => 'is_product_count_gift', 'label' => 'Count product gift'],
-                    ['key' => 'is_total_discount', 'label' => 'Total discount'],
-                    ['key' => 'discount_value_product', 'label' =>'Discount Percentage'],
-                    ['key' => 'user.name', 'label' => 'User Name'],
-                    ['key' => 'user.id', 'label' => 'User ID'],
+
                     ['key' => 'is_active', 'label' => 'Active', 'type' => 'bool'],
                 ];
             @endphp

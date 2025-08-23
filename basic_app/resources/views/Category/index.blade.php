@@ -6,10 +6,10 @@
     {{-- Sidebar --}}
     {{-- Main Content --}}
     <main style="flex: 1; padding: 40px 32px;">
-        <div class="card_table">
-            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">{{__('adminlte::adminlte.company_categories')}}</h2>
+        <div class="card-table" style="padding: 24px">
             {{-- Action Buttons --}}
             <x-action_buttons
+            label="{{__('adminlte::adminlte.company_categories')}}"
                 addRoute="categories.create"
                 historyRoute="category_history"
                 :showAdd="true"

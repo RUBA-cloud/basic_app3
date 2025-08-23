@@ -2,29 +2,21 @@
 
 
 @section('content')
-    <div class="container-fluid">
-
-        {{-- Page Header --}}
-        <div class="row mb-3" style="padding: 24px">
-            <div class="col">
-                <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.size')}}</h2>
-            </div>
-           <x-action_buttons
+<div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
+    {{-- Sidebar --}}
+    {{-- Main Content --}}
+    <main style="flex: 1; padding: 40px 32px;">
+        <div class="card_table">
+            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">{{__('adminlte::adminlte.size')}}</h2>
+            {{-- Action Buttons --}}
+            <x-action_buttons
                 addRoute="sizes.create"
                 historyRoute="sizes.history"
-                historyParams="true"
                 :showAdd="true"
             />
-        </div>
-        
 
-        {{-- Sizes Table Card --}}
-        <div class="card">
-            <div class="card-header">
-   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.size')}}</h2>            </div>
-
-            <div class="card-body table-responsive p-0">
-                  @php
+            {{-- Table Field Definitions --}}
+            @php
                 $fields = [
                      ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
                     ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
@@ -34,16 +26,17 @@
                 ];
             @endphp
 
-                <x-main_table
-                    :fields="$fields"
-                    :value="$sizes"
-                    :details_route="'sizes.show'"
-                    :edit_route="'sizes.edit'"
-                    :delete_route="'sizes.destroy'"
-                    :reactive_route="'sizes.reactive'"
-                    :search_route="'size_search'"
-                />
-            </div>
+
+    <x-main_table
+    :fields="$fields"
+    :value="$sizes"
+    :details_route="'sizes.show'"
+    :edit_route="'sizes.edit'"
+    :search_route="'sizes.search'"/>
+
         </div>
-    </div>
+
+        </div>
+    </main>
+</div>
 @endsection

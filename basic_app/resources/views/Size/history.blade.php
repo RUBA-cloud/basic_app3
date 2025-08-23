@@ -5,18 +5,16 @@
     <div class="container-fluid">
 
         {{-- Page Header --}}
-        <div class="row mb-3" style="padding: 24px">
-            <div class="col">
-                <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.size')}}</h2>
-            </div>
+  <div class="card_table" style="padding: 24px">
+
            <x-action_buttons
+           label="{{__('adminlte::adminlte.size')}}"
                 addRoute="sizes.create"
                 historyRoute="sizes.index"
-        
                 :showAdd="false"
             />
         </div>
-        
+
 
         {{-- Sizes Table Card --}}
         <div class="card">

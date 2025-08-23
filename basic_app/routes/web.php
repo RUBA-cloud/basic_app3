@@ -11,11 +11,10 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\AdditonalController;
-use App\Http\Controllers\TypeController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\OfferTypeController;
+use App\Http\Controllers\TypeController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -57,7 +56,8 @@ Route::group(['middleware' => [SetLocale::class]], function () {
     Route::resource('companyBranch', CompanyBranchController::class);
     Route::put('reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
     Route::post('/companyBranch_search', [CompanyBranchController::class, 'search'])->name('companyBranch_search');
-    Route::post('/companyBranch_search_history', [CompanyBranchController::class, 'searchHistory'])->name('companyBranch_search_history');
+Route::post('/branch_history/search', [CompanyBranchController::class, 'searchHistory'])
+    ->name('branch_history.search');
     Route::get('/branches/{isHistory?}', [CompanyBranchController::class, 'index'])->name('branches.index');
 
     // Sizes
@@ -65,7 +65,7 @@ Route::group(['middleware' => [SetLocale::class]], function () {
     Route::get('/sizes_history/{isHistory?}', [SizeController::class, 'index'])->name('sizes.history');
     Route::put('/sizes/reactive/{id}', [SizeController::class, 'reactive'])->name('sizes.reactive');
 Route::post('/size_search_history', [SizeController::class, 'searchHistory'])->name('size_search_history');
-    Route::post('size_search', [SizeController::class, 'search']);
+    Route::post('size_search', [SizeController::class, 'search'])->name('sizes.search');
     // Additional
     Route::resource('additional', AdditonalController::class);
     Route::get('/additional_history/{isHistory?}', [AdditonalController::class, 'index'])->name('additional.history');
@@ -76,13 +76,16 @@ Route::post('/size_search_history', [SizeController::class, 'searchHistory'])->n
     Route::get('/type_history/{isHistory?}', [TypeController::class, 'index'])->name('type.history');
     Route::put('/type/reactive/{id}', [TypeController::class, 'reactivate'])->name('type.reactive');
 
+     Route::post('/type_search',[TypeController::class,'search'])->name('type.search');
+
+ Route::post('/type_search_history',[TypeController::class,'searchHistory'])->name('type.search_history');
+
     // Product
     Route::resource('product', ProductController::class);
     Route::get('/product_history/{isHistory?}', [ProductController::class, 'index'])->name('product.history');
     Route::put('/product/reactive/{id}', [ProductController::class, 'reactivate'])->name('product.reactive');
 
     // Users
-    Route::resource('users', UserController::class);
 
     // Offers Type
     Route::resource('offers_type', OfferTypeController::class);

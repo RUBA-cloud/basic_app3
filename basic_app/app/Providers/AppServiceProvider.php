@@ -73,6 +73,24 @@ class AppServiceProvider extends ServiceProvider
         'url'  => 'sizes/',
         'icon' => 'fa-solid fa-expand-wide',
     ],
+    // Types
+    [
+        'text' => 'type',
+        'url'  => 'type/',
+        'icon' => 'fa-solid fa-expand-type',
+    ],
+    [
+        'text' => 'offers_type',
+        'url'  => 'offers/',
+        'icon' => 'fa-solid fa-expand-type',
+    ],
+
+    [
+        'text' => 'offers',
+        'url'  => 'offers/',
+        'icon' => 'fa-solid fa-expand-type',
+    ],
+
 
     // Settings Section
 

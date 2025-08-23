@@ -1,54 +1,48 @@
-@extends('adminlte::page')
 
-@section('title', 'Company Types History')
+ @extends('adminlte::page')
+
 
 @section('content')
-<div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
+    <div class="container-fluid">
 
-
-    {{-- Main Content --}}
-    <main style="flex: 1; padding: 40px 32px;">
-        <div class="card_table" style="background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin: 0;">
-                    Company Types History
-                </h2>
-
-                <a href="{{ route('type.index') }}"
-                   style="
-                       background: #f7f7fa;
-                       color: #6C63FF;
-                       font-weight: 600;
-                       border-radius: 12px;
-                       padding: 10px 20px;
-                       text-decoration: none;
-                       border: 1.5px solid #6C63FF;
-                       display: flex;
-                       align-items: center;
-                   ">
-                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Go Back
-                </a>
+        {{-- Page Header --}}
+        <div class="row mb-3" style="padding: 24px">
+            <div class="col">
+                <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.type')}}</h2>
             </div>
+           <x-action_buttons
+                addRoute="type.create"
+                historyRoute="type.index"
 
-            @php
+                :showAdd="false"
+            />
+        </div>
+
+
+        {{-- Sizes Table Card --}}
+        <div class="card">
+            <div class="card-header">
+   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.type')}}</h2>            </div>
+
+            <div class="card-body table-responsive p-0">
+                  @php
                 $fields = [
-                    ['key' => 'name_en', 'label' => 'Name (EN)'],
-                    ['key' => 'name_ar', 'label' => 'Name (AR)'],
-                    ['key' => 'user.name', 'label' => 'User Name'],
-                    ['key' => 'user.id', 'label' => 'User ID'],
-                    ['key' => 'is_active', 'label' => 'Active', 'type' => 'bool'],
+                     ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
+                    ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
+                    ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
+                    ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
+                    ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
-
-            {{-- Table Component --}}
-            <x-main_table
+ <x-main_table
                 :fields="$fields"
                 :value="$types"
                 :details_route="'type.show'"
                 :reactive_route="'type.reactive'"
-            />
+                :search_route="'type.search_history'"
+           />
+            </div>
         </div>
-    </main>
-</div>
+    </div>
 @endsection
+

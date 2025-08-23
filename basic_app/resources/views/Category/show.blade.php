@@ -80,7 +80,7 @@
 
  {{-- Branches --}}
                     <div class="mb-3">
-                        <h6 class="font-weight-bold text-secondary">Branches:</h6>
+                        <h6 class="font-weight-bold text-secondary">{{ __('adminlte::adminlte.branch') }}</h6>
                         @if($category->branches->count())
                             <ul class="list-unstyled pl-2">
                                 @foreach($category->branches as $branch)
@@ -91,20 +91,18 @@
                                     </li>
                                 @endforeach
                             </ul>
-                        @else
-                            <p class="text-muted">No branches available.</p>
-                        @endif
+
                     </div>
 
 
 
                     {{-- Actions --}}
                     <div class="col-12 pt-3">
-                        <a href="{{ route('companyBranch.edit', $category->id) }}"
+                        <a href="{{ route('categories.edit', $category->id) }}"
                            class="btn btn-primary px-4 py-2">
                             <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
                         </a>
-                        <a href="{{route('companyBranch.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                        <a href="{{route('categories.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
                             <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
                         </a>
                     </div>

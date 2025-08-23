@@ -81,8 +81,7 @@ class CategoryController extends Controller
         }
        public function search(Request $request)
 {
-    $searchTerm = $request->input('search');
-$isHistory=false;
+    $searchTerm = $request->input('search');$isHistory=false;
     $categories = Category::with(['user', 'branches']) // eager load user + branch
         ->whereHas('branches', function ($q) use ($searchTerm) {
             $q->where('name_en', 'like', '%' . $searchTerm . '%')
