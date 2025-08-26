@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('type_history', function (Blueprint $table) {
+        Schema::create('additonal_history', function (Blueprint $table) {
             $table->id();
             $table->string('name_en')->nullable();
             $table->string('name_ar')->nullable();
+            $table->string('image')->nullable();
+            $table->string('price')->nullable();
+            $table->string('descripation')->nullable();
+
             $table->boolean('is_active')->default(true);
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('type_history');
+        Schema::dropIfExists('additonal_history');
     }
 };

@@ -12,6 +12,8 @@ class Additonal extends Model
         'name_en',
         'name_ar',
         'image',
+            'description',
+
         'price',
         'is_active',
         'user_id',
@@ -28,4 +30,3 @@ class Additonal extends Model
     {
         return $this->where('is_active', true)->get();  }
 }
-`

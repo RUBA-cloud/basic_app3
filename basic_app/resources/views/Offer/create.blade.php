@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('adminlte::page')
 
 @section('title', 'Create Offer')
 
@@ -6,38 +6,38 @@
 <div style="min-height: 100vh; display: flex;">
 
     <div class="card"  style="padding: 24px; width: 100%;">
-        <h2 class="mb-4">Create New Product</h2>
+        <h2 class="mb-4"> {{ __('adminlte::adminlte.create') }}<{{ __('adminlte::adminlte.offers') }} </h2>
 
         <form action="{{ route('offers_type.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             {{-- Name EN --}}
             <div class="mb-3">
-                <label for="name_en" class="form-label">Name (EN)</label>
+                <label for="name_en" class="form-label">{{ __('adminlte::adminlte.name_en') }}</label>
                 <input type="text" name="name_en" id="name_en" class="form-control" value="{{ old('name_en') }}" required>
             </div>
 
             {{-- Name AR --}}
             <div class="mb-3">
-                <label for="name_ar" class="form-label">Name (AR)</label>
+                <label for="name_ar" class="form-label">{{ __('adminlte::adminlte.name_ar') }}<</label>
                 <input type="text" name="name_ar" id="name_ar" class="form-control" value="{{ old('name_ar') }}" required>
             </div>
 
             {{-- Description EN --}}
             <div class="mb-3">
-                <label for="description_en" class="form-label">Description (EN)</label>
+                <label for="description_en" class="form-label">{{ __('adminlte::adminlte.descripation') }} (EN) </label>
                 <textarea name="description_en" id="description_en" class="form-control">{{ old('description_en') }}</textarea>
             </div>
 
             {{-- Description AR --}}
             <div class="mb-3">
-                <label for="description_ar" class="form-label">Description (AR)</label>
+                <label for="description_ar" class="form-label">{{ __('adminlte::adminlte.descripation') }} (AR)</label>
                 <textarea name="description_ar" id="description_ar" class="form-control">{{ old('description_ar') }}</textarea>
             </div>
 
             {{-- Price --}}
             <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
+                <label for="price" class="form-label">{{ __('adminlte::adminlte.price') }}</label>
                 <input type="number" step="0.01" name="price" id="price" class="form-control" value="{{ old('price') }}" required>
             </div>
 
@@ -47,9 +47,9 @@
 
             {{-- Category --}}
             <div class="mb-3">
-                <label for="category_id" class="form-label">Category</label>
+                <label for="category_id" class="form-label">{{ __('adminlte::adminlte.category') }}</label>
                 <select name="category_id" id="category_id" class="form-select" required>
-                    <option value="">Select Category</option>
+                    <option value="">{{ __('adminlte::adminlte.select_category') }}y</option>
                     @foreach($categories as $category)
                         <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                             {{ $category->name_en }}
@@ -104,7 +104,7 @@
 
             {{-- Dynamic multiple color inputs --}}
             <div class="mb-3">
-                <label class="form-label">Product Colors</label>
+                <label class="form-label">{{ __('asminlte::adminlte.colors') }}<label>
                 <div id="colorInputs">
                     <div class="input-group mb-2">
                         <input type="color" name="colors[]" class="form-control">
@@ -127,10 +127,14 @@
                 <label for="is_active" class="form-check-label">Active</label>
             </div>
             {{-- Submit Button --}}
- <button type="submit" class="btn_secondary" >
 
-                    Save
-                </button>
+             <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
 
       </form>
     </div>

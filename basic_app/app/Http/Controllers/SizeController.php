@@ -20,7 +20,7 @@ class SizeController extends Controller
     public function index($history = false)
     {
         if ($history) {
-            $sizes = SizeHistory::with('user')->orderByDesc('created_at')->paginate(10);
+            $sizes = SizeHistory::with('user')->with('is_active',true)->orderByDesc('created_at')->paginate(10);
             return view('Size.history', compact('sizes'));
         }
 

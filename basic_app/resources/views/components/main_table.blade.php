@@ -159,18 +159,3 @@
     </div>
 </div>
 </x-adminlte-card>
-@push('scripts')
-<script>
-    function openDialog(event, url) {
-        event.preventDefault();
-        fetch(url)
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById('detailsModalBody').innerHTML = html;
-                const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
-                modal.show();
-            })
-            .catch(() => alert('Failed to load details.'));
-    }
-</script>
-@endpush

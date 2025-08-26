@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
-         Schema::create('category_branch_history', function (Blueprint $table) {
+        Schema::create('category_branch_history', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('category_id')->nullable();
         $table->foreign('category_id')
               ->references('id')
-              ->on('categories_history')
+              ->on('categories')
               ->onDelete('set null');
               $table->unsignedBigInteger('branch_id')->nullable();
         $table->foreign('branch_id')
@@ -33,7 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
         Schema::dropIfExists('category_branch_history');
     }
 };

@@ -80,8 +80,18 @@ class AppServiceProvider extends ServiceProvider
         'icon' => 'fa-solid fa-expand-type',
     ],
     [
+        'text' => 'additional',
+        'url'  => 'additional/',
+        'icon' => 'fa-solid fa-expand-type',
+    ],
+    [
         'text' => 'offers_type',
         'url'  => 'offers/',
+        'icon' => 'fa-solid fa-expand-type',
+    ],
+     [
+        'text' => 'products',
+        'url'  => 'product/',
         'icon' => 'fa-solid fa-expand-type',
     ],
 

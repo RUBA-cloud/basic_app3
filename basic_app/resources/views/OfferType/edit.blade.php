@@ -1,109 +1,104 @@
 @extends('adminlte::page')
 
-@section('title', 'Edit Offer')
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.offers'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
 
     <div class="card" style="padding: 24px; width: 100%;">
-        <h2 class="mb-4">Edit Offer</h2>
+        <h2 class="mb-4">{{ __('adminlte::adminlte.edit') }} {{ __('adminlte::adminlte.offers') }}</h2>
 
-        <form action="{{ route('offers_type.update', $offer_type->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('offers.update',$offerType->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @method('PUT')
+            @method('PUT') {{-- important for PUT request --}}
 
             <div class="mb-3">
-                <label for="name_en" class="form-label">Name (EN)</label>
-                <input type="text" name="name_en" id="name_en" class="form-control"
-                    value="{{ old('name_en', $offer_type->name_en ?? '') }}" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="name_ar" class="form-label">Name (AR)</label>
-                <input type="text" name="name_ar" id="name_ar" class="form-control"
-                    value="{{ old('name_ar', $offer_type->name_ar ?? '') }}" required>
+                <label for="name_en" class="form-label">{{ __('adminlte::adminlte.name_en') }}</label>
+                <input type="text" name="name_en" id="name_en" class="form-control" value="{{ old('name_en',$offerType->name_en) }}" required>
             </div>
 
             <div class="mb-3">
-                <label for="description_en" class="form-label">Description (EN)</label>
-                <textarea name="description_en" id="description_en" class="form-control">{{ old('description_en', $offer_type->description_en ?? '') }}</textarea>
+                <label for="name_ar" class="form-label">{{ __('adminlte::adminlte.name_ar') }}</label>
+                <input type="text" name="name_ar" id="name_ar" class="form-control" value="{{ old('name_ar',$offerType->name_ar) }}" required>
             </div>
 
             <div class="mb-3">
-                <label for="description_ar" class="form-label">Description (AR)</label>
-                <textarea name="description_ar" id="description_ar" class="form-control">{{ old('description_ar', $offer_type->description_ar ?? '') }}</textarea>
+                <label for="description_en" class="form-label">{{ __('adminlte::adminlte.descripation') }} (EN)</label>
+                <textarea name="description_en" id="description_en" class="form-control">{{ old('description_en',$offerType->description_en) }}</textarea>
             </div>
 
-            @php
-                // helper function to check checkbox
-                function isChecked($field, $offer_type) {
-                    return old($field, $offer_type->$field ?? false) ? 'checked' : '';
-                }
-            @endphp
-
-            <div class="form-check mb-3">
-                <input type="checkbox" name="is_discount" id="is_discount" class="form-check-input" value="1" {{ isChecked('is_discount', $offer_type) }}>
-                <label for="is_discount" class="form-check-label">Is Discount Offer</label>
+            <div class="mb-3">
+                <label for="description_ar" class="form-label">{{ __('adminlte::adminlte.descripation') }} (AR)</label>
+                <textarea name="description_ar" id="description_ar" class="form-control">{{ old('description_ar',$offerType->description_ar) }}</textarea>
             </div>
 
             <div class="form-check mb-3">
-                <input type="checkbox" name="is_total_gift" id="is_total_gift" class="form-check-input" value="1" {{ isChecked('is_total_gift', $offer_type) }}>
-                <label for="is_total_gift" class="form-check-label">Is Total Gift</label>
+                <input type="checkbox" name="is_discount" id="is_discount" class="form-check-input" value="1" {{ old('is_discount',$offerType->is_discount) ? 'checked' : '' }}>
+                <label for="is_discount" class="form-check-label">{{ __('adminlte::adminlte.is_discount') }}</label>
             </div>
 
             <div class="form-check mb-3">
-                <input type="checkbox" name="is_total_discount" id="is_total_discount" class="form-check-input" value="1" {{ isChecked('is_total_discount', $offer_type) }}>
-                <label for="is_total_discount" class="form-check-label">Is Total Discount</label>
+                <input type="checkbox" name="is_total_gift" id="is_total_gift" class="form-check-input" value="1" {{ old('is_total_gift',$offerType->is_total_gift) ? 'checked' : '' }}>
+                <label for="is_total_gift" class="form-check-label">{{ __('adminlte::adminlte.is_total_gift') }}</label>
             </div>
 
             <div class="form-check mb-3">
-                <input type="checkbox" name="is_product_count_gift" id="is_product_count_gift" class="form-check-input" value="1" {{ isChecked('is_product_count_gift', $offer_type) }}>
-                <label for="is_product_count_gift" class="form-check-label">Is Product Gift Offer</label>
+                <input type="checkbox" name="is_total_discount" id="is_total_discount" class="form-check-input" value="1" {{ old('is_total_discount',$offerType->is_total_discount) ? 'checked' : '' }}>
+                <label for="is_total_discount" class="form-check-label">{{ __('adminlte::adminlte.is_total_discount') }}</label>
             </div>
 
             <div class="form-check mb-3">
-                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" value="1" {{ isChecked('is_active', $offer_type) }}>
-                <label for="is_active" class="form-check-label">Active</label>
+                <input type="checkbox" name="is_product_count_gift" id="is_product_count_gift" class="form-check-input" value="1" {{ old('is_product_count_gift',$offerType->is_product_count_gift) ? 'checked' : '' }}>
+                <label for="is_product_count_gift" class="form-check-label">{{ __('adminlte::adminlte.is_product_count_gift') }}</label>
             </div>
 
-            <!-- Discount fields -->
+            <div class="form-check mb-3">
+                <input type="checkbox" name="is_active" id="is_active" class="form-check-input" value="1" {{ old('is_active',$offerType->is_active) ? 'checked' : '' }}>
+                <label for="is_active" class="form-check-label">{{ __('adminlte::adminlte.is_active') }}</label>
+            </div>
+
+            <!-- Discount Fields -->
             <div id="discount_fields" style="display: none;">
                 <div class="mb-3">
-                    <label for="discount_value_product" class="form-label">Discount Value Product</label>
-                    <input type="text" name="discount_value_product" id="discount_value_product" class="form-control"
-                        value="{{ old('discount_value_product', $offer_type->discount_value_product ?? '') }}">
+                    <label for="discount_value_product" class="form-label">{{ __('adminlte::adminlte.discount_value_product') }}</label>
+                    <input type="text" name="discount_value_product" id="discount_value_product" class="form-control" value="{{ old('discount_value_product',$offerType->discount_value_product) }}">
                 </div>
                 <div class="mb-3">
-                    <label for="discount_value_delivery" class="form-label">Discount Value Delivery</label>
-                    <input type="text" name="discount_value_delivery" id="discount_value_delivery" class="form-control"
-                        value="{{ old('discount_value_delivery', $offer_type->discount_value_delivery ?? '') }}">
+                    <label for="discount_value_delivery" class="form-label">{{ __('adminlte::adminlte.discount_value_delivery') }}</label>
+                    <input type="text" name="discount_value_delivery" id="discount_value_delivery" class="form-control" value="{{ old('discount_value_delivery',$offerType->discount_value_delivery) }}">
                 </div>
             </div>
 
-            <!-- Total Discount field -->
+            <!-- Total Discount Field -->
             <div id="total_discount_field" style="display: none;">
                 <div class="mb-3">
-                    <label for="total_discount" class="form-label">Total Discount Amount</label>
-                    <input type="text" name="total_discount" id="total_discount" class="form-control"
-                        value="{{ old('total_discount', $offer_type->total_discount ?? '') }}">
+                    <label for="total_discount" class="form-label">{{ __('adminlte::adminlte.total_amount') }}</label>
+                    <input type="text" name="total_discount" id="total_discount" class="form-control" value="{{ old('total_discount',$offerType->total_discount) }}">
                 </div>
             </div>
 
-            <!-- Gift fields -->
+            <!-- Gift Fields -->
             <div id="gift_fields" style="display: none;">
                 <div class="mb-3">
-                    <label for="products_count_to_get_gift_offer" class="form-label">Products Count to Get Gift</label>
-                    <input type="number" name="products_count_to_get_gift_offer" id="products_count_to_get_gift_offer" class="form-control"
-                        value="{{ old('products_count_to_get_gift_offer', $offer_type->products_count_to_get_gift_offer ?? '') }}">
+                    <label for="products_count_to_get_gift_offer" class="form-label">{{ __('adminlte::adminlte.products_count_to_get_gift_offer') }}</label>
+                    <input type="number" name="products_count_to_get_gift_offer" id="products_count_to_get_gift_offer" class="form-control" value="{{ old('products_count_to_get_gift_offer',$offerType->products_count_to_get_gift_offer) }}">
                 </div>
                 <div class="mb-3" id="total_fields">
-                    <label for="total_gift" class="form-label">Total Gift</label>
-                    <input type="number" name="total_gift" id="total_gift" class="form-control"
-                        value="{{ old('total_gift', $offer_type->total_gift ?? '') }}">
+                    <label for="total_gift" class="form-label">{{ __('adminlte::adminlte.total_gift') }}</label>
+                    <input type="number" name="total_gift" id="total_gift" class="form-control" value="{{ old('total_gift',$offerType->total_gift) }}">
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Save</button>
+            {{-- You can add working hours partial here if needed --}}
+            {{-- <x-working-hours :offer-type="$$$offerType->type" /> --}}
+
+            <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
         </form>
     </div>
 </div>
@@ -129,26 +124,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function toggleCheckboxes() {
         const all = [isDiscount, isTotalGift, isProductGift, isTotalDiscount];
+
         all.forEach(cb => cb.disabled = false);
 
-        if (isDiscount.checked) disableOther(isDiscount);
-        else if (isTotalGift.checked) disableOther(isTotalGift);
-        else if (isProductGift.checked) disableOther(isProductGift);
-        else if (isTotalDiscount.checked) disableOther(isTotalDiscount);
+        if (isDiscount.checked) {
+            disableOther(isDiscount);
+        } else if (isTotalGift.checked) {
+            disableOther(isTotalGift);
+        } else if (isProductGift.checked) {
+            disableOther(isProductGift);
+        } else if (isTotalDiscount.checked) {
+            disableOther(isTotalDiscount);
+        }
     }
 
-    function disableOther(selected) {
-        [isDiscount, isTotalGift, isProductGift, isTotalDiscount].forEach(cb => {
-            if (cb !== selected) cb.disabled = true;
+    function disableOther(selectedCheckbox) {
+        const all = [isDiscount, isTotalGift, isProductGift, isTotalDiscount];
+        all.forEach(cb => {
+            if (cb !== selectedCheckbox) cb.disabled = true;
         });
     }
 
-    // Initial
     toggleFields();
     toggleCheckboxes();
 
-    [isDiscount, isProductGift, isTotalGift, isTotalDiscount].forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
+    [isDiscount, isProductGift, isTotalGift, isTotalDiscount].forEach(function(checkbox) {
+        checkbox.addEventListener('change', function () {
             toggleFields();
             toggleCheckboxes();
         });

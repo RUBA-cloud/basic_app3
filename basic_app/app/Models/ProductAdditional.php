@@ -18,6 +18,6 @@ class ProductAdditional extends Model
     protected $casts = ['created_at' => 'datetime', 'updated_at' => 'datetime'];
     public function product()
     {
-        return $this->belongsTo(ProductHistory::class, 'product_id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

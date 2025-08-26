@@ -13,8 +13,11 @@ class AdditonalHistory extends Model
         'name_ar',
         'image',
         'price',
+        'description',
         'is_active',
         'user_id',
+        'descripation',
+
     ];
     protected $casts = [
         'is_active' => 'boolean',

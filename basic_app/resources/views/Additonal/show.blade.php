@@ -1,95 +1,95 @@
-@extends('layouts.app')
+@extends('adminlte::page')
 
-@section('title', 'Additional Info')
+@section('title', __('adminlte::adminlte.additional'))
 
 @section('content')
-<div style="min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; background: #f9fafb; padding: 40px 20px;">
-    <main style="max-width: 1200px; width: 100%;">
+<div class="container py-4">
 
-        <div style="
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            padding: 40px;
-            display: flex;
-            gap: 40px;
-            flex-wrap: wrap;">
-             <div style="flex: 1; min-width: 300px;">
-                <div style="
-                    background: #f7f7fa;
-                    border-radius: 12px;
-                    padding: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;     ">
-                    <img src="{{ $additional->image ? asset($additional->image) : 'https://placehold.co/400x250?text=Branch+Image' }}"
-                         alt="Additonal Image"
-                         style="width: 100%; height: auto; max-height: 250px; border-radius: 10px; object-fit: cover;">
+    {{-- Header --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+       <h2 class="h3 mb-0 fw-bold text-dark">
+            @if (app()->getLocale() === 'ar')
+                {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.additional') }}
+            @else
+                {{ __('adminlte::adminlte.additional') }} {{ __('adminlte::adminlte.details') }}
+            @endif
+        </h2>
+
+    </div>
+
+    {{-- Card --}}
+    <x-adminlte-card theme="light" theme-mode="outline" class="shadow-sm">
+        <div class="row g-4">
+
+            {{-- Image --}}
+            <div class="col-lg-4 col-md-5">
+                <div class="border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center p-2 h-100">
+                    <img
+                        src="{{ $additional->image ? asset($additional->image) : 'https://placehold.co/500x300?text=Branch+Image' }}"
+                        alt="Branch Image"
+                        class="img-fluid rounded-3"
+                        style="max-height: 280px; object-fit: cover;"
+                    >
                 </div>
             </div>
 
-            {{-- Additional Details --}}
-            <div style="flex: 2; min-width: 300px;">
-                <h2 style="font-size: 1.8rem; font-weight: 700; color: #22223B; margin-bottom: 8px;">
-                    {{ $additional->name_en }}
-                </h2>
-                <div style="color: #6b7280; font-size: 1.1rem; margin-bottom: 12px;">
-                    {{ $additional->name_ar }}
-                </div>
+            {{-- Details --}}
+            <div class="col-lg-8 col-md-7">
+                <div class="row gy-3">
+                    {{-- Branch Name --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $additional->name_en}}</div>
+                    </div>
+                    {{-- Branch Name --}}
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $additional->name_ar }}</div>
+                    </div>
+                                    {{-- Branch Name --}}
+                                    {{-- Status --}}
+                    <div class="col-12">
+                        @if($additional->is_active)
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
+                            </span>
+                        @else
+                            <span class="badge bg-danger px-3 py-2">
+                                <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
+                            </span>
+                        @endif
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.price') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $additional->price }} JD</div>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">{{ __('adminlte::adminlte.descripation') }}</small>
+                        <div class="fs-5 fw-bold text-dark">{{ $additional->description	 }}</div>
+                    </div>
 
-                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                    @if($additional->is_active)
-                        <span style="
-                            background: #dcfce7;
-                            color: #166534;
-                            font-size: 0.9rem;
-                            border-radius: 6px;
-                            padding: 4px 10px;">Active</span>
-                    @else
-                        <span style="
-                            background: #fee2e2;
-                            color: #991b1b;
-                            font-size: 0.9rem;
-                            border-radius: 6px;
-                            padding: 4px 10px;">Inactive</span>
-                    @endif
 
-                    @if($additional->price)
-                        <span style="
-                            background: #4f46e5;
-                            color: #fff;
-                            font-size: 0.9rem;
-                            border-radius: 6px;
-                            padding: 4px 10px;">Price: {{ $additional->price }}</span>
-                    @else
-                        <span style="
-                            background: #fee2e2;
-                            color: #991b1b;
-                            font-size: 0.9rem;
-                            border-radius: 6px;
-                            padding: 4px 10px;">No Price</span>
-                    @endif
-                </div>
 
-                <div style="margin-top: 24px;">
-                    <a href="{{ route('additional.edit', $additional->id) }}"
-                       style="
-                            background: #4f46e5;
-                            color: #fff;
-                            font-weight: 600;
-                            border-radius: 10px;
-                            padding: 10px 24px;
-                            text-decoration: none;
-                            box-shadow: 0 2px 6px rgba(79,70,229,0.2);
-                            display: inline-block;
-                            transition: background 0.2s;"
-                       onmouseover="this.style.background='#4338ca';"
-                       onmouseout="this.style.background='#4f46e5';"
-                    >Edit Additional</a>
+
+
+
+
+
+
+                    {{-- Actions --}}
+                    <div class="col-12 pt-3">
+                        <a href="{{ route('additionals.edit', $additional->id) }}"
+                           class="btn btn-primary px-4 py-2">
+                            <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
+                        </a>
+                        <a href="{{route('additionals.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                            <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
+                        </a>
+                    </div>
+
                 </div>
             </div>
-
         </div>
-    </main>
+    </x-adminlte-card>
 </div>
 @endsection

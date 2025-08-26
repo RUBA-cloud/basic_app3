@@ -12,7 +12,7 @@
             @method('PUT')
     {{-- Category Image --}}
             <x-upload-image
-                       :image="$branch->image"
+                       :image="$size->image"
 
                 label="{{ __('adminlte::adminlte.image') }}"
                 name="image"
@@ -46,7 +46,7 @@
                 name="descripation"
                 label="{{__('adminlte::adminlte.descripation')}}"
                 :value="$size->descripation"/>
-                
+
 
             {{-- Is Active Checkbox --}}
             <div class="form-group" style="margin: 20px 0;">

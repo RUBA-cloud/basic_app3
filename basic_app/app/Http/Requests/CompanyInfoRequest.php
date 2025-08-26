@@ -54,13 +54,13 @@ class CompanyInfoRequest extends FormRequest
         ];
     }
 
-    public function attributes(): array
-    {
-        return trans('adminlte::validation.attributes');
-    }
+    // public function attributes(): array
+    // {
+    //     return trans('adminlte::validation.attributes');
+    // }
 
-    public function messages(): array
-    {
-        return trans('adminlte::validation.messages');
-    }
+    // public function messages(): array
+    // {
+    //     return trans('adminlte::validation.messages');
+    // }
 }

@@ -3,15 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
+
 class ProductHistory extends Model
 {
     //
     use HasFactory, Notifiable;
     protected $table = 'products_history'; // Ensure the table name is correct
-   protected $fillable = [
+    protected $fillable = [
         'name_en',
         'name_ar',
         'description_en',
@@ -27,14 +27,9 @@ class ProductHistory extends Model
         'is_active' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'product_type' => 'string', // Assuming product_type is a string
         'type_id' => 'integer', // Assuming type_id is an integer
         'user_id' => 'integer',
-        'sizes' => 'array', // Assuming sizes is stored as JSON
-        'additional' => 'array', // Assuming additional is stored as JSON
-        'name_en' => 'string',
-        'name_ar' => 'string',
-        'description_en' => 'string',
-        'category_id' => 'integer',
         'colors' => 'array', // Assuming colors is stored as JSON
     ];
     public function user()
@@ -43,17 +38,24 @@ class ProductHistory extends Model
     }
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id');    }
+        return $this->belongsTo(Category::class, 'category_id');
+    }
     public function images()
     {
-        return $this->hasMany(ProductImageHistory::class, 'product_id');
+        return $this->hasMany(ProductImage::class, 'product_id');
     }
 
-    public function sizes(){
-        return $this->hasMany(ProductSizeHistory::class, 'product_id');
+    public function sizes()
+    {
+        return $this->belongsToMany(Size::class, 'product_size_history', 'product_id', 'size_id');
     }
     public function additionals()
     {
-        return $this->hasMany(ProductAdditionalHistory::class, 'product_history_id');
+        return $this->belongsToMany(Additonal::class, 'product_additional_history', 'product_history_id', 'additional_id');
     }
+    public function type()
+    {
+    return $this->belongsTo(Type::class, 'type_id');
+    }
+
 }

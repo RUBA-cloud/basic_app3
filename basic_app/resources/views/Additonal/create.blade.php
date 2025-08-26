@@ -1,79 +1,62 @@
-@extends('layouts.app')
-
-@section('title', 'Create Additional')
-
+@extends('adminlte::page')
+@section('title', 'Create Company Size')
 @section('content')
 <div style="min-height: 100vh; display: flex;">
-    {{-- Sidebar --}}
+    <div class="card" style="padding: 24px; width: 100%;">
 
-    {{-- Main Content --}}
-    <div class="card" style="padding: 32px; width: 100%; max-width: 800px; margin: auto;">
         <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
-            Create Additional
+        {{ __('adminlte::adminlte.create') }} {{ __('adminlte::adminlte.additional') }}
+
         </h2>
 
         <form method="POST" action="{{ route('additional.store') }}" enctype="multipart/form-data">
             @csrf
-
-            {{-- Additional Image --}}
+    {{-- Category Image --}}
             <x-upload-image
                 :image="old('image')"
-                label="Additional Image"
+                label="{{ __('adminlte::adminlte.image') }}"
                 name="image"
                 id="image"
             />
 
-            {{-- Additional Name (English) --}}
+            {{-- Size Name English --}}
             <x-form.textarea
                 id="name_en"
                 name="name_en"
-                label="Additional Name (English)"
-                :value="old('name_en')"
-            />
+                label="{{__('adminlte::adminlte.name_en')}}"
+                :value="old('name_en')"/>
 
-            {{-- Additional Name (Arabic) --}}
+
+
+            {{-- Size Name Arabic --}}
             <x-form.textarea
                 id="name_ar"
                 name="name_ar"
-                label="اسم الاضافة (Arabic)"
+                label="{{__('adminlte::adminlte.name_ar')}}"
                 dir="rtl"
                 :value="old('name_ar')"
             />
 
-<x-form.textarea
-    id="price"
-    name="price"
-    label="Price (سعر)"
-    dir="rtl"
-    :value="old('price')"
-/>
+    <x-form.textarea     id="price"      name="price" label="{{__('adminlte::adminlte.price')}}"    :value="old('price')"       dir="rtl"     />
+
+  <x-form.textarea
+                id="descripation"
+                name="description"
+                label="{{__('adminlte::adminlte.descripation')}}"
+                :value="old('descripation')"/>
 
             {{-- Is Active Checkbox --}}
             <div class="form-group" style="margin: 20px 0;">
-                <label style="display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }} />
-                    Active
-                </label>
+                <input type="checkbox" name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }}/> {{__('adminlte::adminlte.is_active')}}
             </div>
 
-            {{-- Submit Button --}}
-            <button type="submit"
-                style="
-                    width: 100%;
-                    background: #6C63FF;
-                    color: #fff;
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    border: none;
-                    border-radius: 24px;
-                    padding: 14px 0;
-                    cursor: pointer;
-                    box-shadow: 0 4px 16px rgba(108,99,255,0.15);
-                    transition: background 0.2s;
-                ">
-                Save Additional
-            </button>
-        </form>
+             <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
     </div>
 </div>
 @endsection

@@ -51,7 +51,7 @@ class Product extends Model
     }
     public function additionals()
     {
-        return $this->belongsToMany(Additonal::class, 'additonal_product', 'product_id', 'additonal_id');
+        return $this->belongsToMany(Additonal::class, 'product_additional', 'product_id', 'additional_id');
     }
     public function type()
     {

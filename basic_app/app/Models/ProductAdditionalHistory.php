@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductAdditionalHistory extends Model
 {
-    //
-        //
     protected $table = 'product_additional_history'; // Ensure the table name is correct
     protected $fillable = [
         'product_history_id	',   // Foreign key to products table

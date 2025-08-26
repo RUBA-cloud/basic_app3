@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
+use Illuminate\Http\Request;
 use App\Models\ProductHistory;
 use App\Models\Type;
 use App\Models\Size;
@@ -38,7 +39,34 @@ class ProductController extends Controller
 
         return view('Product.create', compact('types', 'sizes', 'additionals', 'categories'));
     }
+   public function search(Request $request)
+{
+    $searchTerm = $request->input('search');$isHistory=false;
+    $products = OffersType::with(['user']) // eager load user + branch
+            ->where('name_en', 'like', '%' . $searchTerm . '%')
+              ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
+             ->orWhere('description_en', 'like', '%' . $searchTerm . '%')->orWhere('description_en', 'like', '%' . $searchTerm . '%')
 
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+        return view('product.index', compact('products'));
+
+}
+      public function searchHistory(Request $request)
+{
+    $searchTerm = $request->input('search');$isHistory=false;
+    $products = ProductHistory::with(['user']) // eager load user + branch
+            ->where('name_en', 'like', '%' . $searchTerm . '%')
+              ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
+             ->orWhere('description_en', 'like', '%' . $searchTerm . '%')->orWhere('description_en', 'like', '%' . $searchTerm . '%')
+
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+          return view('product.history',compact('products'));
+
+}
     public function store(ProductRequest $request)
     {
         $validated = $request->validated();
@@ -52,8 +80,9 @@ class ProductController extends Controller
             $product->colors = $validated['colors'] ?? [];
             $product->save();
 
-            $product->sizes()->attach($validated['sizes'] ?? []);
-            $product->additionals()->attach($validated['additional'] ?? []);
+            $product->sizes()->sync()($validated['sizes'] ?? []);
+            $product->additionals()->sync()($validated['additional'] ?? []);
+
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
@@ -103,17 +132,19 @@ class ProductController extends Controller
             $product->fill($validated);
             $product->user_id = auth()->id();
             $product->is_active = $request->has('is_active') ? 1 : 0;
-            $product->colors = $validated['colors'] ?? [];
+           $product->colors = $validated['colors'] ?? [];
             $product->save();
 
             $product->sizes()->sync($validated['sizes'] ?? []);
             $product->additionals()->sync($validated['additional'] ?? []);
 
+
+
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $path = $imageFile->store('products', 'public');
                     $imageUrl = $request->getSchemeAndHttpHost() . '/storage/' . $path;
-                    $product->images()->create(['image_path' => $imageUrl]);
+                    $product->images()->update(['image_path' => $imageUrl]);
                 }
             }
 
@@ -163,13 +194,13 @@ class ProductController extends Controller
                 'user_id' => auth()->id(),
                 'category_id' => $history->category_id,
                 'type_id' => $history->type_id,
-                'colors' => json_decode($history->colors, true) ?? []
+              //  'colors' => json_decode($history->colors, true) ?? []
             ]);
             $newProduct->save();
             if ($history->sizes && $history->sizes->isNotEmpty()) {
-                $newProduct->sizes()->attach($history->sizes->pluck('size_id')->toArray());
+                $newProduct->sizes()->sync($history->sizes->pluck('size_id')->toArray());
             }
-            $newProduct->additionals()->attach($history->additionals->pluck('additional_id')->toArray());
+            $newProduct->additionals()->sync($history->additionals->pluck('additional_id')->toArray());
 
             foreach ($history->images as $image) {
                 $newProduct->images()->create(['image_path' => $image->image_path]);
@@ -201,13 +232,13 @@ class ProductController extends Controller
             'category_id' => $product->category_id,
             'type_id' => $product->type_id,
             'original_product_id' => $product->id,
-            'colors' => json_encode($product->colors ?? [])
+            'colors' => ($product->colors ?? [])
         ]);
         $history->save();
 
         // Copy relations
         if ($product->sizes) {
-         $history->sizes()->attach($product->sizes->pluck('id')->toArray());
+         $history->sizes()->sync($product->sizes->pluck('id')->toArray());
         }
 
         if ($product->additionals) {
@@ -226,14 +257,15 @@ foreach ($product->additionals as $additional) {
 // insert them all at once if using Eloquent:
 $history->additionals()->createMany($historyAdditionals);
         }
-
-       if ($product->images) {
-            foreach ($product->images as $image) {
-                // Just reuse existing image path or copy file if needed
-                $history->images()->create([
-                    'image_path' => $image->image_path,
-                ]);
-            }
-        }
+if ($product->images && $product->images->count()) {
+    foreach ($product->images as $image) {
+        $history->images()->create([
+            'image_path' => $image->image_path,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }
+    }
+    }
+

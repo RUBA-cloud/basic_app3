@@ -25,8 +25,8 @@
                 name="name_en"
                 label="{{__('adminlte::adminlte.name_en')}}"
                 :value="old('name_en')"/>
-                
-            
+
+
 
             {{-- Size Name Arabic --}}
             <x-form.textarea
@@ -44,7 +44,7 @@
                 name="descripation"
                 label="{{__('adminlte::adminlte.descripation')}}"
                 :value="old('descripation')"/>
-                
+
             {{-- Is Active Checkbox --}}
             <div class="form-group" style="margin: 20px 0;">
                 <input type="checkbox" name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }}/> {{__('adminlte::adminlte.is_active')}}

@@ -19,5 +19,11 @@ return [
     'warning' => 'Advertencia',
     'information' => 'Información',
     "category"=>'Category',
-    "Size"=>"Size"
+    "Size"=>"Size",
+     "additional"=>"Additional",
+    "type"=>"Type",
+    "offers"=>"Offers",
+    "offers_type"=>"Offers Type",
+     "product"=>"product",
+
 ];

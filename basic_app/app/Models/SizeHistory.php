@@ -15,8 +15,10 @@ class SizeHistory extends Model
         'name_en',
         'name_ar',
         'descripation',
+        'price',
         'is_active',
         'user_id',
+
     ];
 
     protected $casts = [

@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -10,7 +11,7 @@ use App\Http\Controllers\CompanyBranchController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SizeController;
-use App\Http\Controllers\AdditonalController;
+use App\Http\Controllers\AdditionalController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\OfferTypeController;
@@ -41,10 +42,11 @@ Route::group(['middleware' => [SetLocale::class]], function () {
     Route::post('/resend-verification', [VerificationController::class, 'resend'])->name('verify.resend');
 
     // Categories
-    Route::put('reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
-    Route::post('category-search', [CategoryController::class, 'search'])->name('category-search');
-    Route::post('category-search-history', [CategoryController::class, 'searchHistory'])->name('category-search-history');
-    Route::resource('categories', CategoryController::class);
+    Route::put('/reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
+    Route::post('/category-search', [CategoryController::class, 'search'])->name('category-search');
+    Route::post('/category-search-history', [CategoryController::class, 'searchHistory'])->name('category-search-history');
+    Route::resource('categories', CategoryController::Class);
+
     Route::get('/category_history/{isHistory?}', [CategoryController::class, 'index'])->name('category_history');
 
     // Company Info
@@ -54,41 +56,51 @@ Route::group(['middleware' => [SetLocale::class]], function () {
 
     // Company Branch
     Route::resource('companyBranch', CompanyBranchController::class);
-    Route::put('reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
+    Route::put('/reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
     Route::post('/companyBranch_search', [CompanyBranchController::class, 'search'])->name('companyBranch_search');
-Route::post('/branch_history/search', [CompanyBranchController::class, 'searchHistory'])
-    ->name('branch_history.search');
+    Route::post('/branch_history/search', [CompanyBranchController::class, 'searchHistory'])->name('branch_history.search');
     Route::get('/branches/{isHistory?}', [CompanyBranchController::class, 'index'])->name('branches.index');
 
     // Sizes
     Route::resource('sizes', SizeController::class);
     Route::get('/sizes_history/{isHistory?}', [SizeController::class, 'index'])->name('sizes.history');
     Route::put('/sizes/reactive/{id}', [SizeController::class, 'reactive'])->name('sizes.reactive');
-Route::post('/size_search_history', [SizeController::class, 'searchHistory'])->name('size_search_history');
-    Route::post('size_search', [SizeController::class, 'search'])->name('sizes.search');
+    Route::post('/size_search_history', [SizeController::class, 'searchHistory'])->name('size_search_history');
+    Route::post('/size_search', [SizeController::class, 'search'])->name('sizes.search');
+
     // Additional
-    Route::resource('additional', AdditonalController::class);
-    Route::get('/additional_history/{isHistory?}', [AdditonalController::class, 'index'])->name('additional.history');
-    Route::put('/additional/reactive/{id}', [AdditonalController::class, 'reactive'])->name('additional.reactive');
+    Route::resource('additional', AdditionalController::class);
+    Route::get('/additional_history/{isHistory?}', [AdditionalController::class, 'index'])->name('additional.history');
+    Route::put('/additional/reactive/{id}', [AdditionalController::class, 'reactive'])->name('additional.reactive');
+    Route::post('/additional/search', [AdditionalController::class, 'search'])->name('additional.search');
+    Route::post('/additional/search_history', [AdditionalController::class, 'searchHistory'])->name('additional.search_history');
 
     // Type
     Route::resource('type', TypeController::class);
     Route::get('/type_history/{isHistory?}', [TypeController::class, 'index'])->name('type.history');
     Route::put('/type/reactive/{id}', [TypeController::class, 'reactivate'])->name('type.reactive');
-
-     Route::post('/type_search',[TypeController::class,'search'])->name('type.search');
-
- Route::post('/type_search_history',[TypeController::class,'searchHistory'])->name('type.search_history');
+    Route::post('/type_search', [TypeController::class, 'search'])->name('type.search');
+    Route::post('/type_search_history', [TypeController::class, 'searchHistory'])->name('type.search_history');
 
     // Product
     Route::resource('product', ProductController::class);
     Route::get('/product_history/{isHistory?}', [ProductController::class, 'index'])->name('product.history');
     Route::put('/product/reactive/{id}', [ProductController::class, 'reactivate'])->name('product.reactive');
-
-    // Users
+Route::post('/product_search', [ProductController::class, 'search'])->name('product.search');
+    Route::post('/product_search_history', [ProductController::class, 'searchHistory'])->name('product_history.search');
 
     // Offers Type
     Route::resource('offers_type', OfferTypeController::class);
     Route::get('/offers_type_history/{isHistory?}', [OfferTypeController::class, 'index'])->name('offer_type.history');
     Route::put('/offers_type/reactive/{id}', [OfferTypeController::class, 'reactive'])->name('offer_type.reactive');
+    Route::resource('offers_type', OfferTypeController::class);
+    Route::post('/offer_type_search', [OfferTypeController::class, 'search'])->name('offer_type.search');
+    Route::post('/offer_search_type_history', [OfferTypeController::class, 'searchHistory'])->name('offer_type.search_history');
+
+    Route::resource('offers', OfferTypeController::class);
+    Route::get('/offers/{isHistory?}', [OfferTypeController::class, 'index'])->name('offers.history');
+    Route::put('/offers_reactive/{id}', [OfferTypeController::class, 'reactive'])->name('offers.reactive');
+     Route::post('/offer_search', [TypeController::class, 'search'])->name('offer.search');
+    Route::post('/offer_search_history', [TypeController::class, 'searchHistory'])->name('offer.search_history');
+
 });

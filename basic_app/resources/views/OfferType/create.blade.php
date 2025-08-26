@@ -6,64 +6,64 @@
 <div style="min-height: 100vh; display: flex;">
 
     <div class="card" style="padding: 24px; width: 100%;">
-        <h2 class="mb-4">Create New Offer</h2>
+        <h2 class="mb-4">{{  __('adminlte::adminlte.create')}} {{ __('adminlte::adminlte.offers') }}</h2>
 
         <form action="{{ route('offers_type.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-3">
-                <label for="name_en" class="form-label">Name (EN)</label>
+                <label for="name_en" class="form-label">{{ __('adminlte::adminlte.name_en') }}</label>
                 <input type="text" name="name_en" id="name_en" class="form-control" value="{{ old('name_en') }}" required>
             </div>
 
             <div class="mb-3">
-                <label for="name_ar" class="form-label">Name (AR)</label>
+                <label for="name_ar" class="form-label">{{ __('adminlte::adminlte.name_ar') }}</label>
                 <input type="text" name="name_ar" id="name_ar" class="form-control" value="{{ old('name_ar') }}" required>
             </div>
 
             <div class="mb-3">
-                <label for="description_en" class="form-label">Description (EN)</label>
+                <label for="description_en" class="form-label">{{ __('adminlte::adminlte.descripation') }} (EN)</label>
                 <textarea name="description_en" id="description_en" class="form-control">{{ old('description_en') }}</textarea>
             </div>
 
             <div class="mb-3">
-                <label for="description_ar" class="form-label">Description (AR)</label>
+                <label for="description_ar" class="form-label">{{ __('adminlte::adminlte.descripation') }} (AR)</label>
                 <textarea name="description_ar" id="description_ar" class="form-control">{{ old('description_ar') }}</textarea>
             </div>
 
             <div class="form-check mb-3">
                 <input type="checkbox" name="is_discount" id="is_discount" class="form-check-input" value="1" {{ old('is_discount') ? 'checked' : '' }}>
-                <label for="is_discount" class="form-check-label">Is Discount Offer</label>
+                <label for="is_discount" class="form-check-label">{{ __('adminlte::adminlte.is_discount') }} </label>
             </div>
 
             <div class="form-check mb-3">
                 <input type="checkbox" name="is_total_gift" id="is_total_gift" class="form-check-input" value="1" {{ old('is_total_gift') ? 'checked' : '' }}>
-                <label for="is_total_gift" class="form-check-label">Is Total Gift</label>
+                <label for="is_total_gift" class="form-check-label">{{ __('adminlte::adminlte.is_total_gift') }}</label>
             </div>
 
             <div class="form-check mb-3">
                 <input type="checkbox" name="is_total_discount" id="is_total_discount" class="form-check-input" value="1" {{ old('is_total_discount') ? 'checked' : '' }}>
-                <label for="is_total_discount" class="form-check-label">Is Total Discount</label>
+                <label for="is_total_discount" class="form-check-label">{{ __('adminlte::adminlte.is_total_discount')}}</label>
             </div>
 
             <div class="form-check mb-3">
                 <input type="checkbox" name="is_product_count_gift" id="is_product_count_gift" class="form-check-input" value="1" {{ old('is_product_count_gift') ? 'checked' : '' }}>
-                <label for="is_product_count_gift" class="form-check-label">Is Product Gift Offer</label>
+                <label for="is_product_count_gift" class="form-check-label">{{ __('adminlte::adminlte.is_product_count_gift')}}</label>
             </div>
 
             <div class="form-check mb-3">
                 <input type="checkbox" name="is_active" id="is_active" class="form-check-input" value="1" {{ old('is_active') ? 'checked' : '' }}>
-                <label for="is_active" class="form-check-label">Active</label>
+                <label for="is_active" class="form-check-label">{{ __('adminlte::adminlte.is_active')}}</label>
             </div>
 
             <!-- Discount fields -->
             <div id="discount_fields" style="display: none;">
                 <div class="mb-3">
-                    <label for="discount_value_product" class="form-label">Discount Value Product</label>
+                    <label for="discount_value_product" class="form-label">{{ __('adminlte::adminlte.discount_value_product')}}</label>
                     <input type="text" name="discount_value_product" id="discount_value_product" class="form-control" value="{{ old('discount_value_product') }}">
                 </div>
                 <div class="mb-3">
-                    <label for="discount_value_delivery" class="form-label">Discount Value Delivery</label>
+                    <label for="discount_value_delivery" class="form-label">{{ __('adminlte::adminlte.discount_value_delivery') }}</label>
                     <input type="text" name="discount_value_delivery" id="discount_value_delivery" class="form-control" value="{{ old('discount_value_delivery') }}">
                 </div>
             </div>
@@ -71,7 +71,7 @@
             <!-- Total Discount field -->
             <div id="total_discount_field" style="display: none;">
                 <div class="mb-3">
-                    <label for="total_discount" class="form-label">Total Discount Amount</label>
+                    <label for="total_discount" class="form-label">{{ __('adminlte::adminlte.total_amount') }}
                     <input type="text" name="total_discount" id="total_discount" class="form-control" value="{{ old('total_discount') }}">
                 </div>
             </div>
@@ -79,17 +79,23 @@
             <!-- Gift fields -->
             <div id="gift_fields" style="display: none;">
                 <div class="mb-3">
-                    <label for="products_count_to_get_gift_offer" class="form-label">Products Count to Get Gift</label>
+                    <label for="products_count_to_get_gift_offer" class="form-label">{{ __('adminlte::adminlte.products_count_to_get_gift_offer') }}</label>
                     <input type="number" name="products_count_to_get_gift_offer" id="products_count_to_get_gift_offer" class="form-control" value="{{ old('products_count_to_get_gift_offer') }}">
                 </div>
                 <div class="mb-3" id="total_fields">
-                    <label for="total_gift" class="form-label">Total Gift</label>
+                    <label for="total_gift" class="form-label">{{ __('adminlte::adminlte.total_gift') }}</label>
                     <input type="number" name="total_gift" id="total_gift" class="form-control" value="{{ old('total_gift') }}">
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Save</button>
-        </form>
+ <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
+                </form>
     </div>
 </div>
 @endsection

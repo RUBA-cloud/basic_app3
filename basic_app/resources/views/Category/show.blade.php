@@ -1,6 +1,3 @@
-
-
-
 @extends('adminlte::page')
 
 @section('title', __('adminlte::adminlte.category'))
@@ -12,7 +9,11 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 mb-0 text-dark fw-bold">
             <i class="fas fa-code-branch me-2 text-primary"></i>
-            @if (app()->getLocale() === 'ar') {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.category') }}@else{{ __('adminlte::adminlte.category') }} {{ __('adminlte::adminlte.details') }}@endif
+            @if (app()->getLocale() === 'ar')
+                {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.category') }}
+            @else
+                {{ __('adminlte::adminlte.category') }} {{ __('adminlte::adminlte.details') }}
+            @endif
         </h2>
 
         @if($category->is_main_branch)
@@ -43,13 +44,13 @@
             <div class="col-lg-8 col-md-7">
                 <div class="row gy-3">
 
-                    {{-- Branch Name AR --}}
+                    {{-- Branch Name EN --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
-                        <div class="fs-5 fw-bold text-dark">{{ $category->name_en}}</div>
+                        <div class="fs-5 fw-bold text-dark">{{ $category->name_en }}</div>
                     </div>
 
-                    {{-- Branch Name --}}
+                    {{-- Branch Name AR --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
                         <div class="fs-5 fw-bold text-dark">{{ $category->name_ar }}</div>
@@ -78,39 +79,38 @@
                         <div class="fw-semibold">{{ $category->address_ar ?? '-' }}</div>
                     </div>
 
- {{-- Branches --}}
-                    <div class="mb-3">
+                    {{-- Branches --}}
+                    <div class="col-12">
                         <h6 class="font-weight-bold text-secondary">{{ __('adminlte::adminlte.branch') }}</h6>
                         @if($category->branches->count())
-                            <ul class="list-unstyled pl-2">
+                            <ul class="list-unstyled ps-2">
                                 @foreach($category->branches as $branch)
                                     <li>
-                                        <a href="{{ route('companyBranch.show', $branch->id) }}" class="text-primary font-weight-bold">
-                                            <i class="fas fa-code-branch mr-1"></i> {{ $branch->name_en }}
+                                        <a href="{{ route('companyBranch.show', $branch->id) }}" class="text-primary fw-bold">
+                                            <i class="fas fa-code-branch me-1"></i> {{ $branch->name_en }}
                                         </a>
                                     </li>
                                 @endforeach
                             </ul>
-
+                        @else
+                            <p class="text-muted">{{ __('adminlte::adminlte.no_branches') }}</p>
+                        @endif
                     </div>
-
-
 
                     {{-- Actions --}}
                     <div class="col-12 pt-3">
-                        <a href="{{ route('categories.edit', $category->id) }}"
-                           class="btn btn-primary px-4 py-2">
+                        <a href="{{ route('categories.edit', $category->id) }}" class="btn btn-primary px-4 py-2">
                             <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
                         </a>
-                        <a href="{{route('categories.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                        <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
                             <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
                         </a>
                     </div>
 
                 </div>
             </div>
+
         </div>
     </x-adminlte-card>
 </div>
 @endsection
-

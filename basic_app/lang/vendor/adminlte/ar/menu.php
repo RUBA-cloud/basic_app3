@@ -27,5 +27,10 @@ return [
     'warning' => 'Warning',
     'information' => 'Information',
     'category'=>'الفذات',
-    "size"=>"الاحجام"
+    "size"=>"الاحجام",
+    "additional"=>"الاضافات",
+    "type"=>"النوع",
+    "offers"=>"العروض",
+    "offers_type"=>" انواع العروض",
+ "product"=>"المنتج",
 ];

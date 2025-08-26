@@ -147,7 +147,7 @@ class TypeController extends Controller
         $searchTerm = $request->input('search');
         $isHistory = true;
 
-        $sizes = TypeHistory::with('user')
+        $types = TypeHistory::with('user')
             ->where(function ($q) use ($searchTerm) {
                 $q->where('name_en', 'like', '%' . $searchTerm . '%')
                     ->orWhere('name_ar', 'like', '%' . $searchTerm . '%');
@@ -156,7 +156,7 @@ class TypeController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('type.history', compact('sizes'));
+        return view('type.history', compact('types'));
     }
 
 public function reactivate(string $id)

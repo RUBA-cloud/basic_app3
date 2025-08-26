@@ -1,43 +1,47 @@
 @extends('adminlte::page')
 
-@section('title', 'Company Products')
+@section('title',  ' ' . __('adminlte::adminlte.product'))
 
 @section('content')
-<div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
+    <div class="container-fluid">
 
-    {{-- Sidebar --}}
+        {{-- Page Header --}}
 
-    {{-- Main Content --}}
-    <main style="flex: 1; padding: 40px 32px;">
-        <div class="card_table">
-<div style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+           <x-action_buttons   label="{{__('adminlte::adminlte.product')}}"
+                addRoute="product.create"
+                historyRoute="product.index"
+                historyParams="true"
+                :showAdd="false"
+            />
 
 
-                            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">Company Products History</h2>
+        {{-- Additional Table Card --}}
+        <div class="card">
+            <div class="card-header">
+   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.product')}}</h2>            </div>
 
-                    <a href="{{ route('product.index') }}"
-                       style="background: #f7f7fa; color: #6C63FF; font-weight: 600; border-radius: 12px; padding: 10px 28px; text-decoration: none; border: 1.5px solid #6C63FF;">
-                        <i class="fas fa-history" style="margin-right: 8px;"></i> Go Back
-                    </a>
-            </div>
-
-            {{-- Table Field Definitions --}}
-            @php
+            <div class="card-body table-responsive p-0">
+                  @php
                 $fields = [
-                    ['key' => 'name_en', 'label' => 'Product Name (EN)'],
-                    ['key' => 'name_ar', 'label' => '$type Name (AR)'],
-                    ['key' => 'name_ar', 'label' => 'Product Name (AR)'],
-                    ['key' => 'is_active', 'label' => 'Active', 'type' => 'bool'],
-                    ['key' => 'user.name', 'label' => 'User Name'],
-                    ['key' => 'user.id', 'label' => 'User Id '],
+                     ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
+                    ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
+                    ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
+                    ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
+                    ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
 
-            {{-- Main Table Component --}}
-            <x-main_table :fields="$fields" :value="$products" :details_route="'product.show'"
+                <x-main_table
+                    :fields="$fields"
+                    :value="$products"
+                    :details_route="'product.show'"
+                    :edit_route="'product.edit'"
+                    :delete_route="'product.destroy'"
+                    :reactive_route="'product.reactive'"
+                    :search_route="'product_history.search'"
+                />
 
-    :reactive_route="'product.reactive'"/>
+            </div>
         </div>
-    </main>
-</div>
+    </div>
 @endsection

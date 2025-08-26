@@ -1,46 +1,43 @@
-@extends('layouts.app')
+@extends('adminlte::page')
 
-@section('title', 'Company Additionals History')
 
 @section('content')
-<div style="min-height: 100vh; display: flex;">
-    {{-- Sidebar --}}
+    <div class="container-fluid">
 
-    {{-- Main Content --}}
-    <main style="flex: 1; padding: 40px 32px;">
-        <div class="card_table" style="background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(31,38,135,0.10); padding: 32px;">
+        {{-- Page Header --}}
 
-            {{-- Page Title & Back Button --}}
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-color);">
-                    Company Additionals History
-                </h2>
-                <a href="{{ route('additional.index') }}"
-                   style="background: #f7f7fa; color: var(--main-color); font-weight: 600; border-radius: 12px; padding: 10px 24px; text-decoration: none; border: 1.5px solid var(--main-color); display: inline-flex; align-items: center;">
-                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Additionals
-                </a>
-            </div>
+           <x-action_buttons   label="{{__('adminlte::adminlte.additional')}}"
+                addRoute="additional.create"
+                historyRoute="additional.index"
+                historyParams="true"
+                :showAdd="false"
+            />
+        {{-- Additional Table Card --}}
+        <div class="card">
+            <div class="card-header">   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.additional')}}</h2>            </div>
 
-            {{-- Define Table Fields --}}
-            @php
+            <div class="card-body table-responsive p-0">
+                  @php
                 $fields = [
-                    ['key' => 'name_en', 'label' => 'Name (EN)'],
-                    ['key' => 'name_ar', 'label' => 'Name (AR)'],
-                    ['key' => 'user.name', 'label' => 'User Name'],
-                    ['key' => 'user.id', 'label' => 'User ID'],
-                    ['key' => 'is_active', 'label' => 'Active', 'type' => 'bool'],
+                     ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
+                    ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
+                    ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
+                    ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
+                    ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
 
-            {{-- Table Component --}}
-            <x-main_table
-                :fields="$fields"
-                :value="$additionals"
-                :details_route="'additional.show'"
-                :reactive_route="'additional.reactive'"
-            />
+                <x-main_table
+                    :fields="$fields"
+                    :value="$additionals"
+                    :details_route="'additional.show'"
+                    :edit_route="'additional.edit'"
+                    :delete_route="'additional.destroy'"
+                    :reactive_route="'additional.reactive'"
+                    :search_route="'additional.search_history'"
+                />
 
+            </div>
         </div>
-    </main>
-</div>
+    </div>
 @endsection

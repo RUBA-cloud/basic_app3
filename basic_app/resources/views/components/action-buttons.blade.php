@@ -9,10 +9,12 @@
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     {{-- Label on the left --}}
+            @if($showAdd && $addRoute)
+
     <h5 class="fw-bold text-primary m-0">
         <i class="fas fa-tasks me-2"></i> {{ $label }}
     </h5>
-
+@endif
     {{-- Buttons on the right --}}
     <div style="display: flex; gap: 12px;">
         @if($showAdd && $addRoute)
