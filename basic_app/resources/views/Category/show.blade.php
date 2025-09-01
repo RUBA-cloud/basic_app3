@@ -87,7 +87,11 @@
                                 @foreach($category->branches as $branch)
                                     <li>
                                         <a href="{{ route('companyBranch.show', $branch->id) }}" class="text-primary fw-bold">
+                                            @if(app()->getLocale()=="ar")
+                                             <i class="fas fa-code-branch me-1"></i> {{ $branch->name_ar}}@else
                                             <i class="fas fa-code-branch me-1"></i> {{ $branch->name_en }}
+
+                                            @endif
                                         </a>
                                     </li>
                                 @endforeach

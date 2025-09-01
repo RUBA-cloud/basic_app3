@@ -1,23 +1,25 @@
 @extends('adminlte::page')
 
+@section('title', __('adminlte::adminlte.offers'))
 
 @section('content')
     <div class="container-fluid">
 
         {{-- Page Header --}}
 
-           <x-action_buttons   label="{{__('adminlte::adminlte.offers')}}"
+           <x-action_buttons   label="{{__('adminlte::adminlte.offers_type')}}"
                 addRoute="offers.create"
-                historyRoute="offers-history"
+                historyRoute="offers.history"
                 historyParams="true"
                 :showAdd="true"
             />
 
 
+
         {{-- Additional Table Card --}}
         <div class="card">
             <div class="card-header">
-   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.offers_type')}}</h2>            </div>
+   <h2 class="font-weight-bold text-dark">{{__('adminlte::adminlte.offers')}}</h2>            </div>
 
             <div class="card-body table-responsive p-0">
                   @php
@@ -32,12 +34,12 @@
 
                 <x-main_table
                     :fields="$fields"
-                    :value="$offerTypes"
+                    :value="$offers"
                     :details_route="'offers.show'"
                     :edit_route="'offers.edit'"
                     :delete_route="'offers.destroy'"
                     :reactive_route="'offers.reactive'"
-                    :search_route="'offers.search'"
+                    :search_route="'offer.search'"
                 />
 
             </div>

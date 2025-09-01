@@ -1,5 +1,4 @@
-@extends('adminlte::auth.auth-page')
-
+@extends('adminlte::page')
 @section('title', __('adminlite::register'))
 
 @section('content')
@@ -16,12 +15,12 @@
 
             <div style="display:flex; justify-content:flex-end; margin-bottom:18px;">
                 <span style="color:#888; font-size:0.97rem; margin-right:8px;">{{ __('adminlte::adminlte.already_have_account') }}</span>
-                <a href="{{ route('login') }}" style="color:#6C63FF; font-weight:600; border:1px solid #eee; border-radius:8px; padding:4px 18px; background:#fff; text-decoration:none;">SIGN IN</a>
+                <a href="{{ route('login') }}" style="color:#6C63FF; font-weight:600; border:1px solid #eee; border-radius:8px; padding:4px 18px; background:#fff; text-decoration:none;">{{ __('adminlte::adminlte.login') }}</a>
             </div>
 
             <div style="text-align:left; margin-bottom:32px;">
                 <h2 style="font-size:2rem; font-weight:700; color:#22223B; margin-bottom:8px;">{{ __('adminlte::adminlte.register')}} </h2>
-                <p style="color:#888; font-size:1rem; margin-bottom:0;">Register to start your journey</p>
+                <p style="color:#888; font-size:1rem; margin-bottom:0;">{{ __('adminlte::adminlte.send_password_reset_link') }}</p>
             </div>
 
             @if(session('message'))
@@ -74,21 +73,3 @@
         </div>
     </div>
 </div>
-
-{{-- Responsive styles --}}
-<style>
-@media (max-width: 900px) {
-    div[style*="display: flex; flex-direction: row;"] {
-        flex-direction: column !important;
-    }
-    div[style*="flex:1.1;"] {
-        display: none !important;
-    }
-    div[style*="flex:1.3;"] {
-        border-radius: 24px !important;
-    }
-}
-@media (max-width: 500px) {
-    div[style*="padding:48px 32px;"] {
-        padding: 24px 8px !important;
-        min-w

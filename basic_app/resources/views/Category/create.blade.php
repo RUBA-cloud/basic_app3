@@ -1,4 +1,5 @@
 @extends('adminlte::page')
+@section('title', __('adminlte::adminlte.create') . ' ' . __('adminlte::adminlte.category'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
@@ -34,17 +35,19 @@
                 label="{{ __('adminlte::adminlte.name_ar') }}"
                 :value="old('name_ar')"
             />
-
             {{-- Category Branch Selection (Multiple) --}}
             <div class="form-group" style="margin-bottom: 20px;">
-                <label for="branch_ids" style="display: block; margin-bottom: 8px; font-weight: 600;">
-            {{__('adminlte::adminlte.company_branch')  }}
+                <label for="branch_ids" style="display: block; margin-bottom: 8px; font-weight: 600;"> {{__('adminlte::adminlte.company_branch')  }}
                 </label>
                 <select name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required style="width: 100%;">
                     @foreach($branches as $branch)
+                    @if(app()->getLocale()=="ar")
                         <option value="{{ $branch->id }}" {{ (collect(old('branch_ids'))->contains($branch->id)) ? 'selected' : '' }}>
-                            {{ $branch->name_en ?? $branch->name_ar }}
+                            {{ $branch->name_ar ?? $branch->name_ar }}
+                        @else
+                         {{ $branch->name_en ?? $branch->name_en}}
                         </option>
+                        @endif
                     @endforeach
                 </select>
             </div>
@@ -65,19 +68,3 @@
         </form>
     </div>
 </div>
-
-{{-- Include Select2 --}}
-@push('scripts')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            $('#branch_ids').select2({
-                placeholder: "{{ __('adminlte::adminlte.select_branches') }}",
-                allowClear: true,
-                width: 'resolve'
-            });
-        });
-    </script>
-@endpush
-@endsection

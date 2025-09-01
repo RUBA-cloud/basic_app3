@@ -32,5 +32,7 @@ return [
     "type"=>"النوع",
     "offers"=>"العروض",
     "offers_type"=>" انواع العروض",
- "product"=>"المنتج",
+    "product"=>"المنتج",
+  "products"=>"المنتجات",
+
 ];

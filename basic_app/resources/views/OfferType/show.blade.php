@@ -1,7 +1,5 @@
 @extends('adminlte::page')
-
-@section('title', __('Show Offer Type'))
-
+ @section('title', __('adminlte::adminlte.create') . ' ' . __('adminlte::adminlte.offers_type'))
 @section('content')
 <div class="row justify-content-center">
     <div class="col-md-10">

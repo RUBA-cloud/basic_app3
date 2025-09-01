@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', __('adminlte::adminlte.branch_name_en'))
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.branch'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">

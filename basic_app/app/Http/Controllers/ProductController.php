@@ -12,6 +12,7 @@ use App\Models\Additonal;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 
+
 class ProductController extends Controller
 {
     public function __construct()

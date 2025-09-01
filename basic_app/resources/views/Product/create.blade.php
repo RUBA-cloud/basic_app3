@@ -67,7 +67,12 @@
                             <option value="">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.type') }}</option>
                             @foreach($types as $type)
                                 <option value="{{ $type->id }}" {{ old('type_id') == $type->id ? 'selected' : '' }}>
-                                    {{ $type->name_en }}
+                               @if(App::getLocale() == 'ar')
+    {{ $type->name_ar }}
+@else
+    {{ $type->name_en }}
+@endif
+
                                 </option>
                             @endforeach
                         </select>
@@ -75,14 +80,16 @@
 
                     {{-- Additional --}}
                     <div class="col-md-6 mb-3">
-                        <label for="additional">{{ __('adminlte::adminlte.additional') }} {{ __('adminlte::adminlte.select') }}</label>
-                        <select name="additional[]" id="additional" class="form-control select2" multiple>
-                            @foreach($additionals as $additional)
-                                <option value="{{ $additional->id }}" {{ collect(old('additional'))->contains($additional->id) ? 'selected' : '' }}>
-                                    {{ $additional->name_en }}
-                                </option>
-                            @endforeach
-                        </select>
+                           <x-adminlte-select2 name="additional[]" label="{{ __('adminlte::adminlte.additional') }}" id="additional" class="select2" multiple>
+                             @foreach($additionals as $additional)  <option value="{{ $additional->id }}" {{ collect(old('additional'))->contains($additional->id) ? 'selected' : '' }}>
+                                @if(App::getLocale() == 'ar')
+    {{ $additional->name_ar }}
+@else
+    {{ $additional->name_en }}
+@endif
+
+  </option> @endforeach
+</x-adminlte-select2>
                     </div>
 
                     {{-- Sizes --}}

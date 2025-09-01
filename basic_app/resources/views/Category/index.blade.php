@@ -1,5 +1,6 @@
 @extends('adminlte::page')
 
+@section('title', ' ' . __('adminlte::adminlte.category'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">

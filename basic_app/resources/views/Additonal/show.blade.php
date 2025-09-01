@@ -67,16 +67,7 @@
                         <small class="text-muted">{{ __('adminlte::adminlte.descripation') }}</small>
                         <div class="fs-5 fw-bold text-dark">{{ $additional->description	 }}</div>
                     </div>
-
-
-
-
-
-
-
-
-
-                    {{-- Actions --}}
+              {{-- Actions --}}
                     <div class="col-12 pt-3">
                         <a href="{{ route('additionals.edit', $additional->id) }}"
                            class="btn btn-primary px-4 py-2">

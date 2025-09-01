@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-@section('title', __('adminlte'))
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.category'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
@@ -43,7 +43,11 @@
                 <label for="branch_ids" class="font-weight-bold mb-2">
                     {{ __('adminlte::adminlte.select_branches') }}
                 </label>
-                <select name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required>
+                <div class="form-group">
+    <label for="branch_ids">@lang('Branches')</label>
+
+
+                <x-adminlte-select2 name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required>
                     @php
                         $selectedBranchIds = old('branch_ids', $category->branches->pluck('id')->toArray());
                     @endphp
@@ -75,22 +79,15 @@
         </form>
     </div>
 </div>
-
-{{-- Include Select2 --}}
-@push('css')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-@endpush
-
-@push('js')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#branch_ids').select2({
-                placeholder: '{{ __("adminlte::adminlte.select_branch_placeholder") }}',
-                allowClear: true,
-                width: '100%'
-            });
-        });
-    </script>
 @endpush
 @endsection
+@push('scripts')
+<script>
+$(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2({
+        theme: 'bootstrap4' // or 'default' if you prefer
+    })
+})
+</script>
+@endpush

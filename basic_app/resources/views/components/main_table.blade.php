@@ -106,7 +106,7 @@
                                     @endif
 
                                     @if ($delete_route)
-                                        <form action="{{ route($delete_route, $item->id) }}" method="POST" onsubmit="return confirm('Are you sure?')" class="d-inline">
+                                        <form action="{{ route($delete_route, $item->id) }}" method="POST" onsubmit="return confirm({{ __('adminlte::adminlte.are_you_sure_youـwant_to_delete') }})" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger mb-1" style="margin: 5px">{{__('adminlte::adminlte.delete') }}</button>
@@ -114,7 +114,7 @@
                                     @endif
                                 @else
                                     @if ($reactive_route)
-                                        <form action="{{ route($reactive_route, $item->id) }}" method="POST" onsubmit="return confirm('Reactivate this item?')" class="d-inline">
+                                        <form action="{{ route($reactive_route, $item->id) }}" method="POST" onsubmit="return confirm({{ ('adminlte:adminlte.do_you_want_to_reactive') }})" class="d-inline">
                                             @csrf
                                             @method('PUT')
                                             <button type="submit" class="btn btn-warning mb-1">{{__('adminlte::adminlte.reactive') }}</button>

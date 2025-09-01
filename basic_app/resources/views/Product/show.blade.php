@@ -25,7 +25,14 @@
 
         {{-- Type & Category --}}
         <div class="mb-3">
-            <strong>{{ __('adminlte::adminlte.type') }}:</strong> {{ optional($product->type)->name_en ?? '-' }}<br>
+            <strong>{{ __('adminlte::adminlte.type') }}:</strong>
+            @if(app()->getLocale()=="ar")
+                                {{ optional($product->type)->name_ar ?? '-' }}
+                @else
+                            {{ optional($product->type)->name_en ?? '-' }}
+
+            @endif
+                <br>
             <strong>{{ __('adminlte::adminlte.category') }}:</strong> {{ optional($product->category)->name_en ?? '-' }}
         </div>
 
@@ -59,7 +66,12 @@
                 <strong>{{ __('adminlte::adminlte.size') }}:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
                     @foreach($product->sizes as $size)
+                    @if (app()->getLocale()=="ar")
+                        <x-adminlte-badge label="{{ $size->name_ar }}" theme="primary" />
+@else
                         <x-adminlte-badge label="{{ $size->name_en }}" theme="primary" />
+
+                    @endif
                     @endforeach
                 </div>
             </div>
@@ -71,7 +83,12 @@
                 <strong>{{ __('adminlte::adminlte.additional') }}:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
                     @foreach($product->additionals as $additional)
+                    @if(app()->getLocale()=="ar")
+                        <x-adminlte-badge label="{{ $additional->name_ar}}" theme="info" />
+                            @else
                         <x-adminlte-badge label="{{ $additional->name_en }}" theme="info" />
+
+                        @endif
                     @endforeach
                 </div>
             </div>

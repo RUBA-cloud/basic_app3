@@ -2,9 +2,7 @@
 
 
 @extends('adminlte::page')
-
 @section('title', __('adminlte::adminlte.size'))
-
 @section('content')
 <div class="container py-4">
 

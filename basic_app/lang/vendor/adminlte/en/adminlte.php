@@ -228,6 +228,18 @@ return [
     'discount'=>"Discount",
     "gift"=>"Gift",
     "product"=>"Product","select"=>'Select',
-    "remove"=>"Remove"
+    "remove"=>"Remove",
+
+ "start_date"=>"Start Date",
+ "end_date"=>"End Date",
+"already_have_account"=>"Already Have Account",
+"login"=>"Login",
+"verify_your_email"=>"Verify Your Email!",
+'verify_email_instruction' => 'To complete your registration, please check your email and click on the verification link we sent you.',
+"choose_date"=>"Choose Date",
+'are_you_sure_youـwant_to_delete'=>"Are You Sure You  want to delete ?",
+"do_you_want_to_reactive"=>"Do yo want to reactive?"
 
 ];
+
+

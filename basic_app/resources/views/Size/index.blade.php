@@ -1,6 +1,5 @@
 @extends('adminlte::page')
-
-
+@section('title', ' ' . __('adminlte::adminlte.size'))
 @section('content')
 <div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
     {{-- Sidebar --}}

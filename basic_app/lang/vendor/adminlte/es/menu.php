@@ -2,8 +2,6 @@
 
 return [
 
-    'company_info' => 'Company Information',
-    'dashboard' => 'Dashboard',
     'main_navigation' => 'MENU PRINCIPAL',
     'blog' => 'Blog',
     'pages' => 'Páginas',

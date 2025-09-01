@@ -38,31 +38,13 @@ class CategoryRequest extends FormRequest
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ];
     }
+  public function attributes(): array
+    {
+        return trans('adminlte::validation.attributes');
+    }
 
-    //  public function attributes(): array
-    // {
-    //     return trans('adminlte::validation.attributes');
-    // }
-
-    // public function messages(): array
-    // {
-    //     return trans('adminlte::validation.messages');
-    // }
-    /**
-     * Custom attribute names from translation
-     */
-    // public function attributes(): array
-    // {
-    //     // Make sure resources/lang/{locale}/validation.php has 'attributes' array
-    //     return trans('adminlte::validation.attributes') ?? [];
-    // }
-
-    // /**
-    //  * Custom messages from translation
-    //  */
-    // public function messages(): array
-    // {
-    //     // Make sure resources/lang/{locale}/validation.php has 'messages' array
-    //     return trans('adminlte::validation.messages') ?? [];
-    // }
+    public function messages(): array
+    {
+        return trans('adminlte::validation.messages');
+    }
 }

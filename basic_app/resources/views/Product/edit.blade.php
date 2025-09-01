@@ -55,6 +55,7 @@
                             <option value="">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.category') }}</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" {{ (old('category_id', $product->category_id) == $category->id) ? 'selected' : '' }}>
+                                
                                     {{ $category->name_en }}
                                 </option>
                             @endforeach
@@ -80,6 +81,9 @@
                         <select name="additional[]" id="additional" class="form-control select2" multiple>
                             @foreach($additionals as $additional)
                                 <option value="{{ $additional->id }}" {{ in_array($additional->id, old('additional', $product->additionals->pluck('id')->toArray())) ? 'selected' : '' }}>
+                                  @if ()
+                                      
+                                  @endif
                                     {{ $additional->name_en }}
                                 </option>
                             @endforeach

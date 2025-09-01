@@ -31,84 +31,101 @@ class AppServiceProvider extends ServiceProvider
             $mainColor = $colors['main_color'] ?? '#FF2D20';
             $subColor = $colors['sub_color'] ?? '#1A202C';
             $textColor = $colors['text_color'] ?? '#22223B';
-            $view->with(compact('mainColor', 'subColor', 'textColor'));
+            $iconColor = $colors['icon_color'] ?? '#000000'; // Icon color
+            $view->with(compact('mainColor', 'subColor', 'textColor', 'iconColor'));
         });
 
         // Inject dynamic menu with icon color
         $colors = CustomSettings::colors();
         $iconColor = $colors['icon_color'] ?? '#000000';
 
+        // Dynamically apply icon color to the menu icons
         config([
             'adminlte.menu' => [
-    // Dashboard
-    [
-        'text' => 'dashboard',
-        'url'  => '/',
-        'icon' => 'fas fa-fw fa-tachometer-alt',
-    ],
+                // Dashboard
+                [
+                    'text' => 'dashboard',
+                    'url'  => '/',
+                    'icon' => 'fas fa-fw fa-tachometer-alt',
+                    'icon_color' => $iconColor,
+                ],
 
-    // Company Info
-    [
-        'text' => 'company_info',
-        'url'  => 'companyInfo/',
-        'icon' => 'fas fa-fw fa-info-circle',
-    ],
+                // Company Info
+                [
+                    'text' => 'company_info',
+                    'url'  => 'companyInfo/',
+                    'icon' => 'fas fa-fw fa-info-circle',
+                    'icon_color' => $iconColor,
+                ],
 
-    // Branches
-    [
-        'text' => 'branches',
-        'url'  => 'branches/',
-        'icon' => 'fas fa-fw fa-code-branch',
-    ],
+                // Branches
+                [
+                    'text' => 'branches',
+                    'url'  => 'branches/',
+                    'icon' => 'fas fa-fw fa-code-branch',
+                    'icon_color' => $iconColor,
+                ],
 
-     // category
-    [
-        'text' => 'category',
-        'url'  => 'categories/',
-        'icon' => 'fa-solid fa-layer-group',
-    ],
-    // Employees
-    [
-        'text' => 'size',
-        'url'  => 'sizes/',
-        'icon' => 'fa-solid fa-expand-wide',
-    ],
-    // Types
-    [
-        'text' => 'type',
-        'url'  => 'type/',
-        'icon' => 'fa-solid fa-expand-type',
-    ],
-    [
-        'text' => 'additional',
-        'url'  => 'additional/',
-        'icon' => 'fa-solid fa-expand-type',
-    ],
-    [
-        'text' => 'offers_type',
-        'url'  => 'offers/',
-        'icon' => 'fa-solid fa-expand-type',
-    ],
-     [
-        'text' => 'products',
-        'url'  => 'product/',
-        'icon' => 'fa-solid fa-expand-type',
-    ],
+                // Category
+                [
+                    'text' => 'category',
+                    'url'  => 'categories/',
+                    'icon' => 'fas fa-fw fa-list',
+                    'icon_color' => $iconColor,
+                ],
 
-    [
-        'text' => 'offers',
-        'url'  => 'offers/',
-        'icon' => 'fa-solid fa-expand-type',
-    ],
+                // Size
+                [
+                    'text' => 'size',
+                    'url'  => 'sizes/',
+                    'icon' => 'fa-solid fa-size',
+                    'icon_color' => $iconColor,
+                ],
 
+                // Type
+                [
+                    'text' => 'type',
+                    'url'  => 'type/',
+                    'icon' => 'fas fa-fw fa-list',
+                    'icon_color' => $iconColor,
+                ],
 
-    // Settings Section
+                // Additional
+                [
+                    'text' => 'additional',
+                    'url'  => 'additional/',
+                    'icon' => 'fas fa-fw fa-add',
+                    'icon_color' => $iconColor,
+                ],
 
-],
-]);
+                // Offers Type
+                [
+                    'text' => 'offers_type',
+                    'url'  => 'offers_type/',
+                    'icon' => 'fas fa-fw fa-list',
+                    'icon_color' => $iconColor,
+                ],
 
-        // Set icon color
+                // Products
+                [
+                    'text' => 'products',
+                    'url'  => 'product/',
+                    'icon' => 'fas fa-fw fa-list',
+                    'icon_color' => $iconColor,
+                ],
 
-        // Share colors with all views
+                // Offers
+                [
+                    'text' => 'offers',
+                    'url'  => 'offers/',
+                    'icon' => 'fa-solid fa-heart',
+                    'icon_color' => $iconColor,
+                ],
+
+                // Settings Section
+            ],
+        ]);
+
+        // Set icon color globally for the menu
     }
 }

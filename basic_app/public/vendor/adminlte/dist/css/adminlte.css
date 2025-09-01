@@ -113,8 +113,6 @@ dl {
   margin-bottom: 1rem;
 }
 
-
-
 ol ol,
 ul ul,
 ol ul,
@@ -2208,13 +2206,11 @@ textarea.form-control {
 
 .form-check-input[disabled] ~ .form-check-label,
 .form-check-input:disabled ~ .form-check-label {
-        padding: 0px,0,5px,2px;
-
   color: #6c757d;
 }
 
 .form-check-label {
-  margin-bottom: 0;padding-right: 5px;
+  margin-bottom: 0;
 }
 
 .form-check-inline {

@@ -26,7 +26,7 @@ class CategoryController extends Controller
             return view('Category.history', compact('categories'));
         }
 
-        $categories = Category::with('user')->where('is_active', 1)->paginate(10);
+        $categories = Category::with('user')->where('is_active', true)->paginate(10);
         return view('Category.index', compact('categories', 'isHistory'));
     }
 

@@ -1,5 +1,4 @@
 @extends('adminlte::page')
-
 @section('title', __('adminlte::adminlte.create') . ' ' . __('adminlte::adminlte.type'))
 
 @section('content')

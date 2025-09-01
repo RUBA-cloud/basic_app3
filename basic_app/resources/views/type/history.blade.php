@@ -1,6 +1,7 @@
 
  @extends('adminlte::page')
 
+@section('title', ' ' . __('adminlte::adminlte.history'))
 
 @section('content')
     <div class="container-fluid">

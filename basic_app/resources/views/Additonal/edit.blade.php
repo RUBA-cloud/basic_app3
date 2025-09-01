@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-@section('title', 'Create Company Size')
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.additional'))
 @section('content')
 <div style="min-height: 100vh; display: flex;">
     <div class="card" style="padding: 24px; width: 100%;">

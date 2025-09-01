@@ -231,6 +231,14 @@ return [
     'is_discount'=>'هل يوجد تنزيل',
     "remove"=>"حذف",
  "product"=>"المنتج",
- 'select'=>'اختر'
-
+ 'select'=>'اختر',
+ "start_date"=>"تاريخ البداية",
+ "end_date"=>"تاريخ النهاية",
+"already_have_account"=>"لديك حسابك ",
+"login"=>"تسجيل الدخول",
+"verify_your_email"=>"تاكيد الايميل ",
+'verify_email_instruction' => 'يرجى التحقق من بريدك الإلكتروني والضغط على رابط التفعيل لإكمال تسجيلك.',
+'choose_date'=>"تاريخ محدد",
+'are_you_sure_youـwant_to_delete'=>"هل انت متاكد حذف؟",
+"do_you_want_to_reactive"=>"هل تريد من اعادة ؟"
 ];

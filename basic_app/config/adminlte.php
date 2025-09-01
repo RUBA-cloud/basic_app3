@@ -156,9 +156,9 @@ return [
 
     'layout_topnav' => null,
     'layout_boxed' => null,
-    'layout_fixed_sidebar' => true,
-    'layout_fixed_navbar' => true,
-    'layout_fixed_footer' => true,
+    'layout_fixed_sidebar' => null,
+    'layout_fixed_navbar' => null,
+    'layout_fixed_footer' => null,
     'layout_dark_mode' => null,
 
     /*
@@ -306,7 +306,6 @@ return [
             'type' => 'navbar-search',
             'text' => 'search',
             'topnav_right' => true,
-
         ],
         [
             'type' => 'fullscreen-widget',
@@ -452,33 +451,41 @@ return [
                 ],
             ],
         ],
-
-    'Select2' => [
+        'TempusDominusBs4' => [
         'active' => false,
         'files' => [
             [
                 'type' => 'js',
                 'asset' => true,
-                'location' => 'vendor/select2/js/select2.full.min.js',
+                'location' => 'vendor/moment/moment.min.js',
+            ],
+            [
+                'type' => 'js',
+                'asset' => true,
+                'location' => 'vendor/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js',
             ],
             [
                 'type' => 'css',
                 'asset' => true,
-                'location' => 'vendor/select2/css/select2.min.css',
-            ],
-            [
-                'type' => 'css',
-                'asset' => true,
-                'location' => 'vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css',
+                'location' => 'vendor/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css',
             ],
         ],
     ],
-
-
-    // ...other plugins
-],
-
-
+        'Select2' => [
+            'active' => false,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css',
+                ],
+            ],
+        ],
         'Chartjs' => [
             'active' => false,
             'files' => [
@@ -513,30 +520,7 @@ return [
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js',
                 ],
             ],
-
-
-    'Select2' => [
-        'active' => true,
-        'files' => [
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/select2/js/select2.full.min.js',
-            ],
-            [
-                'type' => 'css',
-                'asset' => true,
-                'location' => 'vendor/select2/css/select2.min.css',
-            ],
-            [
-                'type' => 'css',
-                'asset' => true,
-                'location' => 'vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css',
-            ],
         ],
-    ],
-
-
     ],
 
     /*

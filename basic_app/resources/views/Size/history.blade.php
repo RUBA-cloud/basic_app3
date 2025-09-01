@@ -1,12 +1,9 @@
 @extends('adminlte::page')
-
-
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.size'))
 @section('content')
     <div class="container-fluid">
-
         {{-- Page Header --}}
   <div class="card_table" style="padding: 24px">
-
            <x-action_buttons
            label="{{__('adminlte::adminlte.size')}}"
                 addRoute="sizes.create"
