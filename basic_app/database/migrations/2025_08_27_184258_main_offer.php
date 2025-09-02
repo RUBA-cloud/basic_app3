@@ -11,22 +11,25 @@ return new class extends Migration
         Schema::create('offers', function (Blueprint $table) {
             $table->id();
 
-            // Foreign key to offer types
-            $table->unsignedBigInteger('type_id');
-            $table->foreign('type_id')->references('id')->on('offers_type')->onDelete('cascade');
+            // // Foreign key to offer types
+            // $table->foreignId('type_id')
+            //       ->constrained('offer_types') // make sure your table is named offer_types
+            //       ->cascadeOnDelete();
 
-            // JSON array for multiple category IDs
-            $table->json('category_ids');
+            // JSON array for multiple category IDs (or use pivot table instead)
+            $table->json('category_ids')->nullable();
 
             // Offer details
-            $table->decimal('discount_percentage', 5, 2)->default(0);
+            $table->decimal('discount_percentage', 5, 2)->default(0.00);
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->boolean('is_active')->default(true);
 
             // Foreign key to user who created the offer
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->foreignId('user_id')
+                  ->nullable()
+                  ->constrained('users')
+                  ->nullOnDelete();
 
             $table->timestamps();
         });

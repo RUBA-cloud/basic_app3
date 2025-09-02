@@ -33,7 +33,50 @@ return [
     'company_info_create_success' => 'تم إنشاء معلومات الشركة بنجاح.',
     'company_info_create_error' => 'حدث خطأ أثناء إنشاء معلومات الشركة. يرجى المحاولة مرة أخرى.',
     'company_info_settings' => 'إعدادات معلومات الشركة',
+ // Titles / headings
+    'modules' => 'الوحدات',
+    'modules_manage_hint' => 'إدارة الوحدات المفعّلة عبر مساحة شركتك.',
+    'modules_create' => 'إنشاء وحدات',
+    'search_by_user_or_module' => 'ابحث حسب المستخدم أو الوحدة…',
+    'all_status' => 'كل الحالات',
+    'active' => 'مفعّل',
+    'inactive' => 'غير مفعّل',
 
+    // Sorting / filters
+    'sort_recent' => 'الترتيب: الأحدث',
+    'sort_oldest' => 'الأقدم',
+    'sort_most_enabled' => 'الأكثر تفعيلًا',
+    'sort_least_enabled' => 'الأقل تفعيلًا',
+    'filter' => 'تصفية',
+    'reset' => 'إعادة تعيين',
+
+    // Empty state
+    'no_modules' => 'لا توجد وحدات بعد',
+    'no_modules_hint' => 'أنشئ أول إعداد للوحدات للبدء.',
+
+    // Cards / labels
+    'global_unassigned' => 'عام / غير مخصّص',
+    'enabled_modules' => 'الوحدات المفعّلة',
+    'updated' => 'تم التحديث',
+
+    // Actions
+    'view' => 'عرض',
+    'edit' => 'تعديل',
+    'delete' => 'حذف',
+    'confirm_delete_module' => 'هل تريد حذف إعداد الوحدات هذا؟',
+
+    // Pill labels
+    'module_dashboard' => 'لوحة التحكم',
+    'module_info'      => 'المعلومات',
+    'module_branch'    => 'الفروع',
+    'module_category'  => 'التصنيفات',
+    'module_type'      => 'الأنواع',
+    'module_size'      => 'الأحجام',
+    'module_offers_type' => 'أنواع العروض',
+    'module_offers'      => 'العروض',
+    'module_product'     => 'المنتجات',
+    'module_employee'    => 'الموظفون',
+    'module_order'       => 'الطلبات',
     // Misc
     'basic_info' => 'المعلومات الأساسية',
     'brand_colors' => 'ألوان العلامة التجارية',
@@ -240,5 +283,59 @@ return [
 'verify_email_instruction' => 'يرجى التحقق من بريدك الإلكتروني والضغط على رابط التفعيل لإكمال تسجيلك.',
 'choose_date'=>"تاريخ محدد",
 'are_you_sure_youـwant_to_delete'=>"هل انت متاكد حذف؟",
-"do_you_want_to_reactive"=>"هل تريد من اعادة ؟"
+"do_you_want_to_reactive"=>"هل تريد من اعادة ؟",
+"Modules"=>"وحدات",
+
+
+    // generic
+    'title'         => 'الوحدات',
+    'subtitle'      => 'إدارة الوحدات المفعّلة في مساحة الشركة.',
+    'id'            => 'المعرف',
+    'user'          => 'المستخدم',
+    'unassigned'    => 'عالمي / غير مخصص',
+    'created_at'    => 'تاريخ الإنشاء',
+    'updated_at'    => 'آخر تحديث',
+    'active'        => 'مفعّل',
+    'inactive'      => 'غير مفعّل',
+    'enabled'       => 'مفعل',
+    'disabled'      => 'غير مفعل',
+
+    // actions
+    'create'        => 'إنشاء وحدات',
+    'save'          => 'حفظ',
+    'update'        => 'تحديث الوحدة',
+    'edit'          => 'تعديل',
+    'show'          => 'عرض',
+    'delete'        => 'حذف',
+    'back'          => 'رجوع',
+    'confirm_delete'=> 'حذف مجموعة الوحدات؟',
+
+    // empty & flashes
+    'empty_title'   => 'لا توجد وحدات بعد',
+    'empty_desc'    => 'ابدئي بإنشاء أول إعداد للوحدات.',
+    'created_ok'    => 'تم إنشاء الوحدة بنجاح!',
+    'updated_ok'    => 'تم تحديث الوحدة بنجاح!',
+    'deleted_ok'    => 'تم حذف الوحدة بنجاح!',
+
+    // groups
+    'group_company' => 'وحدات الشركة',
+    'group_other'   => 'وحدات أخرى',
+
+    // fields
+    'company_dashboard_module'    => 'لوحة تحكم الشركة',
+    'company_info_module'         => 'معلومات الشركة',
+    'company_branch_module'       => 'فروع الشركة',
+    'company_category_module'     => 'فئات الشركة',
+    'company_type_module'         => 'نوع الشركة',
+    'company_size_module'         => 'حجم الشركة',
+    'company_offers_type_module'  => 'أنواع العروض',
+    'company_offers_module'       => 'عروض الشركة',
+    'product_module'              => 'وحدة المنتجات',
+    'employee_module'             => 'وحدة الموظفين',
+    'order_module'                => 'وحدة الطلبات',
+    'is_active'                   => 'الحالة مفعّلة',
+     'module_details_title' => 'تفاصيل الوحدة',
+     'module_n_hash'        => 'الوحدة #:id',
+     'last_updated_human'   => 'آخر تحديث: :when',
+
 ];

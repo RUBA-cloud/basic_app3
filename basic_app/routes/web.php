@@ -14,6 +14,7 @@ use App\Http\Controllers\AdditionalController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\OfferTypeController;
+use App\Http\Controllers\ModulesController;
 use App\Http\Controllers\TypeController;
 
 Route::get('/', function () {
@@ -106,7 +107,8 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::put('/offers_reactive/{id}', [OfferController::class, 'reactive'])->name('offers.reactive');
         Route::post('/offer_search', [OfferController::class, 'search'])->name('offer.search');
         Route::post('/offer_search_history', [OfferController::class, 'searchHistory'])->name('offer.search_history');
-
+        Route::resource('/modules', ModulesController::class);
+        Route::post('modules/search',[ModulesController::class,'index'])->name('modules.search');
     }); // end auth + verified group
 
 }); // end SetLocale group

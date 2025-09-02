@@ -238,8 +238,99 @@ return [
 'verify_email_instruction' => 'To complete your registration, please check your email and click on the verification link we sent you.',
 "choose_date"=>"Choose Date",
 'are_you_sure_youـwant_to_delete'=>"Are You Sure You  want to delete ?",
-"do_you_want_to_reactive"=>"Do yo want to reactive?"
+"do_you_want_to_reactive"=>"Do yo want to reactive?",
+"Modules"=>"Modules",
+    // generic
+    'subtitle'      => 'Manage which modules are enabled across your company space.',
+    'id'            => 'ID',
+    'user'          => 'User',
+    'unassigned'    => 'Global / Unassigned',
+    'created_at'    => 'Created',
+    'updated_at'    => 'Last updated',
+    'active'        => 'Active',
+    'inactive'      => 'Inactive',
+    'enabled'       => 'Enabled',
+    'disabled'      => 'Disabled',
+
+
+    // empty & flashes
+    'empty_title'   => 'No modules yet',
+    'empty_desc'    => 'Create your first module configuration to get started.',
+    'created_ok'    => 'Module created successfully!',
+    'updated_ok'    => 'Module updated successfully!',
+    'deleted_ok'    => 'Module deleted successfully!',
+
+    // groups
+    'group_company' => 'Company Modules',
+    'group_other'   => 'Other Modules',
+
+
+    // Titles / headings
+    'modules' => 'Modules',
+    'modules_manage_hint' => 'Manage which modules are enabled across your company space.',
+    'modules_create' => 'Create Modules',
+    'search_by_user_or_module' => 'Search by user or module…',
+    'all_status' => 'All Status',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+
+    // Sorting / filters
+    'sort_recent' => 'Sort: Recent',
+    'sort_oldest' => 'Oldest',
+    'sort_most_enabled' => 'Most Enabled',
+    'sort_least_enabled' => 'Least Enabled',
+    'filter' => 'Filter',
+    'reset' => 'Reset',
+
+    // Empty state
+    'no_modules' => 'No modules yet',
+    'no_modules_hint' => 'Create your first module configuration to get started.',
+
+    // Cards / labels
+    'global_unassigned' => 'Global / Unassigned',
+    'enabled_modules' => 'Enabled Modules',
+    'updated' => 'Updated',
+
+    // Actions
+    'view' => 'View',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'confirm_delete_module' => 'Do you want to delete this module set?',
+
+    // Pill labels
+    'module_dashboard' => 'Dashboard',
+    'module_info'      => 'Info',
+    'module_branch'    => 'Branches',
+    'module_category'  => 'Categories',
+    'module_type'      => 'Types',
+    'module_size'      => 'Sizes',
+    'module_offers_type' => 'Offers Type',
+    'module_offers'      => 'Offers',
+    'module_product'     => 'Products',
+    'module_employee'    => 'Employees',
+    'module_order'       => 'Orders',
+
+
+    // fields
+    'company_dashboard_module'    => 'Company Dashboard',
+    'company_info_module'         => 'Company Info',
+    'company_branch_module'       => 'Company Branch',
+    'company_category_module'     => 'Company Category',
+    'company_type_module'         => 'Company Type',
+    'company_size_module'         => 'Company Size',
+    'company_offers_type_module'  => 'Company Offers Type',
+    'company_offers_module'       => 'Company Offers',
+    'product_module'              => 'Product Module',
+    'employee_module'             => 'Employee Module',
+    'order_module'                => 'Order Module',
+    'is_active'                   => 'Is Active',
+    'no_module_yet'=>'No Module Yet',
+    'sort'=>'Sort',
+    'recent'=>'Recent',
+    'last_modified'=>'Last Modified',
+      'module_details_title' => 'Module Details',
+    'module_n_hash'        => 'Module #:id',
+        'last_updated_human'   => 'Last updated: :when',
 
 ];
-
 

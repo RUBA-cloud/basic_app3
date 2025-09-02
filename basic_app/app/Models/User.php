@@ -57,6 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
 
 }
+public function modulesHistory()
+{
+    return $this->hasOne(\App\Models\Module::class)->latestOfMany();
+}
+
 public function hasVerifiedEmail(): bool
 {
     return !is_null($this->email_verified_at);

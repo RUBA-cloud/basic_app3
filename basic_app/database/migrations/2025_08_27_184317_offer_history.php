@@ -13,7 +13,7 @@ return new class extends Migration
 
             // Foreign key to offer types
             $table->unsignedBigInteger('type_id');
-            $table->foreign('type_id')->references('id')->on('offers_type')->onDelete('cascade');
+            // $table->foreign('type_id')->references('id')->on('offers_type')->onDelete('cascade');
 
             // JSON array for multiple category IDs
             $table->json('category_ids');
