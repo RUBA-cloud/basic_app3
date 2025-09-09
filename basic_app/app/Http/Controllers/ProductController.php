@@ -80,12 +80,15 @@ class ProductController extends Controller
             $product->is_active = $request->has('is_active') ? 1 : 0;
             $product->colors = $validated['colors'] ?? [];
             $product->save();
+// B) Only sync when the field was submitted (keeps existing if omitted)
+if (array_key_exists('sizes', $validated) && $validated['sizes'] !== null)  {
+    $product->sizes()->sync($validated['sizes'] ?? []);
+}
 
-            $product->sizes()->sync()($validated['sizes'] ?? []);
-            $product->additionals()->sync()($validated['additional'] ?? []);
-
-
-            if ($request->hasFile('images')) {
+if (array_key_exists('additionals', $validated)&& $validated['additionals'] !== null) { // note: correct spelling
+    $product->additionals()->sync($validated['additionals'] ?? []);
+}
+        if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $path = $imageFile->store('products', 'public');
                     $imageUrl = $request->getSchemeAndHttpHost() . '/storage/' . $path;

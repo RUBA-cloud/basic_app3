@@ -46,6 +46,7 @@
         "esbuild": "^0.25.9",
         "escalade": "^3.2.0",
         "fdir": "^6.5.0",
+        "firebase": "^12.2.1",
         "follow-redirects": "^1.15.11",
         "form-data": "^4.0.4",
         "function-bind": "^1.1.2",

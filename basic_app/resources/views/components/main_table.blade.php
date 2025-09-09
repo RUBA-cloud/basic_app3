@@ -5,7 +5,7 @@
     'edit_route' => null,
     'delete_route' => null,
     'reactive_route' => null,
-    'search_route' => null
+    'search_route' => null,
 ])
 
 @php

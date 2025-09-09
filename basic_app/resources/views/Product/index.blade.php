@@ -31,15 +31,18 @@
                 ];
             @endphp
 
-                <x-main_table
-                    :fields="$fields"
-                    :value="$products"
-                    :details_route="'product.show'"
-                    :edit_route="'product.edit'"
-                    :delete_route="'product.destroy'"
-                    :reactive_route="'product.reactive'"
-                    :search_route="'product.search'"
-                />
+
+<livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\Product"       {{-- any Eloquent model --}}
+        detailsRoute="product.show"   {{-- optional: blade partial for modal --}}
+        editRoute="product.edit"        {{-- route names (optional) --}}
+        deleteRoute="product.destroy"   {{-- when set, delete uses form+route --}}
+        reactiveRoute="product.reactive"
+        initial-route="{{ route('product.index') }}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar','description_en','description_ar']"
+        :per-page="12"
+    />
 
             </div>
         </div>

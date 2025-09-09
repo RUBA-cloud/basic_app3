@@ -30,16 +30,18 @@
                 ];
             @endphp
 
-                <x-main_table
-                    :fields="$fields"
-                    :value="$offerTypes"
-                    :details_route="'offers_type.show'"
-                    :edit_route="'offers_type.edit'"
-                    :delete_route="'offers_type.destroy'"
-                    :reactive_route="'offers_type.reactive'"
-                    :search_route="'offer_type.search'"
-                />
 
+<livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\OffersType"       {{-- any Eloquent model --}}
+        detailsRoute="offers_type.show"   {{-- optional: blade partial for modal --}}
+        editRoute="offers_type.edit"        {{-- route names (optional) --}}
+        deleteRoute="offers_type.destroy"   {{-- when set, delete uses form+route --}}
+        reactiveRoute="offers_type.reactivate"
+        initial-route="{{ route('offers_type.index') }}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar']"
+        :per-page="12"
+    />
             </div>
         </div>
     </div>

@@ -229,7 +229,6 @@ return [
     "gift"=>"Gift",
     "product"=>"Product","select"=>'Select',
     "remove"=>"Remove",
-
  "start_date"=>"Start Date",
  "end_date"=>"End Date",
 "already_have_account"=>"Already Have Account",
@@ -290,6 +289,7 @@ return [
     'global_unassigned' => 'Global / Unassigned',
     'enabled_modules' => 'Enabled Modules',
     'updated' => 'Updated',
+    'choose_image'=>'Choose Image',
 
     // Actions
     'view' => 'View',
@@ -330,7 +330,27 @@ return [
     'last_modified'=>'Last Modified',
       'module_details_title' => 'Module Details',
     'module_n_hash'        => 'Module #:id',
-        'last_updated_human'   => 'Last updated: :when',
+    'last_updated_human'   => 'Last updated: :when',
+     'permissions'=>'Permisions',
+     'no_features'=>'No Features',
+     'no_module_yet'=>'No Module Yet',
+     'capabilities'=>'capabilities',
+     'assign_permission'=>'Assign Permission',
+     'count'=>"Count",
+     'delete_this_employee'=>'Delete  this emloyee ?',
+     'employee'=>'Employee',
+     'accepted'=>'Accepeted',
+    'rejected'=>'Rejected',
+    'canceled'=>'Canceled',
+    'completed'=>'Completed',
+    'pending'=>'Pending',
+    'status'=>'Status',
+    'offer_name'=>'Offer Name',
+    'quantity'=>'Quantity',
+    'please_add_reason_cancel'=>'Please The rejection Reason For this order',
+    'effective_total'=>'After Discount Total',
+    'sub_total'=>'Sub Total',
+
 
 ];
 

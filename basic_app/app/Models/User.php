@@ -2,78 +2,65 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail; // ✅ Correct
-use App\Notifications\CustomEmailVerified;
-use App\Notifications\CustomResetPassword;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
+use Modules\Orders\Notifications\OrderStatusChanged;
 
-class User extends Authenticatable implements MustVerifyEmail
-
+class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
-    protected $redirectTo = '/dashboard'; // Change '/dashboard' to your desired route
-
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
+        'name', 'email', 'password', 'role', 'avatar_path',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $hidden = ['password', 'remember_token'];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+  public function modulesHistory()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasOne(Module::class, 'user_id');
     }
-    public function sendEmailVerificationNotification()
+    // === Scopes ===
+    public function scopeEmployees($q) { return $q->where('role', 'employee'); }
+
+    // === Relations ===
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class)->withTimestamps();
+    }
+
+    // === Accessors ===
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            if ($this->avatar_path && Storage::disk('public')->exists($this->avatar_path)) {
+                return Storage::url($this->avatar_path);
+            }
+            return asset('images/avatar-placeholder.png'); // add a placeholder if you want
+        });
+    }
+    // app/Models/User.php
+public function createdBy()
 {
-    $this->notify(new CustomEmailVerified);
+    return $this->belongsTo(User::class, 'created_by'); // make sure column exists
+}
+  public function deviceTokens(): HasMany
+  {
+    return $this->hasMany(DeviceToken::class);
+    }
+    // For the notification channel to know where to send:
+    public function routeNotificationForFcm(): array
+    {
+        return $this->deviceTokens()->pluck('token')->all();
+    }
+        // If not already defined
+    // Users who can handle Orders module
 
 
-}
-public function modulesHistory()
-{
-    return $this->hasOne(\App\Models\Module::class)->latestOfMany();
-}
-
-public function hasVerifiedEmail(): bool
-{
-    return !is_null($this->email_verified_at);
-
-}
-public function sendPasswordResetNotification($token)
-{
-    $this->notify(new CustomResetPassword());
-}
-public function markEmailAsVerified()
-{
-    $this->email_verified_at = now();
-    $this->save();
-}
 }

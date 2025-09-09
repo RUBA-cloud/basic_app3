@@ -100,7 +100,7 @@
 </div>
 @endsection
 
-@push('scripts')
+@push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const isDiscount = document.getElementById('is_discount');

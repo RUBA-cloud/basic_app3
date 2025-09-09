@@ -33,5 +33,6 @@ return [
     "offers_type" => "Offers Type",
     "product" => "Product",
     "products" => "Products",
-
+"permissions"=>"Permissions",
+"name"=>"Name"
 ];

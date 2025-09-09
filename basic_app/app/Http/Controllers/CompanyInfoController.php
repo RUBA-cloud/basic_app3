@@ -103,10 +103,5 @@ class CompanyInfoController extends Controller
         return redirect()->back()->with('success', 'Company information saved successfully.');
     }
 
-    // Empty stubs for now
-    public function create() {}
-    public function edit(string $id) {}
-    public function update(Request $request, string $id) {}
-    public function destroy(string $id) {}
-    public function save(Request $request) {}
+
 }

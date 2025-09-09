@@ -23,9 +23,8 @@ return new class extends Migration
          $table->boolean('product_module')->default(false);
          $table->boolean('employee_module')->default(false);
          $table->boolean('order_module')->default(false);
-            $table->boolean('is_active')->default(true);
-
-            $table->boolean('user_id')->nullable();
+          $table->boolean('is_active')->default(true);
+          $table->boolean('user_id')->nullable();
             $table->timestamps();
         });
         //

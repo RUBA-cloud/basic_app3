@@ -28,14 +28,19 @@
                     ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
- <x-main_table
-                :fields="$fields"
-                :value="$sizes"
-                :details_route="'sizes.show'"
-                :reactive_route="'sizes.reactive'"
-                 :search_route="'size_search_history'"
 
-            />
+            <livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\SizeHistory"       {{-- any Eloquent model --}}
+        detailsRoute="sizes.show"   {{-- optional: blade partial for modal --}}
+        editRoute="sizes.edit"        {{-- route names (optional) --}}
+        deleteRoute="sizes.destroy"   {{-- when set, delete uses form+route --}}
+        reactiveRoute="sizes.reactive"
+        initial-route="{{ route('sizes.index')}}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar','description_en','description_ar']"
+        :per-page="12"/>
+
+
             </div>
         </div>
     </div>

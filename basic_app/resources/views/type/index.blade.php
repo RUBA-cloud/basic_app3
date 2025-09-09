@@ -31,15 +31,18 @@
                 ];
             @endphp
 
-                <x-main_table
-                    :fields="$fields"
-                    :value="$types"
-                    :details_route="'type.show'"
-                    :edit_route="'type.edit'"
-                    :delete_route="'type.destroy'"
-                    :reactive_route="'type.reactive'"
-                    :search_route="'type.search'"
-                />
+        <livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\Type"       {{-- any Eloquent model --}}
+        detailsRoute="type.show"   {{-- optional: blade partial for modal --}}
+        editRoute="type.edit"        {{-- route names (optional) --}}
+        deleteRoute="type.destroy"   {{-- when set, delete uses form+route --}}
+        reactiveRoute="type.reactivate"
+        initial-route="{{ route('type.index')}}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar','description_en','description_ar']"
+        :per-page="12"/>
+
+
 
             </div>
         </div>

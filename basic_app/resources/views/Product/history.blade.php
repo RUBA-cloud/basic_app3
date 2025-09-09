@@ -30,16 +30,19 @@
                     ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
+            <livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\ProductHistory"       {{-- any Eloquent model --}}
+        detailsRoute="product.show"   {{-- optional: blade partial for modal --}}
+        editRoute="product.edit"        {{-- route names (optional) --}}
+        deleteRsoute="product.destroy"   {{-- when set, delete uses form+route --}}
+        reactiveRoute="product.reactivate"
+        initial-route="{{ route('product.history') }}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar','description_en','description_ar']"
+        :per-page="12"
+    />
 
-                <x-main_table
-                    :fields="$fields"
-                    :value="$products"
-                    :details_route="'product.show'"
-                    :edit_route="'product.edit'"
-                    :delete_route="'product.destroy'"
-                    :reactive_route="'product.reactive'"
-                    :search_route="'product_history.search'"
-                />
+
 
             </div>
         </div>

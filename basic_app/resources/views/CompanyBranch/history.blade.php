@@ -33,12 +33,18 @@
 
                 ];
             @endphp
-
- {{-- Table Component --}}
- <x-main_table :fields="$fields" :value="$branches" :details_route="'companyBranch.show'" :search_route="'branch_history.search'"
-    :reactive_route="'reactive_branch'"/>
-        </div>
-
+             {{-- Table Component --}}
+    <livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\companyBranch"       {{-- any Eloquent model --}}
+        details-view="companyBranch.show"   {{-- optional: blade partial for modal --}}
+        edit-route="companyBranch.edit"        {{-- route names (optional) --}}
+        delete-route="companyBranch.destroy"   {{-- when set, delete uses form+route --}}
+        reactive-route="reactive_branch"
+        initial-route="{{ route('companyBranch.index') }}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar','email','company_address_en','company_address_ar']"
+        :per-page="12"
+    />
         {{-- Pagination --}}
         <div style="margin-top: 24px;">
             {{ $branches->links() }}

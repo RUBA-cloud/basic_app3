@@ -34,5 +34,8 @@ return [
     "offers_type"=>" انواع العروض",
     "product"=>"المنتج",
   "products"=>"المنتجات",
+       'permissions'=>'الصلاحيات',
+       'image'=>'الصورة'
+
 
 ];

@@ -15,6 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+             if (!Schema::hasColumn('users', 'role')) {
+                $table->string('role')->default('employee')->index();
+            }
+            if (!Schema::hasColumn('users', 'avatar_path')) {
+                $table->string('avatar_path')->nullable();
+            }
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

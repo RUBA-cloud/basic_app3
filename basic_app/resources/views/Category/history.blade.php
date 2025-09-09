@@ -26,14 +26,21 @@
                 ];
             @endphp
 
+    <livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\CategoryHistory"       {{-- any Eloquent model --}}
+        detailsRoute="categories.show"   {{-- optional: blade partial for modal --}}
+        editRoute="categories.edit"        {{-- route names (optional) --}}
+        deleteRoute="categories.destroy"   {{-- when set, delete uses form+route --}}
+        reactiveRoute="categories.reactivate"
+        initial-route="{{ route('categories.index') }}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar']"
+        :per-page="12"
+        routeParamName="additional"
 
-    <x-main_table
-    :fields="$fields"
-    :value="$categories"
-    :search_route="'category-search-history'"
-   :details_route="'categories.show'"
-    :edit_route="'categories.edit'"
-     :reactive_route="'reactive_category'"/>
+    />
+
+
 
         </div>
 

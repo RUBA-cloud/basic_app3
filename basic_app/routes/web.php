@@ -7,6 +7,8 @@ use App\Http\Middleware\SetLocale;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\CompanyBranchController;
+use App\Http\Controllers\EmployeeController;
+
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SizeController;
@@ -16,6 +18,9 @@ use App\Http\Controllers\OfferController;
 use App\Http\Controllers\OfferTypeController;
 use App\Http\Controllers\ModulesController;
 use App\Http\Controllers\TypeController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\OrderController;
+
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -49,6 +54,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
         // Categories
         Route::resource('categories', CategoryController::class);
+
         Route::put('/reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
         Route::post('/category-search', [CategoryController::class, 'search'])->name('category-search');
         Route::post('/category-search-history', [CategoryController::class, 'searchHistory'])->name('category-search-history');
@@ -100,7 +106,8 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::put('/offers_type/reactive/{id}', [OfferTypeController::class, 'reactive'])->name('offer_type.reactive');
         Route::post('/offer_type_search', [OfferTypeController::class, 'search'])->name('offer_type.search');
         Route::post('/offer_search_type_history', [OfferTypeController::class, 'searchHistory'])->name('offer_type.search_history');
-
+        //Permissions
+        Route::resource('permissions', PermissionController::class);
         // Offers
         Route::resource('offers', OfferController::class);
         Route::get('/offers/{isHistory?}', [OfferController::class, 'index'])->name('offers.history');
@@ -109,6 +116,27 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::post('/offer_search_history', [OfferController::class, 'searchHistory'])->name('offer.search_history');
         Route::resource('/modules', ModulesController::class);
         Route::post('modules/search',[ModulesController::class,'index'])->name('modules.search');
-    }); // end auth + verified group
+        Route::resource('employees', EmployeeController::class);
+        Route::get('employee_history',['EmployeeController@history'] )->name('employees.history');
+        // routes/web.php
+Route::put('/employees/history/{history}/reactivate', [EmployeeController::class, 'reactivate'])
+    ->name('employees.reactivate');
 
-}); // end SetLocale group
+// routes/web.php
+Route::post('/device-tokens', [\App\Http\Controllers\DeviceTokenController::class, 'store'])->name('device-tokens.store')->middleware('auth');
+// routes/web.php
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/orders',                [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}',        [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/edit',   [OrderController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{order}',        [OrderController::class, 'update'])->name('orders.update');
+    Route::delete('/orders/{order}',     [OrderController::class, 'destroy'])->name('orders.destroy');
+    Route::get('/orders/history',[OrderController::class, 'history'])->name('orders.history');
+    Route::delete('/orders/{order}/items/{item}', [OrderController::class, 'destroyItem'])
+    ->name('orders.items.destroy');
+});
+
+}); // end SetLocale grou
+
+});

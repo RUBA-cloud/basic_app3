@@ -168,6 +168,7 @@ return [
     'user_id' => 'معرف المستخدم',
     'yes' => 'نعم',
     'no' => 'لا',
+    'choose_image'=>'تحميل الصورة',
 
     // Branches
     "branches" => 'الفروع',
@@ -317,7 +318,7 @@ return [
     'updated_ok'    => 'تم تحديث الوحدة بنجاح!',
     'deleted_ok'    => 'تم حذف الوحدة بنجاح!',
 
-    // groups
+    // oups
     'group_company' => 'وحدات الشركة',
     'group_other'   => 'وحدات أخرى',
 
@@ -337,5 +338,27 @@ return [
      'module_details_title' => 'تفاصيل الوحدة',
      'module_n_hash'        => 'الوحدة #:id',
      'last_updated_human'   => 'آخر تحديث: :when',
+     'permissions'=>'الصلاحيات',
+     'no_module_yet'=>'لا يوجد وحدات',
+     'capabilities'=>'الصلاحيات',
+     'no_features'=>'لا يوجد صلاحيات',
+     'assign_permission'=>'اختيار الصلاحية',
+     'count'=>"عدد",
+     'name'=>"الاسم",
+     'delete_this_employee'=>'الغاء هذا المستخدم؟',
+    'employee'=>'الموظفون',
+    'Items'=>'المنجات',
+    'accepted'=>'تمت الموافقة عليه',
+    'rejected'=>'تم رفض العملية',
+    'canceled'=>'تم الغاء العملية',
+    'completed'=>'تم انهاء الطلب',
+    'pending'=>'قيد الانتظار',
+    'status'=>'الحالة',
+    'offer_name'=>'اسم العرض',
+    'quantity'=>'العدد',
+    'please_add_reason_cancel'=>'الرجاءكتابة رفض اا منتج لهذا الطلب',
+'effective_total'=>'After Discount Total',
+    'sub_total'=>'Sub Total',
+
 
 ];

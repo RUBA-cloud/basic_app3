@@ -30,18 +30,21 @@
                     ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
+  <livewire:adminlte.data-table
+        :fields="$fields"                  {{-- same $fields array you already pass --}}
+        model="\App\Models\additional"       {{-- any Eloquent model --}}
+        detailsRoute="additional.show"   {{-- optional: blade partial for modal --}}
+        editRoute="additional.edit"        {{-- route names (optional) --}}
+        deleteRoute="additional.destroy"   {{-- when set, delete uses form+route --}}
+        reactiveRoute="additional.reactivate"
+        routeParamName="additional"
+        initial-route="{{ route('additional.index') }}" {{-- will reload to here if called --}}
+        :search-in="['name_en','name_ar']"
+        :per-page="12"
+    />
+        </div>
 
-                <x-main_table
-                    :fields="$fields"
-                    :value="$additionals"
-                    :details_route="'additional.show'"
-                    :edit_route="'additional.edit'"
-                    :delete_route="'additional.destroy'"
-                    :reactive_route="'additional.reactive'"
-                    :search_route="'additional.search'"
-                />
-
-            </div>
+    </div>
         </div>
     </div>
 @endsection

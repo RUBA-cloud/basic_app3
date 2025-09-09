@@ -53,7 +53,6 @@
 
     <div class="form-group">
       @if($type === 'text' && $name === 'image')
-        <x-upload-image :image="$model->logo" label="Upload Logo" name="{{ $name }}" id="logo" />
 
       @elseif($type === 'text' && $name === 'working_days')
         <x-working-days-hours

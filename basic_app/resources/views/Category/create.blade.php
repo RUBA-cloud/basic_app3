@@ -1,13 +1,13 @@
-@extends('adminlte::page')
-@section('title', __('adminlte::adminlte.create') . ' ' . __('adminlte::adminlte.category'))
 
+
+ @extends('adminlte::page')
+@section('title', __('adminlte::adminlte.category'))
 @section('content')
-<div style="min-height: 100vh; display: flex;">
-
-    <div class="card" style="padding: 24px; width: 100%;">
-        <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
-            {{ __('adminlte::adminlte.create') }} {{ __('adminlte::adminlte.category') }}
-        </h2>
+<div class="container-fluid py-4" style="margin: 10px">
+    <x-adminlte-card class="header_card" style="padding: 10px"
+        title="{{ __('adminlte::adminlte.category') }}"
+        icon="fas fa-building" collapsible maximizable>
+    </div>
 
         <form method="POST" action="{{ route('categories.store') }}" enctype="multipart/form-data">
             @csrf
@@ -40,15 +40,14 @@
                 <label for="branch_ids" style="display: block; margin-bottom: 8px; font-weight: 600;"> {{__('adminlte::adminlte.company_branch')  }}
                 </label>
                 <select name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required style="width: 100%;">
-                    @foreach($branches as $branch)
-                    @if(app()->getLocale()=="ar")
-                        <option value="{{ $branch->id }}" {{ (collect(old('branch_ids'))->contains($branch->id)) ? 'selected' : '' }}>
-                            {{ $branch->name_ar ?? $branch->name_ar }}
-                        @else
-                         {{ $branch->name_en ?? $branch->name_en}}
-                        </option>
-                        @endif
-                    @endforeach
+                @foreach($branches as $branch)
+                <option value="{{ $branch->id }}"   {{ collect(old('branch_ids'))->contains($branch->id) ? 'selected' : '' }}>   @if(app()->getLocale() == "ar")      {{ $branch->name_ar }}
+        @else
+            {{ $branch->name_en }}
+        @endif
+    </option>
+@endforeach
+
                 </select>
             </div>
             {{-- Is Active Checkbox --}}
@@ -66,5 +65,8 @@
                 icon="fas fa-save"
             />
         </form>
-    </div>
+
+
+        </x-adminlte-card>
 </div>
+@endsection
