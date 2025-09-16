@@ -69,11 +69,11 @@
                     </div>
               {{-- Actions --}}
                     <div class="col-12 pt-3">
-                        <a href="{{ route('additionals.edit', $additional->id) }}"
+                        <a href="{{ route('additional.edit', $additional->id) }}"
                            class="btn btn-primary px-4 py-2">
                             <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
                         </a>
-                        <a href="{{route('additionals.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                        <a href="{{route('additional.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
                             <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
                         </a>
                     </div>

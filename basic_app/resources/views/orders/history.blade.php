@@ -1,10 +1,10 @@
 @extends('adminlte::page')
-@section('title', 'Orders')
+@section('title', {{ __('adminlte::menu.orders') }})
 
 @section('content')
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h3 class="card-title mb-0">Orders</h3>
+    <h3 class="card-title mb-0">{{ __('adminlte::menu.orders') }}</h3>
 
     <x-action_buttons
         label="{{ __('adminlte::adminlte.orders') }}"
@@ -14,7 +14,7 @@
     />
 
     <form class="d-flex" method="GET">
-      <select class="form-select form-select-sm me-2" name="status" onchange="this.form.submit()">
+      <select class="form-control"  name="status" onchange="this.form.submit()">
         <option value="">{{ __('adminlte::adminlte.all') ?: 'All' }}</option>
         <option value="0" @selected(request('status')==='0')>{{ __('adminlte::adminlte.pending') ?: 'Pending' }}</option>
         <option value="1" @selected(request('status')==='1')>{{ __('adminlte::adminlte.accepted') ?: 'Accepted' }}</option>

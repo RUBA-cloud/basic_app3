@@ -37,9 +37,9 @@
             />
             {{-- Category Branch Selection (Multiple) --}}
             <div class="form-group" style="margin-bottom: 20px;">
-                <label for="branch_ids" style="display: block; margin-bottom: 8px; font-weight: 600;"> {{__('adminlte::adminlte.company_branch')  }}
+                <label for="branch_ids" style="display: block; margin-bottom: 8px; font-weight: 600;"> {{__('adminlte::adminlte.branches')}}
                 </label>
-                <select name="branch_ids[]" id="branch_ids" class="form-control select2" multiple required style="width: 100%;">
+                <select name="branch_ids[]" id="branch_ids" class="form-control select" multiple required style="width: 100%;">
                 @foreach($branches as $branch)
                 <option value="{{ $branch->id }}"   {{ collect(old('branch_ids'))->contains($branch->id) ? 'selected' : '' }}>   @if(app()->getLocale() == "ar")      {{ $branch->name_ar }}
         @else

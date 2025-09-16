@@ -93,7 +93,7 @@
                     {{-- Action Buttons --}}
                     @if ($hasActions)
                         <td>
-<div class="d-flex flex-wrap gap-3" style="padding: 5px;margin:5px">
+                            <div class="d-flex flex-wrap gap-3" style="padding:5px;margin:5px">
                                 @if ($details_route)
                                     <a href="{{ route($details_route, $item->id) }}"
                                        onclick="openDialog(event, '{{ route($details_route, $item->id) }}')"
@@ -102,14 +102,14 @@
 
                                 @if ($item->is_active ?? true)
                                     @if ($edit_route)
-                                        <a href="{{ route($edit_route, $item->id) }}" style="margin: 5px" class="btn btn-success mb-1">{{__('adminlte::adminlte.edit') }}</a>
+                                        <a href="{{ route($edit_route, $item->id) }}"style="padding:5px;margin:5px" class="btn btn-success mb-1">{{__('adminlte::adminlte.edit') }}</a>
                                     @endif
 
                                     @if ($delete_route)
                                         <form action="{{ route($delete_route, $item->id) }}" method="POST" onsubmit="return confirm({{ __('adminlte::adminlte.are_you_sure_youـwant_to_delete') }})" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger mb-1" style="margin: 5px">{{__('adminlte::adminlte.delete') }}</button>
+                                            <button type="submit" class="btn btn-danger mb-1" style="padding:5px;margin:5px">{{__('adminlte::adminlte.delete') }}</button>
                                         </form>
                                     @endif
                                 @else
@@ -117,7 +117,7 @@
                                         <form action="{{ route($reactive_route, $item->id) }}" method="POST" onsubmit="return confirm({{ ('adminlte:adminlte.do_you_want_to_reactive') }})" class="d-inline">
                                             @csrf
                                             @method('PUT')
-                                            <button type="submit" class="btn btn-warning mb-1">{{__('adminlte::adminlte.reactive') }}</button>
+                                            <button type="submit" class="btn btn-warning mb-1" style="padding:5px;margin:5px">{{__('adminlte::adminlte.reactive') }}</button>
                                         </form>
                                     @endif
                                 @endif

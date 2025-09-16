@@ -81,7 +81,7 @@
 
                     {{-- Branches --}}
                     <div class="col-12">
-                        <h6 class="font-weight-bold text-secondary">{{ __('adminlte::adminlte.branch') }}</h6>
+                        <h6 class="font-weight-bold text-secondary">{{ __('adminlte::menu.branches') }}</h6>
                         @if($category->branches->count())
                             <ul class="list-unstyled ps-2">
                                 @foreach($category->branches as $branch)

@@ -38,11 +38,9 @@ class OfferTypeController extends Controller
     public function store(OfferTypeRequest $request)
     {
         $validated = $request->validated();
-$validated["user_id"]= Auth::user()->id;
-
-    $offerType =OffersType::create($validated);
-    $offerType->save();
-
+        $validated["user_id"]= Auth::user()->id;
+        $offerType =OffersType::create($validated);
+         $offerType->save();
         return redirect()->route('offers_type.index')
             ->with('success', 'Offer Type created successfully.');
     }

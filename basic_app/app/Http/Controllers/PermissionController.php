@@ -33,7 +33,7 @@ class PermissionController extends Controller
 public function create()
     {
         // Get the current user's modules row (the one with feature flags)
-        $modulesRow = Auth::check() ? (Auth::user()->modulesHistory ?? null) : null;
+        $modulesRow = Module::where('is_active', true)->latest()->first();
         abort_if(!$modulesRow, 404, '');
 
         // Feature labels (requires Module::FEATURES and Module::featureLabels())
@@ -62,7 +62,7 @@ public function create()
 
     public function store(Request $request)
     {
-        $table = Module::first();
+        $table = Module::where('is_active', true)->latest()->first();
 
         $data = $request->validate([
             'module_name'=>'required',
@@ -132,7 +132,7 @@ public function edit(Permission $permission)
 
     public function update(Request $request, Permission $permission)
     {
-        $table = (new ModulesHistory)->getTable();
+        $table = Module::where('is_active', true)->latest()->first();
 
         $data = $request->validate([
             'module_id'        => ['required', Rule::exists($table, 'id')],
@@ -144,8 +144,8 @@ public function edit(Permission $permission)
             'can_view_history' => ['nullable'],
             'is_active'        => ['nullable'],
         ]);
-$data['user_id'] = Auth::id();
-
+        $data['user_id'] = Auth::id();
+        $data['module_id']=$table->id;
         foreach (['can_edit','can_delete','can_add','can_view_history','is_active'] as $f) {
             $data[$f] = $request->boolean($f);
         }

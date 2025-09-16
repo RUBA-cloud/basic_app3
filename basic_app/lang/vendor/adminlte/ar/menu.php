@@ -35,7 +35,9 @@ return [
     "product"=>"المنتج",
   "products"=>"المنتجات",
        'permissions'=>'الصلاحيات',
-       'image'=>'الصورة'
+       'image'=>'الصورة',
+       'modules'=>'الوحدات',
+       'orders'=>'الطلبات',
 
 
 ];

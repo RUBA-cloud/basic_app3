@@ -140,7 +140,7 @@
         {{ __('adminlte::adminlte.status') ?: 'Status' }}:
         <span class="badge bg-secondary text-uppercase">{{ $statusLabel }}</span>
     </div>
-    <div>{{ __('adminlte::adminlte.customer') ?: 'Customer' }}: {{ $order->user?->name }}</div>
+    <div>{{ __('adminlte::adminlte.user_name') ?: 'Customer' }}: {{ $order->user?->name }}</div>
     <div>{{ __('adminlte::adminlte.employee') ?: 'Employee' }}: {{ $order->employee?->name ?? '-' }}</div>
     <div>{{ __('adminlte::adminlte.offer_name') ?: 'Offer' }}: {{ $offer?->name_en ?? $offer?->name_ar ?? '-' }}</div>
     <div class="mt-2">{{ $order->notes }}</div>
@@ -191,7 +191,7 @@
       <thead>
         <tr>
           <th>{{ __('adminlte::menu.product') ?: 'Product' }}</th>
-          <th>{{ __('adminlte.adminlte.color') ?: 'Color' }}</th>
+          <th>{{ __('adminlte::adminlte.color') ?: 'Color' }}</th>
           <th>{{ __('adminlte::adminlte.quantity') ?: 'Qty' }}</th>
           @if($offer) <th>{{ __('adminlte.adminlte.offer_name') ?: 'Offer' }}</th> @endif
           <th>{{ __('adminlte::adminlte.price') ?: 'Unit Price' }}</th>
@@ -276,7 +276,7 @@
       <div class="col-md-6">
         <table class="table table-sm mb-0">
             <tr>
-                <th style="width: 40%;">{{ __('adminlte::adminlte.subtotal') ?: 'Subtotal' }}</th>
+                <th style="width: 40%;">{{ __('adminlte::adminlte.sub_total') ?: 'Subtotal' }}</th>
                 <td>{{ number_format($subtotal, 2) }}</td>
             </tr>
             <tr>

@@ -32,7 +32,7 @@
             @endphp
   <livewire:adminlte.data-table
         :fields="$fields"                  {{-- same $fields array you already pass --}}
-        model="\App\Models\additional"       {{-- any Eloquent model --}}
+        model="\App\Models\Additonal"       {{-- any Eloquent model --}}
         detailsRoute="additional.show"   {{-- optional: blade partial for modal --}}
         editRoute="additional.edit"        {{-- route names (optional) --}}
         deleteRoute="additional.destroy"   {{-- when set, delete uses form+route --}}

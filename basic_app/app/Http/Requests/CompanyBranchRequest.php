@@ -59,7 +59,8 @@ class CompanyBranchRequest extends FormRequest
             'address_ar' => 'required|string|max:255',
             'location' => 'nullable|url|max:255',
             'working_hours' => 'nullable|string|max:255',
-            'working_days' => 'nullable|string|max:255',
+
+            'working_days.*' => 'string|in:Saturday,Sunday,Monday,Tuesday,Wednesday,Thursday,Friday',
             'fax' => 'nullable|string|max:15',
             'working_hours_from' => 'nullable|string|max:255',
             'working_hours_to' => 'nullable|string|max:255',

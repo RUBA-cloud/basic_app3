@@ -33,11 +33,11 @@
 
     <livewire:adminlte.data-table
         :fields="$fields"                  {{-- same $fields array you already pass --}}
-        model="\App\Models\OfferType"       {{-- any Eloquent model --}}
-        detailsRoute="offer_type.show"   {{-- optional: blade partial for modal --}}
-        editRoute="offer_type.edit"        {{-- route names (optional) --}}
-        deleteRoute="offer_type.delete"  {{-- when set, delete uses form+route --}}
-        reactiveRoute="offer_type.reactivate"
+        model="\App\Models\OffersType"       {{-- any Eloquent model --}}
+        detailsRoute="offers_type.show"   {{-- optional: blade partial for modal --}}
+        editRoute="offers_type.edit"        {{-- route names (optional) --}}
+        deleteRoute="offers_type.destroy"  {{-- when set, delete uses form+route --}}
+        reactiveRoute="offers_type.reactivate"
         initial-route="{{ route('offer_type.history') }}" {{-- will reload to here if called --}}
         :search-in="['name_en','name_ar']"
         :per-page="12"

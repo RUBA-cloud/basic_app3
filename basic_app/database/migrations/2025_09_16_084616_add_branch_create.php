@@ -12,16 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         //
-          Schema::table('offers_history', function (Blueprint $table) {
+        schema::table('company_branches', function (Blueprint $table) {
+            $table->string('working_hours_from')->nullable()->after('working_hours');
+            $table->string('working_hours_to')->nullable()->after('working_hours_from');
 
-            // Foreign key to user who created the offer
-            $table->foreignId('type_id')
-                  ->nullable()
-                  ->constrained('offers_types')
-                  ->nullOnDelete();
-    });}
-
-
+        });
+    }
 
     /**
      * Reverse the migrations.

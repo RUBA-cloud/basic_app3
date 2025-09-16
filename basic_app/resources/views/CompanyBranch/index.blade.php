@@ -22,9 +22,7 @@
                 $fields = [
                     ['key' => 'name_en', 'label' => __('adminlte::adminlte.branch_name_en')],
                     ['key' => 'name_ar', 'label' => __('adminlte::adminlte.branch_name_ar')],
-                    ['key' => 'email', 'label' => __('adminlte::adminlte.email')],
-                    ['key' => 'address_en', 'label' => __('adminlte::adminlte.company_address_en')],
-                    ['key' => 'address_ar', 'label' => __('adminlte::adminlte.company_address_ar')],
+
                     ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
                     ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
                     ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],

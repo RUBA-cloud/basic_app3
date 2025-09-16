@@ -24,7 +24,7 @@ class User extends Authenticatable
     ];
   public function modulesHistory()
     {
-        return $this->hasOne(Module::class, 'user_id');
+        return $this->hasOne(Module::class, 'user_id')->latestOfMany();
     }
     // === Scopes ===
     public function scopeEmployees($q) { return $q->where('role', 'employee'); }

@@ -7,10 +7,12 @@
 @stop
 
 @section('content')
+<div style="min-height: 100vh; display: flex; width: 100%;">
+    <div style="width: 100%;">
 <form action="{{ route('offers.store') }}" method="POST">
     @csrf
 
-    <div class="card">
+    <div class="card" style="padding: 24px; width: 100%;">
         <div class="card-body">
 
             {{-- Name EN --}}
@@ -40,19 +42,18 @@
             {{-- Categories (multi-select) --}}
             <div class="form-group">
                 <label for="category_ids">{{ __('adminlte::adminlte.category') }}</label>
-                <select id="category_ids" name="category_ids[]" class="form-control select2" multiple required style="width:100%;">
+                <select id="category_ids" name="category_ids[]" class="form-control select2" multiple required style="width:100%;" >
                     @php
                         $oldCategoryIds = collect(old('category_ids', []))->map(fn($v) => (int)$v);
                         $isAr = app()->getLocale() === 'ar';
                     @endphp
                     @foreach($categories as $category)
                         <option value="{{ $category->id }}"
-                            {{ $oldCategoryIds->contains($category->id) ? 'selected' : '' }}>
+                            {{ $oldCategoryIds->contains($category->id) ? 'selected' : 'sss' }}>
                             {{ $isAr ? ($category->name_ar ?? $category->name_en) : ($category->name_en ?? $category->name_ar) }}
                         </option>
                     @endforeach
                 </select>
-                <small class="text-muted">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.category') }}</small>
             </div>
 
             @php
@@ -62,7 +63,7 @@
             {{-- Offer Type (single select) --}}
             <div class="form-group">
                 <label for="type_id">{{ __('adminlte::adminlte.type') }}</label>
-                <select id="type_id" name="type_id" class="form-control select2" required style="width:100%;">
+                <select id="type_id" name="type_id" class="form-control select2"   required style="width:100%;">
                     <option value="">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.type') }}</option>
                     @foreach($offerTypes as $type)
                         <option value="{{ $type->id }}" {{ old('type_id') == $type->id ? 'selected' : '' }}>
@@ -117,4 +118,6 @@
         </div>
     </div>
 </form>
+    </div>
+</div>
 @stop

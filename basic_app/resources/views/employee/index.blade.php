@@ -19,11 +19,10 @@
             {{-- Table Field Definitions --}}
             @php
                 $fields = [
-                    ['key' => 'image', 'label' => __('adminlte::adminlte.permissions')],
                     ['key' => 'name', 'label' => __('adminlte::adminlte.full_name')],
                     ['key' => 'email', 'label' => __('adminlte::adminlte.email')],
-                    ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
-                    ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
+
+                    ['key' => 'id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
   <livewire:adminlte.data-table

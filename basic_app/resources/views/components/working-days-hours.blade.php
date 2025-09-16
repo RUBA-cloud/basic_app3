@@ -26,21 +26,21 @@
     }
 
     // Working hours (time-only, e.g. "09:00")
-    $workingHoursFrom = old('branch_working_hours_from', $branch?->working_hours_from ?? $branch_working_hours_from) ?: '09:00';
-    $workingHoursTo   = old('branch_working_hours_to',   $branch?->working_hours_to   ?? $branch_working_hours_to)   ?: '17:00';
+    $workingHoursFrom = old('working_hours_from' , $branch?->working_hours_from ?? $branch_working_hours_from) ?: '09:00';
+    $workingHoursTo   = old('working_hours_to',   $branch?->working_hours_to   ?? $branch_working_hours_to)   ?: '17:00';
 
     $isAr = app()->getLocale() === 'ar';
 @endphp
 
 {{-- Working Days --}}
 <div class="mb-3">
-    <label class="form-label fw-bold">{{ __('adminlte::adminlte.working_days') }}</label>
+    <label class="form-label fw-bold">{{__('adminlte::adminlte.working_days') }}</label>
     <div class="d-flex flex-wrap">
         @foreach ($daysOfWeek as $key => $label)
             <div class="form-check me-4 mb-2 @if($isAr) ms-4 me-0 @endif">
                 <input class="form-check-input"
                        type="checkbox"
-                       name="branch_working_days[]"
+                       name="working_days[]"
                        id="day_{{ $key }}"
                        value="{{ $key }}"
                        {{ in_array($key, $workingDays, true) ? 'checked' : '' }}>
@@ -58,7 +58,7 @@
     <div class="row g-3">
         <div class="col-md-6">
             <x-adminlte-input
-                name="branch_working_hours_from_visible"
+                name="working_hours_from"
                 id="branch_working_hours_from_visible"
                 label="{{ __('adminlte::adminlte.from') }}"
                 placeholder="HH:mm"
@@ -67,12 +67,12 @@
                 igroup-size="lg"
                 fgroup-class="mb-3"
             />
-            <input type="hidden" id="branch_working_hours_from" name="branch_working_hours_from" value="{{ $workingHoursFrom }}">
+            <input type="hidden" id="branch_working_hours_from" name="working_hours_from" value="{{ $workingHoursFrom }}">
         </div>
 
         <div class="col-md-6">
             <x-adminlte-input
-                name="branch_working_hours_to_visible"
+                name="working_hours_to"
                 id="branch_working_hours_to_visible"
                 label="{{ __('adminlte::adminlte.to') }}"
                 placeholder="HH:mm"

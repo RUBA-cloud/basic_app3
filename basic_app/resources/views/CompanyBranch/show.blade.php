@@ -39,7 +39,7 @@
             {{-- Details --}}
             <div class="col-lg-8 col-md-7">
                 <div class="row gy-3">
-{{-- Branch Name --}}
+                    {{-- Branch Name --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.branch_name_en') }}</small>
                         <div class="fs-5 fw-bold text-dark">{{ $branch->name_en}}</div>
@@ -113,7 +113,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <small class="text-muted">{{ __('adminlte::adminlte.working_hours') }}</small>
+                        <small class="text-muted">{{ __('adminlte::adminlte.working_time') }}</small>
                         <div class="fw-semibold">
                             {{ $branch->working_hours_from ?? '-' }} - {{ $branch->working_hours_to ?? '-' }}
                         </div>

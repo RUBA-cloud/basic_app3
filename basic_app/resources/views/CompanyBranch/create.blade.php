@@ -40,13 +40,15 @@
             />
             <input type="checkbox" name="is_active" value="1" {{ old('is_active')? 'checked' : '' }}/> {{ __('adminlte::adminlte.active')}}
 {{-- Submit Button --}}
-            <x-adminlte-button
+
+        <x-adminlte-button
                 label="{{ __('adminlte::adminlte.save_information') }}"
                 type="submit"
                 theme="success"
-                class="full-width-btn"
+                class="w-100"
                 icon="fas fa-save"
-            />        </form>
-        </x-adminlte-card>
+            />
+        </form>
+    </x-adminlte-card>
 </div>
 @endsection

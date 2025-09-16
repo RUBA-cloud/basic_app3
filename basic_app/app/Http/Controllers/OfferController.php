@@ -99,7 +99,7 @@ public function show(string $id)
     {
         $offer = Offer::findOrFail($id);
 
-        OfferHistory::create([
+        OffersHistory::create([
             'type_id' => $offer->type_id,
             'category_ids' => $offer->category_ids,
             'discount_percentage' => $offer->discount_percentage,
@@ -140,7 +140,7 @@ public function show(string $id)
     {
         $searchTerm = $request->input('search');
 
-        $offers = OfferHistory::with('user')
+        $offers = OffersHistory::with('user')
             ->where('name_en', 'like', '%' . $searchTerm . '%')
             ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
             ->orWhere('description_en', 'like', '%' . $searchTerm . '%')
@@ -156,7 +156,7 @@ public function show(string $id)
      */
     public function reactive($id)
     {
-        $offerHistory = OfferHistory::findOrFail($id);
+        $offerHistory = OffersHistory::findOrFail($id);
 
         $newOffer = new Offer($offerHistory->toArray());
         $newOffer->is_active = true;

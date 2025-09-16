@@ -1,12 +1,12 @@
 @extends('adminlte::page')
 
-@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.branch'))
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.branches'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex;">
 
     <div class="card" style="flex: 1; padding: 2rem;">
-        <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">Edit Branch</h2>
+        <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">{{ __('adminlte::adminlte.edit') }} {{ __('adminlte::menu.branches') }}</h2>
 
         <form method="POST" action="{{ route('companyBranch.update', $branch->id) }}" enctype="multipart/form-data">
             @csrf
@@ -92,11 +92,14 @@
 
             {{-- Working Days/Hours --}}
             <x-working-days-hours :branch="$branch" />
-<input type="checkbox" name="is_active" value="1" {{ old('is_active', $branch?->is_active) ? 'checked' : '' }}/> {{ __('adminlte::adminlte.active')}}"            {{-- Submit Button --}}
-<x-adminlte-button
+<input type="checkbox" name="is_active" value="1" {{ old('is_active', $branch?->is_active) ? 'checked' : '' }}/> {{ __('adminlte::adminlte.active')}}           {{-- Submit Button --}}
+        <x-adminlte-button
                 label="{{ __('adminlte::adminlte.save_information') }}"
-                type="submit" theme="success"
-                class="full-width-btn" icon="fas fa-save"/>
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
         </form>
     </div>
 </div>

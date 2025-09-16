@@ -7,10 +7,10 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h1 class="m-0">{{ __('adminlte::adminlte.edit') }} {{ __('adminlte::adminlte.permissions') }}</h1>
-            <small class="text-muted">{{ __('Update a permission tied to a specific module.') }}</small>
+
         </div>
         <a href="{{ route('permissions.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> {{ __('adminlte::adminlte.back') ?? 'Back' }}
+            <i class="fas fa-arrow-left me-1"></i> {{ __('adminlte::adminlte.go_back') ?? 'Back' }}
         </a>
     </div>
 @stop

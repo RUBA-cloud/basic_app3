@@ -23,11 +23,18 @@
                 <i class="fas fa-plus me-1"></i> {{ __('adminlte::adminlte.add') }}
             </a>
         @else
-        @if($goBack)
-            <a href="{{ route($historyRoute, $historyParams) }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i> {{ __('adminlte::adminlte.go_back') }}
-            </a>
-        @endif
+        @if(!empty($goBack))
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+
+    <a href="{{ route($historyRoute, $historyParams ?? []) }}"
+       class="btn btn-secondary btn-sm btn-goback" style="align-items: end;">
+      <i class="fas fa-arrow-left me-1"></i> {{ __('adminlte::adminlte.go_back') }}
+    </a>
+  </div>
+@endif
+
+
+
 @endif
         @if($historyRoute && $showAdd )
             <a href="{{ route($historyRoute, true) }}" class="btn btn-info">

@@ -24,10 +24,11 @@
         <div class="col-md-4">
           <label class="form-label">Status</label>
           <select name="status" id="status" class="form-select">
-            <option value="0" @selected(old('status',$order->status)==0)>Pending</option>
-            <option value="1" @selected(old('status',$order->status)==1)>Accepted</option>
-            <option value="2" @selected(old('status',$order->status)==2)>Rejected</option>
-            <option value="3" @selected(old('status',$order->status)==3)>Completed</option>
+            <option value="0" @selected(old('status',$order->status)==0)>{{ __('adminlte::adminlte.pending') }}
+            </option>
+            <option value="1" @selected(old('status',$order->status)==1)>{{ __('adminlte::adminlte.accepted') }}</option>
+            <option value="2" @selected(old('status',$order->status)==2)>{{ __('adminlte::adminlte.rejected') }}</option>
+            <option value="3" @selected(old('status',$order->status)==3)>{{ __('adminlte::adminlte.completed') }}</option>
           </select>
         </div>
         <div class="col-md-8" id="employeeContainer" style="display:none;">

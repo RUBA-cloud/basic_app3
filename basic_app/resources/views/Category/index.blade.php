@@ -38,9 +38,6 @@
         :search-in="['name_en','name_ar']"
         :per-page="12"
     />
-
-
-
         </div>
 
         </div>

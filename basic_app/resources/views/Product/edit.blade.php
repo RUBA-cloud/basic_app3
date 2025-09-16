@@ -51,11 +51,11 @@
                     {{-- Category --}}
                     <div class="col-md-6 mb-3">
                         <label for="category_id">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.category') }}</label>
-                        <select name="category_id" id="category_id" class="form-control select2" required>
+                        <select name="category_id" id="category_id" class="form-control" required>
                             <option value="">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.category') }}</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" {{ (old('category_id', $product->category_id) == $category->id) ? 'selected' : '' }}>
-                                
+
                                     {{ $category->name_en }}
                                 </option>
                             @endforeach
@@ -65,7 +65,7 @@
                     {{-- Type --}}
                     <div class="col-md-6 mb-3">
                         <label for="type_id">{{ __('adminlte::adminlte.type') }}</label>
-                        <select name="type_id" id="type_id" class="form-control select2">
+                        <select name="type_id" id="type_id" class="form-control">
                             <option value="">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.type') }}</option>
                             @foreach($types as $type)
                                 <option value="{{ $type->id }}" {{ (old('type_id', $product->type_id) == $type->id) ? 'selected' : '' }}>
@@ -78,11 +78,11 @@
                     {{-- Additional --}}
                     <div class="col-md-6 mb-3">
                         <label for="additional">{{ __('adminlte::adminlte.additional') }}</label>
-                        <select name="additional[]" id="additional" class="form-control select2" multiple>
+                        <select name="additional[]" id="additional" class="form-control">
                             @foreach($additionals as $additional)
                                 <option value="{{ $additional->id }}" {{ in_array($additional->id, old('additional', $product->additionals->pluck('id')->toArray())) ? 'selected' : '' }}>
-                                  @if ()
-                                      
+                                      @if(App::getLocale() == 'ar')
+    {{ $type->name_ar }}
                                   @endif
                                     {{ $additional->name_en }}
                                 </option>
@@ -93,7 +93,7 @@
                     {{-- Sizes --}}
                     <div class="col-md-6 mb-3">
                         <label for="sizes">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.size') }}</label>
-                        <select name="sizes[]" id="sizes" class="form-control select2" multiple required>
+                        <select name="sizes[]" id="sizes" class="form-control" required>
                             @foreach($sizes as $size)
                                 <option value="{{ $size->id }}" {{ in_array($size->id, old('sizes', $product->sizes->pluck('id')->toArray())) ? 'selected' : '' }}>
                                     {{ $size->name_en }}

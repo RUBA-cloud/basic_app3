@@ -7,7 +7,7 @@ use App\Notifications\OrderStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-
+  use App\Services\Notifier;
 class OrderController extends Controller
 {
     public function index(Request $r)
@@ -37,6 +37,10 @@ class OrderController extends Controller
 
     public function update(Request $r, Order $order)
     {
+        $employee = null;
+
+$user=$order->user_id;
+
         // Validate main fields; status transitions handled below
         $data = $r->validate([
             'notes'        => ['nullable','string','max:2000'],
@@ -77,6 +81,23 @@ class OrderController extends Controller
             Order::STATUS_COMPLETED => 'Your order is completed 🎉',
             default                 => 'Your order status changed',
         };
+
+
+// send to a specific user
+Notifier::toUser($employee, "Order Updated", "Order #55 is shipped", [
+    'icon' => 'fas fa-box',
+    'link' => route('orders.show', 55),
+    'type' => 'order',
+]);
+Notifier::toUser($user, "Order Updated", "Order #55 is shipped", [
+    'icon' => 'fas fa-box',
+    'link' => route('orders.show', 55),
+    'type' => 'order',
+]);
+
+
+
+
         $order->user->notify(new OrderStatusChanged($title, $body));
 
         return redirect()->route('orders.show', $order)->with('success', 'Order updated & customer notified.');

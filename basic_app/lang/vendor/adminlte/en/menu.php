@@ -34,5 +34,8 @@ return [
     "product" => "Product",
     "products" => "Products",
 "permissions"=>"Permissions",
-"name"=>"Name"
+'modules'=>'Modules',
+
+"name"=>"Name",
+'orders'=>'Orders',
 ];

@@ -41,7 +41,5 @@ class OffersType extends Model
         'colors' => 'array', // Assuming colors is stored as JSON
         'offer_percentage' => 'float', // Assuming offer_percentage is a float
     ];
-     public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');         }
+     public function user() {return $this->belongsTo(User::class, 'user_id');}
 }

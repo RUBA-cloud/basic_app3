@@ -88,7 +88,7 @@ class ModulesController extends Controller
     /**
      * Update the specified module in storage.
      */
-    public function update(StoreModuleRequest $request, Module $module)
+    public function update (ModuleRequest $request, Module $module)
     {
         $data = $request->validated();
         $module->update($data);

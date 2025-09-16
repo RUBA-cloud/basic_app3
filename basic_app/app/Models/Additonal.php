@@ -12,9 +12,8 @@ class Additonal extends Model
         'name_en',
         'name_ar',
         'image',
-            'description',
-
-        'price',
+        'description',
+          'price',
         'is_active',
         'user_id',
     ];

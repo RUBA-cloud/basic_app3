@@ -43,7 +43,7 @@
                 id="descripation"
                 name="description"
                 label="{{__('adminlte::adminlte.descripation')}}"
-                :value="old('descripation')"/>
+                :value="old('description')"/>
 
             {{-- Is Active Checkbox --}}
             <div class="form-group" style="margin: 20px 0;">

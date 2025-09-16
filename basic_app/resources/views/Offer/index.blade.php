@@ -3,7 +3,7 @@
 @section('title', __('adminlte::adminlte.offers'))
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container-fluid" style="margin: 5px">
 
         {{-- Page Header --}}
 

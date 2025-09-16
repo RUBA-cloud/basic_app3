@@ -80,10 +80,8 @@ class CompanyInfoController extends Controller
             $logoPath = $request->file('image')->store('company_logos', 'public');
             $validated['image'] = asset('storage/' . $logoPath);
 
-            // Delete old logo if exists
-            if ($company && $company->image) {
-                Storage::disk('public')->delete($oldPath);
-            }
+
+
         }
 
         if ($company) {

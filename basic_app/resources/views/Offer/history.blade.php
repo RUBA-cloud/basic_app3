@@ -3,7 +3,7 @@
 @section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.offers'))
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container-fluid" style="margin: 5px">
 
         {{-- Page Header --}}
 
@@ -33,12 +33,12 @@
 
 <livewire:adminlte.data-table
         :fields="$fields"                  {{-- same $fields array you already pass --}}
-        model="\App\Models\OfferHistory"       {{-- any Eloquent model --}}
+        model="\App\Models\OffersHistory"       {{-- any Eloquent model --}}
         detailsRoute="offers.show"   {{-- optional: blade partial for modal --}}
         editRoute="offers.edit"        {{-- route names (optional) --}}
         deleteRoute="offers.destroy"   {{-- when set, delete uses form+route --}}
         reactiveRoute="offers.reactivate"
-        
+
         initial-route="{{ route('offers.history') }}" {{-- will reload to here if called --}}
         :search-in="['name_en','name_ar']"
         :per-page="12"

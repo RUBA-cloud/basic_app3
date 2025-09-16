@@ -13,11 +13,15 @@ class CustomSettings
         return CompanyInfo::first(); // Adjust if multi-tenant
     }
 
-    public static function colors()
+    public static function appSettings()
     {
         $company = self::get();
 
         return [
+            'image'=> $company->image ?? null,
+            'name_en' => $company->name_en ?? 'Coffee Shop',
+            'name_ar' => $company->name_ar ?? 'متجر القهوة',
+            'phone' => $company->phone ?? null,
             'main_color' => $company->main_color ?? '#6C63FF',
             'sub_color' => $company->sub_color ?? '#B621FE',
             'text_color' => $company->text_color ?? '#22223B',
