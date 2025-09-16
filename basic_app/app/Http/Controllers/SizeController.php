@@ -150,11 +150,12 @@ class SizeController extends Controller
         SizeHistory::create($historyData);
 
         // Update current size
-        $size->update($validated);
         $size->user_id = auth()->id();
         $size->save();
+        $size->update($validated);
+ return redirect()->route('sizes.index')->with('success', 'Size updated successfully.');
 
-        return redirect()->route('sizes.index')->with('success', 'Size updated successfully.');
+
     }
 
     /**

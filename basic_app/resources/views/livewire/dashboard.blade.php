@@ -9,7 +9,7 @@
             <button wire:click="$toggle('autoRefresh')" class="btn btn-outline-{{ $autoRefresh ? 'success' : 'secondary' }} btn-sm">
                 <i class="far fa-clock me-1"></i>
 
-                {{ $autoRefresh ? __('adminlte::adminlte.auto_refresh') : __('adminlte::adminlte.auto_refresh_off') }}
+                {{ $autoRefresh ? __('adminlte::adminlte.auto_refresh') : __('adminlte::adminlte.refresh_off') }}
             </button>
         </div>
     </div>

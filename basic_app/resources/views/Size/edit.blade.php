@@ -20,12 +20,7 @@
             />
 
             {{-- Size Name English --}}
-            <x-form.textarea
-                id="name_en"
-                name="name_en"
-  label="{{__('adminlte::adminlte.name_en')}}"
-                  :value="$size->name_en"
-            />
+            <x-form.textarea  id="name_en"  name="name_en"  label="{{__('adminlte::adminlte.name_en')}}" :value="$size->name_en"/>
 
             {{-- Size Name Arabic --}}
             <x-form.textarea

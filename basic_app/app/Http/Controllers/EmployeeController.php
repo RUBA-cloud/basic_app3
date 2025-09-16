@@ -24,7 +24,7 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        $permissions = Permission::orderBy('created_at')->get();
+        $permissions = Permission::orderBy('created_at')->latest()->first()->get();
         return view('employee.create', compact('permissions'));
     }
 
