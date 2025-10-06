@@ -31,8 +31,12 @@ class ModuleRequest extends FormRequest
             'product_module'           => 'nullable|boolean',
             'employee_module'          => 'nullable|boolean',
             'order_module'             => 'nullable|boolean',
-            'is_active'                => 'nullable|boolean',
-            'user_id'                  => 'nullable|exists:users,id',
+            'order_status_module'=>'nullable|boolean',
+            'region_module'=>'nullable|boolean',
+            'company_delivery_module'=>'nullable|boolean',
+            'payment_module'=>'nullable|boolean',
+            'is_active'=> 'nullable|boolean',
+            'user_id' =>'nullable|exists:users,id',
         ];
     }
 

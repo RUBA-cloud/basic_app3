@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 use Modules\Orders\Notifications\OrderStatusChanged;
-
-class User extends Authenticatable
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\CustomVerifyEmail;
+use App\Notifications\CustomResetPassword;
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -35,6 +37,17 @@ class User extends Authenticatable
         return $this->belongsToMany(Permission::class)->withTimestamps();
     }
 
+public function hasVerifiedEmail():  bool
+{
+    return !is_null($this->email_verified_at);
+
+}
+
+public function markEmailAsVerified()
+{
+    $this->email_verified_at = now();
+    $this->save();
+}
     // === Accessors ===
     protected function avatarUrl(): Attribute
     {

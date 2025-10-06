@@ -3,7 +3,7 @@
 @section('title', __('adminlte::adminlte.modules'))
 
 @section('content_header')
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center justify-content-between flex-wrap">
         <div>
             <h1 class="m-0">{{ __('adminlte::adminlte.modules') }}</h1>
             <small class="text-muted">
@@ -11,7 +11,7 @@
             </small>
         </div>
         <a href="{{ route('modules.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i> {{ __('adminlte::adminlte.modules_create') }}
+            <i class="fas fa-plus mr-1"></i> {{ __('adminlte::adminlte.modules_create') }}
         </a>
     </div>
 @stop
@@ -20,10 +20,10 @@
 <div class="container-fluid">
 
     {{-- Toolbar --}}
-    <div class="card toolbar-card mb-3">
+    <div class="card mb-3">
         <div class="card-body">
-            <form action="{{ route('modules.index') }}" method="GET" class="row g-2">
-                <div class="col-12 col-md-4">
+            <form action="{{ route('modules.index') }}" method="GET" class="form-row">
+                <div class="col-12 col-md-4 mb-2 mb-md-0">
                     <input
                         type="text"
                         name="q"
@@ -32,7 +32,7 @@
                         placeholder="{{ __('adminlte::adminlte.search_by_user_or_module') }}">
                 </div>
 
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-3 mb-2 mb-md-0">
                     <select name="status" class="form-control">
                         <option value="">{{ __('adminlte::adminlte.all_status') }}</option>
                         <option value="active"   {{ request('status')=='active'   ? 'selected' : '' }}>{{ __('adminlte::adminlte.active') }}</option>
@@ -40,7 +40,7 @@
                     </select>
                 </div>
 
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-3 mb-2 mb-md-0">
                     <select name="sort" class="form-control">
                         <option value="">{{ __('adminlte::adminlte.sort_recent') }}</option>
                         <option value="oldest"        {{ request('sort')=='oldest'        ? 'selected' : '' }}>{{ __('adminlte::adminlte.sort_oldest') }}</option>
@@ -49,12 +49,12 @@
                     </select>
                 </div>
 
-                <div class="col-12 col-md-2 d-grid d-md-flex gap-2">
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="fas fa-filter me-1"></i> {{ __('adminlte::adminlte.filter') }}
+                <div class="col-12 col-md-2 d-flex">
+                    <button class="btn btn-outline-secondary mr-2" type="submit">
+                        <i class="fas fa-filter mr-1"></i> {{ __('adminlte::adminlte.filter') }}
                     </button>
                     <a href="{{ route('modules.index') }}" class="btn btn-outline-light border">
-                        <i class="fas fa-undo me-1"></i> {{ __('adminlte::adminlte.reset') }}
+                        <i class="fas fa-undo mr-1"></i> {{ __('adminlte::adminlte.reset') }}
                     </a>
                 </div>
             </form>
@@ -64,7 +64,7 @@
     {{-- Flash --}}
     @if(session('success'))
         <div class="alert alert-success">
-            <i class="far fa-check-circle me-1"></i>{{ session('success') }}
+            <i class="far fa-check-circle mr-1"></i>{{ session('success') }}
         </div>
     @endif
 
@@ -74,7 +74,7 @@
             <div class="h3 mb-2">{{ __('adminlte::adminlte.no_modules') }}</div>
             <p class="text-muted mb-3">{{ __('adminlte::adminlte.no_modules_hint') }}</p>
             <a href="{{ route('modules.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> {{ __('adminlte::adminlte.modules_create') }}
+                <i class="fas fa-plus mr-1"></i> {{ __('adminlte::adminlte.modules_create') }}
             </a>
         </div>
     @else
@@ -83,33 +83,45 @@
         <div class="row">
             @foreach($modules as $module)
                 @php
-                    $enabledCount = collect([
-                        'company_dashboard_module','company_info_module','company_branch_module',
-                        'company_category_module','company_type_module','company_size_module',
-                        'company_offers_type_module','company_offers_module','product_module',
-                        'employee_module','order_module'
-                    ])->filter(fn($f) => (bool) data_get($module, $f))->count();
-                    $totalCount = 11;
+                    // Define the feature fields once with their labels
+                    $featureFields = [
+                        'company_dashboard_module'   => __('adminlte::adminlte.module_dashboard'),
+                        'company_info_module'        => __('adminlte::adminlte.module_info'),
+                        'company_branch_module'      => __('adminlte::adminlte.module_branch'),
+                        'company_category_module'    => __('adminlte::adminlte.module_category'),
+                        'company_type_module'        => __('adminlte::adminlte.module_type'),
+                        'company_size_module'        => __('adminlte::adminlte.module_size'),
+                        'company_offers_type_module' => __('adminlte::adminlte.module_offers_type'),
+                        'company_offers_module'      => __('adminlte::adminlte.module_offers'),
+                        'product_module'             => __('adminlte::adminlte.module_product'),
+                        'employee_module'            => __('adminlte::adminlte.module_employee'),
+                        'order_module'               => __('adminlte::adminlte.module_order'),
+                        'order_status_module'        => __('adminlte::adminlte.order_status_module'),
+                        'region_module'              => __('adminlte::adminlte.region_module'),
+                        'company_delivery_module'    => __('adminlte::adminlte.company_delivery_module'),
+                        'payment_module'             => __('adminlte::adminlte.payment_module'),
+                    ];
+
+                    $enabledCount = collect(array_keys($featureFields))
+                        ->filter(fn($f) => (bool) data_get($module, $f))
+                        ->count();
+                    $totalCount = count($featureFields);
                     $percent = $totalCount ? ($enabledCount / $totalCount) * 100 : 0;
                 @endphp
 
                 <div class="col-12 col-lg-6 col-xl-4 mb-3">
-                    <div class="card module-card h-100">
+                    <div class="card h-100">
                         <div class="card-header d-flex align-items-center justify-content-between">
-                            <div class="truncate-1">
+                            <div class="text-truncate" style="max-width: 70%;">
                                 <strong>
-                                    @if($module->user)
-                                        {{ $module->user->name }}
-                                    @else
-                                        {{ __('adminlte::adminlte.global_unassigned') }}
-                                    @endif
+                                    {{ optional($module->user)->name ?? __('adminlte::adminlte.global_unassigned') }}
                                 </strong>
                                 <div class="text-muted small">
                                     #{{ $module->id }} • {{ optional($module->created_at)->format('Y-m-d') }}
                                 </div>
                             </div>
                             <span class="badge {{ $module->is_active ? 'badge-success' : 'badge-secondary' }}">
-                                <span class="status-dot" style="background: {{ $module->is_active ? '#28a745' : '#adb5bd' }}"></span>
+                                <span class="align-middle" style="display:inline-block;width:8px;height:8px;border-radius:50%;background: {{ $module->is_active ? '#28a745' : '#adb5bd' }};margin-right:6px;"></span>
                                 {{ $module->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}
                             </span>
                         </div>
@@ -129,21 +141,9 @@
 
                             {{-- Pills --}}
                             <div class="d-flex flex-wrap">
-                                @foreach ([
-                                    'company_dashboard_module'   => __('adminlte::adminlte.module_dashboard'),
-                                    'company_info_module'        => __('adminlte::adminlte.module_info'),
-                                    'company_branch_module'      => __('adminlte::adminlte.module_branch'),
-                                    'company_category_module'    => __('adminlte::adminlte.module_category'),
-                                    'company_type_module'        => __('adminlte::adminlte.module_type'),
-                                    'company_size_module'        => __('adminlte::adminlte.module_size'),
-                                    'company_offers_type_module' => __('adminlte::adminlte.module_offers_type'),
-                                    'company_offers_module'      => __('adminlte::adminlte.module_offers'),
-                                    'product_module'             => __('adminlte::adminlte.module_product'),
-                                    'employee_module'            => __('adminlte::adminlte.module_employee'),
-                                    'order_module'               => __('adminlte::adminlte.module_order'),
-                                ] as $field => $label)
-                                    <span class="module-pill {{ $module->$field ? 'on' : '' }}">
-                                        <i class="fas {{ $module->$field ? 'fa-check-circle' : 'fa-minus-circle' }}"></i>
+                                @foreach ($featureFields as $field => $label)
+                                    <span class="badge {{ $module->$field ? 'badge-success' : 'badge-light' }} mr-2 mb-2">
+                                        <i class="fas {{ $module->$field ? 'fa-check-circle' : 'fa-minus-circle' }} mr-1"></i>
                                         {{ $label }}
                                     </span>
                                 @endforeach
@@ -155,16 +155,16 @@
                                 {{ __('adminlte::adminlte.updated') }} {{ optional($module->updated_at)->diffForHumans() }}
                             </div>
                             <div class="btn-group">
-                                <a href="{{ route('modules.show', $module) }}" class="btn btn-default btn-icon" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.view') }}">
+                                <a href="{{ route('modules.show', $module) }}" class="btn btn-default" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.view') }}">
                                     <i class="far fa-eye"></i>
                                 </a>
-                                <a href="{{ route('modules.edit', $module) }}" class="btn btn-default btn-icon" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.edit') }}">
+                                <a href="{{ route('modules.edit', $module) }}" class="btn btn-default" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.edit') }}">
                                     <i class="far fa-edit"></i>
                                 </a>
                                 <form action="{{ route('modules.destroy', $module) }}" method="POST"
                                       onsubmit="return confirm('{{ __('adminlte::adminlte.confirm_delete_module') }}')" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-default btn-icon text-danger" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.delete') }}">
+                                    <button class="btn btn-default text-danger" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.delete') }}">
                                         <i class="far fa-trash-alt"></i>
                                     </button>
                                 </form>

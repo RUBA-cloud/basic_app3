@@ -21,8 +21,12 @@ return [
         'descripation'=>'Discripation',
         "price"=>"Price",
         "type"=>"Type",
-
-
+        "country_en"=>"Country English",
+        "country_ar"=>"Country Arabic",
+        "city_en"=>"City English",
+        "city_ar"=>"City Arabic",
+        "excepted_day_count"=> "Excepted Day Count",
+        
 
 
 

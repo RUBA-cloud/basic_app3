@@ -28,26 +28,15 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
     }
-
-    /**
-     * Override the authenticated method to check email verification.
-     */
-   protected function authenticated(Request $request, $user)
+    protected function authenticated(\Illuminate\Http\Request $request, \App\Models\User $user)
 {
     if (!$user->hasVerifiedEmail()) {
-        // Log the user out immediately
-        //
-
-
-        // Send verification email
+        auth()->logout();
         $user->sendEmailVerificationNotification();
 
-        // Redirect back to login with message
-        return redirect('/login')->with('message', 'Please verify your email address before logging in.');
+        return redirect()->route('verification.notice')
+            ->with('status', 'verification-link-sent');
     }
-
-    // If verified, redirect to intended or default page
-    return redirect()->intended('/home'); // Or any route you want
 }
 
 }

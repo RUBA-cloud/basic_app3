@@ -3,10 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Auth\Events\Verified;
 
 use App\Http\Middleware\SetLocale;
 
-use App\Http\Controllers\Auth\VerificationController;
+use App\Models\User;
+
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyInfoController;
@@ -21,44 +23,77 @@ use App\Http\Controllers\ModulesController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\OrderStatusController;
+use App\Http\Controllers\CompanyDeliveryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeviceTokenController;
 
-/**
- * Root: use Route::redirect so nothing is evaluated early.
- * If your login route is the default from Auth::routes(), /login path is safe.
- */
+/** Root -> login */
 Route::redirect('/', '/login')->name('root');
 
-// Everything runs with locale set
+/** Locale wrapper */
 Route::middleware([SetLocale::class])->group(function () {
-    // Auth scaffolding (includes email verification routes)
-    Auth::routes(['verify' => true]);
 
-    // Public language switcher (resolve redirect target at request-time only)
+    /** Laravel-UI auth (NO built-in verify to avoid conflicts) */
+    Auth::routes([
+        'verify'  => false, // we provide custom verify routes below
+        // 'reset' => false,
+        // 'confirm' => false,
+    ]);
+
+    /** Email verify notice page */
+    Route::get('/email/verify', function () {
+        return view('auth.verify');
+    })->middleware('auth')->name('verification.notice');
+
+    /** Resend verification email */
+    Route::post('/email/verification-notification', function (Request $request) {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->intended('/home');
+        }
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('status', 'verification-link-sent');
+    })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+    /** Custom verify via signed link (no login required) */
+    Route::get('/email/verify/{id}/{hash}', function (Request $request) {
+        $user = User::findOrFail($request->route('id'));
+
+        // validate signed hash
+        abort_unless(
+            hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification())),
+            403
+        );
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();      // sets email_verified_at
+            event(new Verified($user));
+        }
+
+        // optional: auto-login after verify
+        Auth::login($user);
+
+        return redirect('/home?verified=1');
+    })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+
+    /** Language switcher */
     Route::get('/change-language', function (Request $request) {
         $locale = $request->query('locale', 'en');
-        if (!in_array($locale, ['en','ar'], true)) {
-            $locale = 'en';
-        }
+        if (! in_array($locale, ['en', 'ar'], true)) $locale = 'en';
         session(['locale' => $locale]);
 
-        // Prefer explicit ?redirect=..., else HTTP referer, else home
-        $target = $request->query('redirect');
-        if (!$target) {
-            $target = $request->headers->get('referer') ?: route('home');
-        }
+        $target = $request->query('redirect')
+            ?: ($request->headers->get('referer') ?: route('home'));
+
         return redirect()->to($target);
     })->name('change.language');
 
-    // Protected + verified area
+    /** Auth + Verified area */
     Route::middleware(['auth', 'verified'])->group(function () {
-        // Home
-        Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-        // Optional custom verification
-        Route::get('/verify', [VerificationController::class, 'verify'])->name('verify');
-        Route::post('/resend-verification', [VerificationController::class, 'resend'])->name('verify.resend');
+        Route::get('/home', [HomeController::class, 'index'])->name('home');
 
         /** Categories */
         Route::resource('categories', CategoryController::class);
@@ -133,7 +168,7 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/employees/history', [EmployeeController::class, 'history'])->name('employees.history');
         Route::put('/employees/history/{history}/reactivate', [EmployeeController::class, 'reactivate'])->name('employees.reactivate');
 
-        /** Device tokens (FCM) */
+        /** Device Tokens */
         Route::post('/device-tokens', [DeviceTokenController::class, 'store'])->name('device-tokens.store');
 
         /** Orders */
@@ -151,5 +186,29 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::post('/notifications/{notification}/mark', [NotificationController::class, 'mark'])->name('notifications.mark');
         Route::post('/notifications/mark-all', [NotificationController::class, 'markAll'])->name('notifications.markAll');
         Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+        /** Payment */
+        Route::resource('payment', PaymentController::class);
+        Route::prefix('payment')->name('payment.')->group(function () {
+            Route::post('search', [PaymentController::class, 'search'])->name('search');
+            Route::post('restore', [PaymentController::class, 'restore'])->name('restore');
+            Route::get('history', [PaymentController::class, 'history'])->name('history');
+        });
+
+        /** Company Delivery */
+        Route::resource('company_delivery', CompanyDeliveryController::class);
+        Route::prefix('company_delivery')->name('company_delivery.')->group(function () {
+            Route::post('search', [CompanyDeliveryController::class, 'search'])->name('search');
+            Route::post('restore', [CompanyDeliveryController::class, 'restore'])->name('restore');
+            Route::get('history', [CompanyDeliveryController::class, 'history'])->name('history');
+        });
+
+        /** Order Status */
+        Route::resource('order_status', OrderStatusController::class);
+        Route::prefix('order_status')->name('order_status.')->group(function () {
+            Route::get('history', [OrderStatusController::class, 'history'])->name('history');
+            Route::post('search', [OrderStatusController::class, 'search'])->name('search');
+            Route::post('restore', [OrderStatusController::class, 'restore'])->name('restore');
+        });
     });
 });

@@ -415,5 +415,19 @@ return [
   "Refresh"=> "تحديث",
   "all"=> "الكل",
  'total'=>'المجموع',
-
+'facebook'=>'فيس بوك',
+'instagram'=>'انستغرام',
+'twitter'=>'تويتر',
+'order_status'=>'حالات الطلب',
+'regions'=>'المناطق',
+'country'=>'البلد',
+'city'=>'المدينة',
+'region_module'=>'وحدة المناطق',
+'payment_module'=>'وحدة الدفع',
+'company_delivery_module'=>'وحدة الشركات الت،صيل',
+'order_status_module'=>'الطلب وحدة حالات',
+'excepted_delivery_days'=>'عدد الايام المتوقع ',
+'payment'=>'الدفع',
+'company_delivery'=>'شركة المواصلات',
+'order_status'=>'حالات الطلب'
 ];

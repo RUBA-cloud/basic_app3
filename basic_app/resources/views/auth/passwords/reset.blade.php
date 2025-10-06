@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('adminlte::auth.auth-page')
 
 {{-- Meta Tags --}}
 {{-- Page Title --}}

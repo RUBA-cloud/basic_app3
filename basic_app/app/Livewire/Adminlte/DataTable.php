@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Adminlte;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -10,35 +11,33 @@ class DataTable extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    /** Livewire expects this to be public */
+    public string $paginationTheme = 'bootstrap';
 
-    /** Passed-in props (camelCase public properties used by the Blade view) */
-    public array $fields = [];                 // [['key'=>'name','label'=>'Name','type'=>null], ...]
-    public string $model;                      // FQCN, e.g. App\Models\User
+    /** Passed-in props */
+    public array  $fields = [];        // [['key'=>'name','label'=>'Name','type'=>null], ...]
+    public string $model;              // FQCN, e.g. App\Models\User
 
-    public ?string $detailsRoute = null;       // route name for Details link (optional)
-    public ?string $editRoute = null;          // route name
-    public ?string $deleteRoute = null;        // route name for delete (optional)
-    public ?string $reactiveRoute = null;      // route name for re-activate (optional)
-    public ?string $detailsView = null;        // Blade view for modal (optional)
-    public ?string $initialRoute = null;       // route NAME or absolute URL (optional)
+    public ?string $detailsRoute  = null;
+    public ?string $editRoute     = null;
+    public ?string $deleteRoute   = null;
+    public ?string $reactiveRoute = null;
+    public ?string $detailsView   = null;
+    public ?string $initialRoute  = null;
 
     /** Behavior */
-    public array $searchIn = ['name_en','name_ar']; // columns to search in
-    public int $perPage = 12;
-    public string $orderBy = 'id';
+    public array  $searchIn = [];      // e.g. ['name','email','user.name']
+    public int    $perPage  = 12;
+    public string $orderBy  = 'id';
     public string $orderDir = 'desc';
 
     /** State */
-    public string $search = '';
+    public string  $search = '';
     public ?string $initialRouteUrl = null;
-    public ?string $detailsHtml = null;
+    public ?string $detailsHtml     = null;
 
     /**
-     * Accept both camelCase and snake_case args so the component works with:
-     *  - details-route="sizes.show"
-     *  - detailsRoute="sizes.show"
-     *  - details_route="sizes.show"
+     * Accept both camelCase and kebab/snake for convenience.
      */
     public function mount(
         array $fields,
@@ -64,10 +63,11 @@ class DataTable extends Component
         ?string $initial_route = null,
 
         // Search / paging (both forms accepted)
-        array $searchIn = ['name_en','name_ar'],
-        array $search_in = ['name_en','name_ar'],
-        int $perPage = 12,
-        int $per_page = 12,
+        ?array $searchIn = null,
+        ?array $search_in = null,
+
+        ?int $perPage = null,
+        ?int $per_page = null,
     ): void {
         $this->fields = $fields;
         $this->model  = $model;
@@ -80,15 +80,11 @@ class DataTable extends Component
         $this->detailsView   = $detailsView   ?? $details_view   ?? $this->detailsView;
         $this->initialRoute  = $initialRoute  ?? $initial_route  ?? $this->initialRoute;
 
-        $this->searchIn = !empty($searchIn) ? $searchIn : $this->searchIn;
-        if (!empty($search_in)) {
-            $this->searchIn = $search_in;
-        }
+        // Search fields
+        $this->searchIn = $searchIn ?? $search_in ?? $this->searchIn ?? [];
 
-        $this->perPage = $perPage ?: $this->perPage;
-        if (!empty($per_page)) {
-            $this->perPage = $per_page;
-        }
+        // Per-page
+        $this->perPage = $perPage ?? $per_page ?? $this->perPage;
 
         // Resolve initial route to absolute URL (accept route name OR absolute/relative URL)
         if ($this->initialRoute) {
@@ -98,13 +94,13 @@ class DataTable extends Component
         }
     }
 
-    /** Make it easy for the Blade to check if a details route exists */
+    /** Convenience accessor for Blade */
     public function getHasDetailsRouteProperty(): bool
     {
         return filled($this->detailsRoute);
     }
 
-    /** If search changes, reset to first page */
+    /** Reset to first page when search changes */
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -112,20 +108,31 @@ class DataTable extends Component
 
     public function render()
     {
-        /** @var \Illuminate\Database\Eloquent\Builder $q */
+        /** @var Builder $q */
         $q = ($this->model)::query();
 
         if (filled($this->search) && !empty($this->searchIn)) {
             $term = $this->search;
-            $q->where(function ($w) use ($term) {
+
+            // Search in plain columns and related columns (e.g., user.name)
+            $q->where(function (Builder $w) use ($term) {
                 foreach ($this->searchIn as $col) {
-                    $w->orWhere($col, 'like', "%{$term}%");
+                    if (str_contains($col, '.')) {
+                        [$rel, $relCol] = explode('.', $col, 2);
+                        $w->orWhereHas($rel, function (Builder $qr) use ($relCol, $term) {
+                            $qr->where($relCol, 'like', "%{$term}%");
+                        });
+                    } else {
+                        $w->orWhere($col, 'like', "%{$term}%");
+                    }
                 }
             });
         }
 
-        $collection = $q->orderBy($this->orderBy, $this->orderDir)
-            ->with($this->guessRelationsFromFields())
+        $relations = $this->relationsToEagerLoad();
+
+        $collection = $q->with($relations)
+            ->orderBy($this->orderBy, $this->orderDir)
             ->paginate($this->perPage)
             ->withQueryString();
 
@@ -134,23 +141,36 @@ class DataTable extends Component
         ]);
     }
 
-    /** Eager-load relations inferred from dotted field keys (e.g., "company.name") */
-    protected function guessRelationsFromFields(): array
+    /**
+     * Eager-load relations found in:
+     *  - dotted field keys (e.g., "user.name" in $fields)
+     *  - dotted searchIn entries (e.g., "user.name" in $searchIn)
+     */
+    protected function relationsToEagerLoad(): array
     {
         $rels = [];
+
+        // From fields
         foreach ($this->fields as $f) {
             $key = $f['key'] ?? '';
-            if (!is_string($key) || $key === '' || !str_contains($key, '.')) {
-                continue;
-            }
-            $rel = \Illuminate\Support\Str::before($key, '.');
-
-            // only eager-load if the relation method exists on the model class
-            if (method_exists($this->model, $rel)) {
-                $rels[] = $rel;
+            if (is_string($key) && $key !== '' && str_contains($key, '.')) {
+                $rels[] = Str::before($key, '.');
             }
         }
-        return array_values(array_unique($rels));
+
+        // From searchIn
+        foreach ($this->searchIn as $k) {
+            if (is_string($k) && str_contains($k, '.')) {
+                $rels[] = Str::before($k, '.');
+            }
+        }
+
+        // Keep only relations that actually exist on the model
+        $rels = array_values(array_unique(array_filter($rels, function ($rel) {
+            return method_exists($this->model, $rel);
+        })));
+
+        return $rels;
     }
 
     /** Delete via Livewire (if you don't want to post to route) */
@@ -178,7 +198,7 @@ class DataTable extends Component
     /** Load details (render a view or fallback to pretty JSON) and open modal */
     public function details(int $id): void
     {
-        $item = ($this->model)::with($this->guessRelationsFromFields())->findOrFail($id);
+        $item = ($this->model)::with($this->relationsToEagerLoad())->findOrFail($id);
 
         if ($this->detailsView) {
             $this->detailsHtml = view($this->detailsView, compact('item'))->render();
@@ -197,7 +217,7 @@ class DataTable extends Component
         }
     }
 
-    /** Helper for blade to resolve dotted keys */
+    /** Helper for Blade to resolve dotted keys */
     public function resolveValue($item, string $key)
     {
         $segments = explode('.', $key);

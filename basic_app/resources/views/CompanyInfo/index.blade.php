@@ -96,6 +96,18 @@
                 {{ old('vision_ar', $company->vision_ar ?? '') }}
             </x-adminlte-textarea>
 
+<x-adminlte-textarea name="instagram"
+                label="{{ __('adminlte::adminlte.instagram') }}" rows=2 dir="rtl" igroup-size="sm">
+                {{ old('instagram', $company->instagram ?? '') }}
+            </x-adminlte-textarea>
+            <x-adminlte-textarea name="facebook"
+                label="{{ __('adminlte::adminlte.facebook') }}" rows=2 dir="rtl" igroup-size="sm">
+                {{ old('facebook', $company->facebook ?? '') }}
+            </x-adminlte-textarea>
+               <x-adminlte-textarea name="twitter"
+                label="{{ __('adminlte::adminlte.twitter') }}" rows=2 dir="rtl" igroup-size="sm">
+                {{ old('twitter', $company->twitter ?? '') }}
+            </x-adminlte-textarea>
             {{-- Color selections --}}
             <div class="row">
                 @php

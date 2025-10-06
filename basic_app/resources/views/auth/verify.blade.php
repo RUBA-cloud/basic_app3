@@ -1,28 +1,59 @@
+{{-- resources/views/auth/verify.blade.php --}}
 @extends('adminlte::page')
 
+@section('title', __('Verify Email'))
+
 @section('content')
-<div style="min-height: 100vh; display: flex; justify-content: center; align-items: center;">
-    <div style="background: #fff; border-radius: 24px; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12); padding: 48px 32px; max-width: 420px; width: 100%; text-align: center;">
-        <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 12px;">
-            {{ __('adminlte::adminlte.verify_your_email') }}
-        </h2>
+<div style="min-height:70vh; display:flex; align-items:center; justify-content:center;">
+  <div style="max-width:520px; width:100%; background:#fff; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,.08); text-align:center;">
+    <h2 class="mb-2">{{ __('Verify your email') }}</h2>
 
-        <p style="color: #888; font-size: 1rem; margin-bottom: 28px;">
-            {{ __('adminlte::adminlte.verify_email_instruction') ?? 'Please click the button below to verify your email address.' }}
-        </p>
+    {{-- Success flash after resending --}}
+    @if (session('status') === 'verification-link-sent')
+      <div class="alert alert-success" role="alert">
+        {{ __('A fresh verification link has been sent to your email address.') }}
+      </div>
+    @endif
 
-        @if (session('resent'))
-            <div style="color: #28a745; margin-bottom: 16px;">
-                {{ __('adminlte::adminlte.verify_your_email') }}
-            </div>
-        @endif
+    <p class="text-muted mb-3">
+      {{ __("We've sent a verification link to your inbox. Please click it to activate your account.") }}
+    </p>
 
-        <form method="GET" action="{{ route('verify') }}">
-            @csrf
-            <button type="submit"
-                style="width: 100%; background: #6C63FF; color: #fff; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 24px; padding: 14px 0; margin-bottom: 18px; cursor: pointer; box-shadow: 0 4px 16px 0 rgba(108,99,255,0.15); transition: background 0.2s;">            Submit
-</button>
-        </form>
-    </div>
+    {{-- Resend verification email -> hits route('verification.send') --}}
+    <form method="POST" action="{{ route('verification.send') }}" class="d-inline">
+      @csrf
+      <button type="submit" class="btn btn-primary">
+        {{ __('Resend verification email') }}
+      </button>
+    </form>
+
+    {{-- Optional: logout --}}
+    <form method="POST" action="{{ route('logout') }}" class="d-inline ms-2">
+      @csrf
+      <button type="submit" class="btn btn-outline-secondary">
+        {{ __('Log out') }}
+      </button>
+    </form>
+
+    {{-- OPTIONAL: for local/dev only, show a direct signed verify link so you can test without email --}}
+    @if (app()->environment('local'))
+      @php
+        use Illuminate\Support\Facades\URL;
+
+        $user = auth()->user();
+        $devSignedUrl = URL::temporarySignedRoute(
+          'verification.verify',
+          now()->addMinutes(60),
+          ['id' => $user->getKey(), 'hash' => sha1($user->getEmailForVerification())]
+        );
+      @endphp
+      <hr class="my-4">
+      <div class="text-start small">
+        <strong>Dev shortcut:</strong>
+        <a href="{{ $devSignedUrl }}">Verify now (local only)</a>
+        <div class="text-muted">This calls <code>/email/verify/{id}/{hash}</code> with a signed URL.</div>
+      </div>
+    @endif
+  </div>
 </div>
 @endsection

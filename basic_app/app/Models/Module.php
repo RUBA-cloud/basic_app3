@@ -26,6 +26,10 @@ class Module extends Model
         'product_module',
         'employee_module',
         'order_module',
+        'order_status_module',
+        'region_module',
+        'company_delivery_module',
+        'payment_module'
     ];
 
     protected $fillable = [

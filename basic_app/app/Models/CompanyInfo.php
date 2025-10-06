@@ -35,6 +35,9 @@ class CompanyInfo extends Model
         'mission_ar',
         'vision_en',
         'vision_ar',
+        'faceboook',
+        'instagram',
+        'twitter'
     ];
     protected $casts = [
         'created_at' => 'datetime',

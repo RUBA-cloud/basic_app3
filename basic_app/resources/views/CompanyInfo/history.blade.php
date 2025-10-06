@@ -22,6 +22,7 @@
                     ['key' => 'name_ar', 'label' => __('adminlte::adminlte.company_name_ar')],
                     ['key' => 'email', 'label' => __('adminlte::adminlte.company_email')],
                     ['key' => 'phone', 'label' => __('adminlte::adminlte.company_phone')],
+
                     ['key' => 'created_at', 'label' => __('adminlte::adminlte.created_at')],
                 ];
             @endphp

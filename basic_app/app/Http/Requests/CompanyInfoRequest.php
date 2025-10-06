@@ -47,6 +47,9 @@ class CompanyInfoRequest extends FormRequest
             'card_color' => 'nullable|string|max:255', // Assuming this is a hex color code
             'label_color' => 'nullable|string|max:255', //
             'phone' =>  'nullable|regex:/^07\d{8}$/',
+            'twitter'=>'nullable|url|max:255',
+            'instagram'=>'nullable||url|max:255',
+            'facebook'=>'nullable|url|max:255',
              // Assuming
             'is_active' => 'boolean', // Assuming this is a boolean field for branch activity status
             // Assuming this is

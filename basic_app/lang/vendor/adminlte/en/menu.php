@@ -35,7 +35,9 @@ return [
     "products" => "Products",
 "permissions"=>"Permissions",
 'modules'=>'Modules',
-
 "name"=>"Name",
+'regions'=>'Regions',
+'order_status'=>'Order Status',
 'orders'=>'Orders',
+"company_delivery_model"=>"Company Delivery"
 ];

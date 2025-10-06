@@ -485,7 +485,6 @@ return [
     "size_list"=>"Size List",
     "type_list"=>"Type List",
     "offer_type_list"=>"Offer Type List",
-
   "Notifications"=> "Notifications",
   "Mark all as read"=> "Mark all as read",
   "No notifications"=> "No notifications",
@@ -501,7 +500,6 @@ return [
   "has been updated"=> "has been updated",
   "status changed to"=> "status changed to",
   "assigned to you"=> "assigned to you",
-
   "Dashboard"=> "Dashboard",
   "newest_10_Orders"=> "Newest 10 Orders",
   "newest_10_completed_orders"=> "Newest 10 Completed Orders",
@@ -555,8 +553,21 @@ return [
     "reactive"=> "Reactive",
     "employee"=> "Employee",
     "employees"=> "Employees",
-'dash_board'=>'DashBoard',
+    'dash_board'=>'DashBoard',
 'all'=>'All',
-
+'facebook'=>'FaceBook',
+'instagram'=>"Instagram",
+'twitter'=>'Twitter',
+'regions'=>'Regions',
+'country'=>'Country',
+'city'=>'City',
+'region_module'=>'Region Module',
+'payment_module'=>'Payment Module',
+'company_delivery_module'=>'Company delivery Module',
+'order_status_module'=>'Order Status Module',
+'excepted_delivery_days'=>'Excepted Days Count',
+'payment'=>'Payment',
+'company_delivery'=>'Company Delivery',
+'order_status'=>'Order Status'
 ];
 

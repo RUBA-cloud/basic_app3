@@ -35,7 +35,7 @@ class ModulesController extends Controller
                         'company_dashboard_module','company_info_module','company_branch_module',
                         'company_category_module','company_type_module','company_size_module',
                         'company_offers_type_module','company_offers_module','product_module',
-                        'employee_module','order_module'
+                        'employee_module','order_module','order_status_module','regions_module','company_delivery_module'
                     ];
                     $sumExpr = implode(' + ', array_map(fn($c) => "($c = 1)", $columns));
                     $q2->orderByRaw("($sumExpr) " . ($sort === 'enabled_desc' ? 'DESC' : 'ASC'));
