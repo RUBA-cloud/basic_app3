@@ -22,10 +22,10 @@ class CompanyBranchController extends Controller
     {
         if ($isHistory) {
             $branches = CompanyBranchesHistory::with('user')->paginate(10);
-            return view('CompanyBranch.history', compact('branches'));
+            return view('company_branch.index', compact('branches'));
         }
         $branches = CompanyBranch::with('user')->where('is_active',true)->paginate(10);
-        return view('CompanyBranch.index', compact('branches'))->with('is_history', $isHistory);
+        return view('company_branch.index', compact('branches'))->with('is_history', $isHistory);
     }
 
     /**
@@ -33,7 +33,7 @@ class CompanyBranchController extends Controller
      */
     public function create()
     {
-        return view('CompanyBranch.create');
+        return view('company_branch.create');
     }
 
 
@@ -50,7 +50,7 @@ class CompanyBranchController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-            return view('CompanyBranch.history', compact('branches'));
+            return view('company_branch.history', compact('branches'));
     }
 
 
@@ -67,7 +67,7 @@ class CompanyBranchController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-            return view('CompanyBranch.index', compact('branches'));
+            return view('company_branch.index', compact('branches'));
     }
 
 
@@ -118,7 +118,7 @@ class CompanyBranchController extends Controller
     }
 
     // 3) Render the view just once
-    return view('CompanyBranch.show', compact('branch'));
+    return view ('company_branch.show', compact('branch'));
 }
 
 
@@ -129,7 +129,7 @@ class CompanyBranchController extends Controller
     public function edit(string $id)
     {
         $branch = CompanyBranch::findOrFail($id);
-        return view('CompanyBranch.edit', compact('branch'));
+        return view('company_branch.edit', compact('branch'));
     }
 
     /**
@@ -174,7 +174,7 @@ class CompanyBranchController extends Controller
             CompanyBranchesHistory::create($historyData);
 
             $branch->update($validated);
-
+            broadcast(new \App\Events\BranchEventUpdate($branch))->toOthers();
             return redirect()->route('companyBranch.index')->with('success', 'Company branch updated successfully.');
         }
 

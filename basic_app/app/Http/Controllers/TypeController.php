@@ -91,6 +91,7 @@ class TypeController extends Controller
         $history['user_id'] = auth()->id();
         TypeHistory::create($history);
         $type->update($request->validated());
+        broadcast(new \App\Events\TypeEventUpdate($type))->toOthers();
         return redirect()->route('type.index')->with('success', 'Type updated successfully.');
         } else {
             return redirect()->route('type.index')->with('error', 'Type not found.');

@@ -41,9 +41,6 @@
         initial-route="{{ route('type.index')}}" {{-- will reload to here if called --}}
         :search-in="['name_en','name_ar','description_en','description_ar']"
         :per-page="12"/>
-
-
-
             </div>
         </div>
     </div>

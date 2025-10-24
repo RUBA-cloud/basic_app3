@@ -88,7 +88,7 @@ public function show(string $id)
 
         $validated = $request->validated();
         $offer->update($validated);
-
+broadcast(new \App\Events\OfferEventUpdate($offer))->toOthers();
         return redirect()->route('offers.index')->with('success', 'Offer updated successfully.');
     }
 

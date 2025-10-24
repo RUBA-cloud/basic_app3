@@ -1,54 +1,79 @@
-@extends('adminlte::auth.auth-page')
+@php
+    $dir = in_array(strtolower($locale ?? app()->getLocale()), ['ar','he','fa','ur']) ? 'rtl' : 'ltr';
+    $align = $dir === 'rtl' ? 'right' : 'left';
+    $brand = $colors ?? ['main_color'=>'#FF2D20','sub_color'=>'#1A202C','text_color'=>'#22223B'];
+@endphp
+<!DOCTYPE html>
+<html lang="{{ $locale ?? app()->getLocale() }}" dir="{{ $dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>{{ __('adminlte::adminlte.reset_password_subject', ['app' => $appName]) }}</title>
+  <style>
+    .btn{
+      display:inline-block;padding:12px 20px;border-radius:8px;
+      text-decoration:none;color:#fff;background:{{ $brand['main_color'] }};
+      font-weight:700
+    }
+    .muted{color:#6B7280;font-size:12px}
+    @media (prefers-color-scheme: dark){
+      body{background:#0b0d12!important;color:#e5e7eb!important}
+      .card{background:#111827!important;border-color:#1f2937!important}
+      .muted{color:#9CA3AF!important}
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background:#f6f7fb;color:{{ $brand['text_color'] }};direction:{{ $dir }};text-align:{{ $align }}">
+  <div style="display:none;opacity:0;max-height:0;overflow:hidden;">
+    {{ $preheader ?? '' }}
+  </div>
 
-{{-- Meta Tags --}}
-{{-- Page Title --}}
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f7fb;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" class="card" style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
+          <tr>
+            <td style="padding:20px;background:{{ $brand['sub_color'] }};">
+              @if(!empty($logoUrl))
+                <img src="{{ $logoUrl }}" alt="{{ $appName }}" width="120" style="display:block">
+              @else
+                <h1 style="margin:0;color:#fff;font-size:20px">{{ $appName }}</h1>
+              @endif
+            </td>
+          </tr>
 
-@section('title', 'Reset Password')
+          <tr>
+            <td style="padding:28px 24px;">
+              <h2 style="margin:0 0 12px 0;font-size:22px;">{{ __('adminlte::adminlte.reset_headline') }}</h2>
+              <p style="margin:0 0 14px 0;line-height:1.6">
+                {{ __('adminlte::adminlt.reset_intro', ['name' => $user->name ?? __('adminlte::adminlte.auth.user')]) }}
+              </p>
 
-@section('content')
-<div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
-    <div style="background: #fff; border-radius: 24px; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12); padding: 48px 32px; max-width: 420px; width: 100%;">
-        <div style="text-align: center; margin-bottom: 24px;">
-            <img src="{{ asset('assets/Images/logo.png') }}" alt="Logo" style="height: 48px; margin-bottom: 12px;">
-            <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 8px;">{{ __('adminlte::adminlte.password') }}</h2>
-            <p style="color: #888; font-size: 1rem;">{{ __('asminlte::adminlte.enter_new_password') }}/p>
-        </div>
-        @if (session('status'))
-            <div class="alert alert-success" style="margin-bottom: 18px;">
-                {{ session('status') }}
-            </div>
-        @endif
-        <form method="POST" action="{{ route('password.update') }}">
-            @csrf
-            <input type="hidden" name="token" value="{{ $token }}">
-            <div style="margin-bottom: 18px;">
-                <label for="email" style="display:block; color:#22223B; font-weight:500; margin-bottom:6px;">{{ __('adminlte::adminlte.email') }}</label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                    style="width:100%; padding:14px 18px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:16px; background:#f8f8ff;">
-                @error('email')
-                    <span style="color:#e3342f; font-size:0.95rem;">{{ $message }}</span>
-                @enderror
-            </div>
-            <div style="margin-bottom: 18px;">
-                <label for="password" style="display:block; color:#22223B; font-weight:500; margin-bottom:6px;">{{ __('adminlte::adminlte.password') }}</label>
-                <input id="password" type="password" name="password" required
-                    style="width:100%; padding:14px 18px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:16px; background:#f8f8ff;">
-                @error('password')
-                    <span style="color:#e3342f; font-size:0.95rem;">{{ $message }}</span>
-                @enderror
-            </div>
-            <div style="margin-bottom: 18px;">
-                <label for="password-confirm" style="display:block; color:#22223B; font-weight:500; margin-bottom:6px;">{{ __('adminlte::adminlte.password') }}</</label>
-                <input id="password-confirm" type="password" name="password_confirmation" required
-                    style="width:100%; padding:14px 18px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:16px; background:#f8f8ff;">
-            </div>
-            <button type="submit" style="width:100%; background:#6C63FF; color:#fff; font-size:1.1rem; font-weight:600; border:none; border-radius:24px; padding:14px 0; margin-bottom:12px; cursor:pointer; box-shadow:0 4px 16px 0 rgba(108,99,255,0.15); transition:background 0.2s;">
-                Reset Password
-            </button>
-        </form>
-        <div style="text-align:center; color:#888; font-size:15px; margin-top:18px;">
-            <a href="{{ route('login') }}" style="color:#6C63FF; font-weight:600;">>{{ __('adminlte::adminlte.go_back') }}</</a>
-        </div>
-    </div>
-</div>
-@endsection
+              <p style="margin:0 0 24px 0;">
+                <a href="{{ $resetUrl }}" class="btn">{{ __('adminlte::adminlte.reset_button') }}</a>
+              </p>
+
+              <p style="margin:0 0 8px 0;line-height:1.6" class="muted">
+                {{ __('adminlte::adminlte.reset_expiry_note', ['minutes' => $expiresIn]) }}
+              </p>
+              <p style="margin:0 0 8px 0;line-height:1.6" class="muted">
+                {{ __('adminlte::adminlte.reset_alt', ['url' => $resetUrl]) }}
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:16px 24px;border-top:1px solid #e5e7eb;">
+              <p class="muted" style="margin:0;">
+                {{ __('adminlte::adminlte.email_footer_notice', ['app' => $appName]) }}
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

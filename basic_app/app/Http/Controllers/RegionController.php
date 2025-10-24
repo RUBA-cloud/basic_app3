@@ -107,7 +107,7 @@ class RegionController extends Controller
 
             // 2) Apply updates
             $region->update($data);
-
+broadcast(new \App\Events\RegionEventUpdate($region));
             // 3) (optional) Save NEW snapshot as well
             $this->writeHistory($region, 'updated_after', $region->fresh()->toArray());
         });
@@ -175,7 +175,7 @@ class RegionController extends Controller
             // Only copy the fields that actually exist on Region
 
 
-            $payload = array_intersect_key($history->toArray(), array_flip($fields));
+            $payload = array_intersect_key($history->toArray(), array_flip($region ?->getFillable() ?? []));
             $payload['is_active'] = true; // ensure it becomes active
 
             if ($region) {

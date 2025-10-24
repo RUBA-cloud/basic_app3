@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CategoryUpdateEvent;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 use App\Models\CompanyBranch;
@@ -134,7 +135,7 @@ class CategoryController extends Controller
 
         // Attach branches if any
         if (!empty($historyData['branches'])) {
-            $branchIds = collect($category->branches)->pluck('id');
+            $branchIds = collect($newCategory->branches)->pluck('id');
 
             $newCategory->branches()->attach($branchIds);
         }
@@ -164,7 +165,7 @@ class CategoryController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('category_logo', 'public');
-            $validated['image'] = asset('storage/' . $logoPath);
+            $validated['image'] = asset('storage/' . $imagePath);
         }
 
         // Store old data in history
@@ -185,7 +186,7 @@ class CategoryController extends Controller
 
         // Update live category
         $category->update($validated);
-
+        broadcast(new CategoryUpdateEvent($category))->toOthers();
         // Sync branches if provided
         if ($request->filled('branch_ids')) {
             $category->branches()->sync($request->branch_ids);

@@ -93,7 +93,7 @@ class OfferTypeController extends Controller
 
         $validated = $request->validated();
         $offerType->update($validated);
-
+        broadcast(new \App\Events\OfferTypeEventUpdate($offerType))->toOthers();
         return redirect()->route('offers_type.index')
             ->with('success', 'Offer Type updated successfully.');
     }

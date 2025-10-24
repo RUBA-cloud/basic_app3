@@ -111,7 +111,7 @@ class CompanyDeliveryController extends Controller
 
             // apply updates
             $companyDelivery->update($data);
-
+broadcast(new \App\Events\CompanyDeliveryEventUpdate($companyDelivery))->toOthers();
             // snapshot AFTER
             $this->writeHistory($companyDelivery, 'updated_after', $companyDelivery->fresh()->toArray());
         });

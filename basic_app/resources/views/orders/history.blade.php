@@ -1,5 +1,4 @@
 @extends('adminlte::page')
-@section('title', {{ __('adminlte::menu.orders') }})
 
 @section('content')
 <div class="card">

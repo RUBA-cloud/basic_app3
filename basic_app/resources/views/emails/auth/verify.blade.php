@@ -1,70 +1,84 @@
-{{-- resources/views/auth/verify.blade.php --}}
-@extends('adminlte::page')
-
-@section('title', __('Verify Email'))
-
-@section('content')
-<div style="min-height:70vh; display:flex; align-items:center; justify-content:center;">
-  <div style="max-width:520px; width:100%; background:#fff; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,.08); text-align:center;">
-    <h2 class="mb-2">{{ __('Verify your email') }}</h2>
-
-    @if (session('status') === 'verification-link-sent')
-      <div class="alert alert-success" role="alert">
-        {{ __('A fresh verification link has been sent to your email address.') }}
-      </div>
-    @endif
-
-    <p class="text-muted mb-3">
-      {{ __("We've sent a verification link to your inbox. Please click it to activate your account.") }}
-    </p>
-
-    {{-- Resend verification email --}}
-    @php
-      $resendRoute = \Illuminate\Support\Facades\Route::has('verification.send')
-        ? route('verification.send')
-        : url('/email/verification-notification');
-    @endphp
-    <form method="POST" action="{{ $resendRoute }}" class="d-inline">
-      @csrf
-      <button type="submit" class="btn btn-primary">
-        {{ __('Resend verification email') }}
-      </button>
-    </form>
-
-    {{-- Optional: logout --}}
-    @php
-      $logoutRoute = \Illuminate\Support\Facades\Route::has('logout') ? route('logout') : url('/logout');
-    @endphp
-    <form method="POST" action="{{ $logoutRoute }}" class="d-inline ml-2">
-      @csrf
-      <button type="submit" class="btn btn-outline-secondary">
-        {{ __('Log out') }}
-      </button>
-    </form>
-
-    {{-- Dev-only signed verify URL (safe guards) --}}
-    @if (
-        app()->environment('local')
-        && \Illuminate\Support\Facades\Route::has('verification.verify')
-        && auth()->check()
-        && ! auth()->user()->hasVerifiedEmail()
-    )
-      @php
-        $user = auth()->user();
-        $devSignedUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-          'verification.verify',
-          now()->addMinutes(60),
-          ['id' => $user->getKey(), 'hash' => sha1($user->getEmailForVerification())]
-        );
-      @endphp
-      <hr class="my-4">
-      <div class="text-left small">
-        <strong>Dev shortcut:</strong>
-        <a href="{{ $devSignedUrl }}">Verify now (local only)</a>
-        <div class="text-muted">Calls <code>/email/verify/{id}/{hash}</code> with a signed URL.</div>
-      </div>
-    @endif
-
+@php
+    $dir = in_array(strtolower($locale ?? app()->getLocale()), ['ar','he','fa','ur']) ? 'rtl' : 'ltr';
+    $align = $dir === 'rtl' ? 'right' : 'left';
+    $reverse = $dir === 'rtl' ? 'rtl' : 'ltr';
+    $brand = $colors ?? ['main_color'=>'#FF2D20','sub_color'=>'#1A202C','text_color'=>'#22223B'];
+@endphp
+<!DOCTYPE html>
+<html lang="{{ $locale ?? app()->getLocale() }}" dir="{{ $dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>{{ __('auth.verify_email_subject', ['app' => $appName]) }}</title>
+  <style>
+    /* Minimal email-safe CSS */
+    .btn{
+      display:inline-block;padding:12px 20px;border-radius:8px;
+      text-decoration:none;color:#fff;background:{{ $brand['main_color'] }};
+      font-weight:700
+    }
+    .muted{color:#6B7280;font-size:12px}
+    @media (prefers-color-scheme: dark){
+      body{background:#0b0d12!important;color:#e5e7eb!important}
+      .card{background:#111827!important;border-color:#1f2937!important}
+      .muted{color:#9CA3AF!important}
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background:#f6f7fb;color:{{ $brand['text_color'] }};direction:{{ $dir }};text-align:{{ $align }}">
+  <!-- Preheader (hidden in most clients) -->
+  <div style="display:none;opacity:0;max-height:0;overflow:hidden;">
+    {{ $preheader ?? '' }}
   </div>
-</div>
-@endsection
+
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f7fb;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" class="card" style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
+          <tr>
+            <td style="padding:20px;background:{{ $brand['sub_color'] }};">
+              <table width="100%">
+                <tr>
+                  <td style="text-align:{{ $align }};">
+                    @if(!empty($logoUrl))
+                      <img src="{{ $logoUrl }}" alt="{{ $appName }}" width="120" style="display:block">
+                    @else
+                      <h1 style="margin:0;color:#fff;font-size:20px">{{ $appName }}</h1>
+                    @endif
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 24px;">
+              <h2 style="margin:0 0 12px 0;font-size:22px;">{{ __('auth.verify_headline') }}</h2>
+              <p style="margin:0 0 14px 0;line-height:1.6">{{ __('auth.verify_intro', ['name' => $user->name ?? __('auth.user')]) }}</p>
+              <p style="margin:0 0 24px 0;line-height:1.6">{{ __('auth.verify_cta_text') }}</p>
+
+              <p style="margin:0 0 24px 0;">
+                <a href="{{ $verificationUrl }}" class="btn">{{ __('auth.verify_button') }}</a>
+              </p>
+
+              <p style="margin:0 0 8px 0;line-height:1.6" class="muted">
+                {{ __('auth.verify_alt', ['url' => $verificationUrl]) }}
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:16px 24px;border-top:1px solid #e5e7eb;">
+              <p class="muted" style="margin:0;">
+                {{ __('auth.email_footer_notice', ['app' => $appName]) }}
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

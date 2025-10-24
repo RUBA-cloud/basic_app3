@@ -6,7 +6,7 @@
     <div class="card" style="padding: 24px; width: 100%;">
 
         <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
-            {{ __('adminlte::adminlte.create') }} {{ __('adminlte::adminlte.company_delivery') }}
+            {{ __('adminlte.about_us_en') }} {{ __('adminlte::adminlte.company_delivery') }}
         </h2>
 
         {{-- Errors --}}

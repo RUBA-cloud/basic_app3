@@ -14,10 +14,6 @@ return [
     'change_password' => 'Change Password',
     'multilevel' => 'Multilevel',
     'pages' => 'Pages',
-    'account_settings' => 'Account Settings',
-    'profile' => 'Profile',
-    'change_password' => 'Change Password',
-    'multilevel' => 'Multi Level',
     'level_one' => 'Level 1',
     'level_two' => 'Level 2',
     'level_three' => 'Level 3',
@@ -36,8 +32,5 @@ return [
 "permissions"=>"Permissions",
 'modules'=>'Modules',
 "name"=>"Name",
-'regions'=>'Regions',
-'order_status'=>'Order Status',
 'orders'=>'Orders',
-"company_delivery_model"=>"Company Delivery"
 ];

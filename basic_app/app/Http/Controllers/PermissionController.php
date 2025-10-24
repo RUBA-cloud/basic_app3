@@ -151,6 +151,7 @@ public function edit(Permission $permission)
         }
 
         $permission->update($data);
+        broadcast(new \App\Events\PermissionEventUpdate($permission))->toOthers();
 
         return redirect()
             ->route('permissions.show', $permission)

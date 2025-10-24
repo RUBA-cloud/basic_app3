@@ -17,7 +17,6 @@ return [
         "price"=>"السعر",
     'description_en'                  => 'الوصف بالإنجليزية',
     'description_ar'                  => 'الوصف بالعربية',
-    'is_active'                       => 'الحالة',
     'user_id'                         => 'المستخدم',
     'is_discount'                     => 'خصم',
     'is_total_gift'                   => 'هدية إجمالية',
@@ -32,17 +31,15 @@ return [
     'colors'                          => 'الألوان',
     'offer_percentage'                => 'نسبة العرض',
     'company_info_id'   => 'معلومات الشركة',
-    'phone'             => 'رقم الهاتف',
-    'email'             => 'البريد الإلكتروني',
-    'location'          => 'الموقع',
-    'image'             => 'الصورة',
     'working_hours'     => 'ساعات العمل',
     'working_days'      => 'أيام العمل',
     'working_hours_from'=> 'بداية ساعات العمل',
     'working_hours_to'  => 'نهاية ساعات العمل',
     'fax'               => 'الفاكس',
-    'user_id'           => 'المستخدم',
+    'website'           => 'الموقع الإلكتروني',
+
     ],
+    'messages'=> [
     'email'    => 'يجب أن يكون :attribute بريداً إلكترونياً صالحاً.',
     'regex'    => 'تنسيق :attribute غير صالح.',
     'boolean'  => 'يجب أن تكون قيمة :attribute إما صح أو خطأ.',
@@ -64,17 +61,9 @@ return [
     'mission_ar'        => 'الرسالة (بالعربية)',
     'vision_en'         => 'الرؤية (بالإنجليزية)',
     'vision_ar'         => 'الرؤية (بالعربية)',
-    "country_en"=>"البلد الانجليزي",
-    "country_ar"=>"البلد بالعربي",
-    "city_en"=>"المدينة الانجليزي",
-    "city_ar"=>"المدينة بالعربي",
-     "excepted_day_count"=> "عدد الايام. المتوقع",
-        
-
-
-
 
 ],
 
 
+],
 ];

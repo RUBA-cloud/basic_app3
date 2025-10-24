@@ -21,7 +21,7 @@ class SizeController extends Controller
     {
         if ($history) {
             $sizes = SizeHistory::with('user')->where('is_active',true)->orderByDesc('created_at')->paginate(10);
-            return view('Size.history', compact('sizes'));
+            return view('size.history', compact('sizes'));
         }
 
         $sizes = Size::with('user')
@@ -29,7 +29,7 @@ class SizeController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10);
 
-        return view('Size.index', compact('sizes', 'history'));
+        return view('size.index', compact('sizes', 'history'));
     }
 
     /**
@@ -37,7 +37,7 @@ class SizeController extends Controller
      */
     public function create()
     {
-        return view('Size.create');
+        return view('size.create');
     }
 
     /**
@@ -55,7 +55,7 @@ class SizeController extends Controller
             }
         }
 
-        return view('Size.show', compact('size'));
+        return view('size.show', compact('size'));
     }
 
     /**
@@ -153,6 +153,7 @@ class SizeController extends Controller
         $size->user_id = auth()->id();
         $size->save();
         $size->update($validated);
+        broadcast(new \App\Events\SizeEventUpdate($size))->toOthers();
  return redirect()->route('sizes.index')->with('success', 'Size updated successfully.');
 
 

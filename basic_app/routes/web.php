@@ -29,11 +29,11 @@ use App\Http\Controllers\OrderStatusController;
 use App\Http\Controllers\CompanyDeliveryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeviceTokenController;
-
-/** Root -> login */
+use Illuminate\Support\Facades\Broadcast;
+/** Root -> login
 Route::redirect('/', '/login')->name('root');
-
 /** Locale wrapper */
+ Broadcast::routes();
 Route::middleware([SetLocale::class])->group(function () {
 
     /** Laravel-UI auth (NO built-in verify to avoid conflicts) */
@@ -43,7 +43,9 @@ Route::middleware([SetLocale::class])->group(function () {
         // 'confirm' => false,
     ]);
 
-    /** Email verify notice page */
+
+Route::redirect('/', '/login')->name('root');
+
     Route::get('/email/verify', function () {
         return view('auth.verify');
     })->middleware('auth')->name('verification.notice');
@@ -79,8 +81,8 @@ Route::middleware([SetLocale::class])->group(function () {
     })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
     /** Language switcher */
-    Route::get('/change-language', function (Request $request) {
-        $locale = $request->query('locale', 'en');
+    Route::post('/change-language', function (Request $request) {
+        $locale = $request->query('locale', $request->input('locale') ??'en');
         if (! in_array($locale, ['en', 'ar'], true)) $locale = 'en';
         session(['locale' => $locale]);
 
@@ -205,10 +207,23 @@ Route::middleware([SetLocale::class])->group(function () {
 
         /** Order Status */
         Route::resource('order_status', OrderStatusController::class);
+
         Route::prefix('order_status')->name('order_status.')->group(function () {
             Route::get('history', [OrderStatusController::class, 'history'])->name('history');
             Route::post('search', [OrderStatusController::class, 'search'])->name('search');
             Route::post('restore', [OrderStatusController::class, 'restore'])->name('restore');
         });
-    });
+        /** User Profile */
+        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 });
+Route::resource('regions', RegionController::class);
+Route::put('/regions/reactive/{id}', [RegionController::class, 'reactive'])->name('regions.reactive');
+Route::get('/regions_history/{isHistory?}', [RegionController::class, 'index'])->name('regions.history');
+Route::post('/region_search', [RegionController::class, 'search'])->name('region.search');
+Route::post('/region_search_history', [RegionController::class, 'searchHistory'])->name('region.search_history');
+
+Route::resource('chat', \App\Http\Controllers\ChatController::class);
+
+});
+

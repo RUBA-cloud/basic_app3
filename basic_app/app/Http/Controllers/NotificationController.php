@@ -16,7 +16,7 @@ class NotificationController extends Controller
             $q->unread();
         }
         $items = $q->paginate(15)->withQueryString();
-        return view('Notification.index', compact('items'));
+        return view('notifications.index', compact('items'));
     }
 
     public function store(Request $request) {
@@ -29,7 +29,7 @@ class NotificationController extends Controller
             'link'    => ['nullable','url'],
         ]);
         AppNotification::create($data);
-        return back()->with('success', __('Notification created'));
+        return back()->with('success', __('notification created'));
     }
 
     public function mark(AppNotification $notification) {

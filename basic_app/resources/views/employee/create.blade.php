@@ -12,13 +12,11 @@
 @section('content')
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('employees.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            @include('employee.form', ['employee' => null, 'permissions' => $permissions])
-            <div class="d-flex justify-content-end">
-                <button class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ __('adminlte::adminlte.save_information') }}</button>
-            </div>
-        </form>
+        @include('employee.form', [
+            'action'     => route('employees.store'),
+            'method'     => 'POST',
+            'employee' => null,
+        ])
     </div>
 </div>
 @endsection

@@ -98,6 +98,7 @@ class OrderStatusController extends Controller
         DB::transaction(function () use ($order_status, $data) {
             $this->writeHistory($order_status, 'updated_before', $order_status->toArray());
             $order_status->update($data);
+            broadcast(new \App\Events\OrderStatusEventUpdate($order_status))->toOthers();
             $this->writeHistory($order_status, 'updated_after', $order_status->fresh()->toArray());
         });
 

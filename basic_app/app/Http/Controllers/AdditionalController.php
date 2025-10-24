@@ -13,16 +13,16 @@ class AdditionalController extends Controller
     {
         if ($isHistory) {
             $additionals = AdditonalHistory::with('user')->paginate(10);
-            return view('additonal.history', compact('additionals'));
+            return view('additionals.history', compact('additionals'));
         }
 
         $additionals = Additonal::with('user')->where('is_active', true)->paginate(10);
-        return view('additonal.index', compact('additionals'));
+        return view('additionals.index', compact('additionals'));
     }
 
     public function create()
     {
-        return view('additonal.create');
+        return view('additionals.create');
     }
 
     public function store(AdditonalRequest $request)
@@ -55,7 +55,7 @@ class AdditionalController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('additonal.history', compact('additionals'));
+        return view('additionals.history', compact('additionals'));
     }
 
     public function search(Request $request)
@@ -69,19 +69,19 @@ class AdditionalController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('additonal.index', compact('additionals'));
+        return view('additionals.index', compact('additionals'));
     }
 
     public function show(string $id)
     {
         $additional = Additonal::find($id) ?? AdditonalHistory::findOrFail($id);
-        return view('additonal.show', compact('additional'));
+        return view('additionals.show', compact('additional'));
     }
 
     public function edit(string $id)
     {
         $additional = Additonal::findOrFail($id);
-        return view('additonal.edit', compact('additional'));
+        return view('additionals.edit', compact('additional'));
     }
 
     public function update(AdditonalRequest $request, string $id)
@@ -101,7 +101,7 @@ class AdditionalController extends Controller
         }
 
         $additonal->update($data);
-
+broadcast(new \App\Events\AdditionalEventUpdate($additonal));
         return redirect()->back()->with('success', 'Additonal product updated successfully.');
     }
 

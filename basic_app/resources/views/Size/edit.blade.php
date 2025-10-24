@@ -6,56 +6,11 @@
         <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
                     {{ __('adminlte::adminlte.edit') }} {{ __('adminlte::adminlte.size') }}
         </h2>
-
-        <form method="POST" action="{{ route('sizes.update',$size->id) }}" enctype="multipart/form-data">
-            @csrf
-            @method('PUT')
-    {{-- Category Image --}}
-            <x-upload-image
-                       :image="$size->image"
-
-                label="{{ __('adminlte::adminlte.image') }}"
-                name="image"
-                id="image"
-            />
-
-            {{-- Size Name English --}}
-            <x-form.textarea  id="name_en"  name="name_en"  label="{{__('adminlte::adminlte.name_en')}}" :value="$size->name_en"/>
-
-            {{-- Size Name Arabic --}}
-            <x-form.textarea
-                id="name_ar"
-                name="name_ar"
-  label="{{__('adminlte::adminlte.name_ar')}}"
-                  dir="rtl"
-                :value="$size->name_ar"
-            />
-    <x-form.textarea
-                id="price"
-                name="price"
-  label="{{__('adminlte::adminlte.price')}}"
-                :value="$size->price"
-            />
-              <x-form.textarea
-                id="descripation"
-                name="descripation"
-                label="{{__('adminlte::adminlte.descripation')}}"
-                :value="$size->descripation"/>
-
-
-            {{-- Is Active Checkbox --}}
-            <div class="form-group" style="margin: 20px 0;">
-                <input type="checkbox" name="is_active" value="1" {{ $size->is_active ? 'checked' : '' }}/> {{__('adminlte::adminlte.is_active')}}
-            </div>
-
-            <x-adminlte-button
-                label="{{ __('adminlte::adminlte.save_information') }}"
-                type="submit"
-                theme="success"
-                class="w-100"
-                icon="fas fa-save"
-            />
-        </form>
+        @include('Size.form', [
+            'action'     => route('sizes.update', $size->id),
+            'method'     => 'PUT',
+            'size' => $size,
+        ])
     </div>
 </div>
 @endsection

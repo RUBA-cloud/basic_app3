@@ -66,9 +66,7 @@ class PaymentController extends Controller
         $data =$request->validated();
         $data['user_id']   = $data['user_id']   ?? Auth::id();
         $data['is_active'] = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : true;
-Payment::create($data);
-
-
+        Payment::create($data);
         return redirect()->route('payment.index')
             ->with('success', __('Payment created successfully.'));
     }
@@ -93,6 +91,7 @@ Payment::create($data);
         DB::transaction(function () use ($payment, $data) {
             $this->writeHistory($payment, 'updated_before', $payment->toArray());
             $payment->update($data);
+            broadcast(new \App\Events\PaymentEventUpdate($payment));
             $this->writeHistory($payment, 'updated_after', $payment->fresh()->toArray());
         });
 

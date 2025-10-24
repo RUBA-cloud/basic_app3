@@ -138,7 +138,7 @@ if (array_key_exists('additionals', $validated)&& $validated['additionals'] !== 
             $product->is_active = $request->has('is_active') ? 1 : 0;
            $product->colors = $validated['colors'] ?? [];
             $product->save();
-
+broadcast(new \App\Events\ProductEventUpdate($product));
             $product->sizes()->sync($validated['sizes'] ?? []);
             $product->additionals()->sync($validated['additional'] ?? []);
 

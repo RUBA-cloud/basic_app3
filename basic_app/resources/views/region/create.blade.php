@@ -20,76 +20,11 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('regions.store') }}">
-            @csrf
-
-            {{-- Country EN --}}
-            <x-form.textarea
-                id="country_en"
-                name="country_en"
-                label="{{ __('adminlte::adminlte.country') }} EN"
-                :value="old('country_en')"
-            />
-
-            {{-- Country AR --}}
-            <x-form.textarea
-                id="country_ar"
-                name="country_ar"
-                label="{{ __('adminlte::adminlte.country') }} AR"
-                dir="rtl"
-                :value="old('country_ar')"
-            />
-
-            {{-- City EN --}}
-            <x-form.textarea
-                id="city_en"
-                name="city_en"
-                label="{{ __('adminlte::adminlte.city') }} EN"
-                :value="old('city_en')"
-            />
-
-            {{-- City AR --}}
-            <x-form.textarea
-                id="city_ar"
-                name="city_ar"
-                label="{{ __('adminlte::adminlte.city') }} AR"
-                dir="rtl"
-                :value="old('city_ar')"
-            />
-
-            {{-- Expected Day Count (number) --}}
-            <div class="form-group">
-                <label for="excepted_day_count">{{ __('adminlte::adminlte.excepted_delivery_days') }}</label>
-                <input
-                    id="excepted_day_count"
-                    type="number"
-                    min="0"
-                    class="form-control @error('excepted_days_count') is-invalid @enderror"
-                    name="excepted_day_count"
-                    value="{{ old('excepted_day_count') }}"
-                >
-                @error('excepted_day_count')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
-            </div>
-
-            {{-- Is Active Checkbox (with hidden default 0) --}}
-            <div class="form-group" style="margin: 20px 0;">
-                <input type="hidden" name="is_active" value="0">
-                <label>
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
-                    {{ __('adminlte::adminlte.is_active') }}
-                </label>
-            </div>
-
-            <x-adminlte-button
-                label="{{ __('adminlte::adminlte.save_information') }}"
-                type="submit"
-                theme="success"
-                class="w-100"
-                icon="fas fa-save"
-            />
-        </form>
+        @include('region.form', [
+            'action'     => route('regions.store'),
+            'method'     => 'POST',
+            'region' => null,
+        ])
     </div>
 </div>
 @endsection

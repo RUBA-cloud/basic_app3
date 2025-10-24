@@ -19,84 +19,11 @@
                 </ul>
             </div>
         @endif
-
-        <form method="POST" action="{{ route('regions.update', $region) }}">
-            @csrf
-            @method('PUT')
-
-            {{-- Country EN --}}
-            <x-form.textarea
-                id="country_en"
-                name="country_en"
-                label="{{ __('adminlte::adminlte.country') }} EN"
-                :value="old('country_en', $region->country_en)"
-            />
-
-            {{-- Country AR --}}
-            <x-form.textarea
-                id="country_ar"
-                name="country_ar"
-                label="{{ __('adminlte::adminlte.country') }} AR"
-                dir="rtl"
-                :value="old('country_ar', $region->country_ar)"
-            />
-
-            {{-- City EN --}}
-            <x-form.textarea
-                id="city_en"
-                name="city_en"
-                label="{{ __('adminlte::adminlte.city') }} EN"
-                :value="old('city_en', $region->city_en)"
-            />
-
-            {{-- City AR --}}
-            <x-form.textarea
-                id="city_ar"
-                name="city_ar"
-                label="{{ __('adminlte::adminlte.city') }} AR"
-                dir="rtl"
-                :value="old('city_ar', $region->city_ar)"
-            />
-
-            {{-- Expected Day Count (number) --}}
-            <div class="form-group">
-                <label for="excepted_day_count">{{ __('adminlte::adminlte.excepted_delivery_days') }}</label>
-                <input
-                    id="excepted_day_count"
-                    type="number"
-                    min="0"
-                    class="form-control @error('excepted_day_count') is-invalid @enderror"
-                    name="excepted_day_count"
-                    value="{{ old('excepted_day_count', $region->excepted_day_count) }}"
-                >
-                @error('excepted_day_count')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
-            </div>
-
-            {{-- Is Active Checkbox (with hidden default 0) --}}
-            <div class="form-group" style="margin: 20px 0;">
-                <input type="hidden" name="is_active" value="0">
-                <label>
-                    <input type="checkbox" name="is_active" value="1"
-                           {{ old('is_active', (bool) $region->is_active) ? 'checked' : '' }}>
-                    {{ __('adminlte::adminlte.is_active') }}
-                </label>
-            </div>
-
-            <div class="d-flex gap-2">
-                <x-adminlte-button
-                    label="{{ __('adminlte::adminlte.save_information') }}"
-                    type="submit"
-                    theme="success"
-                    class="mr-2"
-                    icon="fas fa-save"
-                />
-                <a href="{{ route('regions.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left mr-1"></i> {{ __('adminlte::adminlte.back') }}
-                </a>
-            </div>
-        </form>
+        @include('region.form', [
+            'action'     => route('regions.update', $region->id),
+            'method'     => 'PUT',
+            'region' => $region,
+        ])
     </div>
 </div>
 @endsection
