@@ -66,13 +66,4 @@ class CompanyBranchRequest extends FormRequest
             'working_hours_to' => 'nullable|string|max:255',
         ];
     }
-     public function attributes(): array
-    {
-        return trans('validation.attributes.about_us_ar');
-    }
-
-    public function messages(): array
-    {
-        return trans('adminlte::validation.messages');
-    }
 }

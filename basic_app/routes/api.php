@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\CompanyInfoController;
 use App\Http\Controllers\Api\CompanyBranchController;
 use App\Http\Middleware\JWTAuthMiddleware;
 use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\Api\CategoryController;
+
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthApiController::class, 'register']);
@@ -32,6 +34,9 @@ Route::middleware([JWTAuthMiddleware::class])->group(function () {
     Route::get('user', function (Request $request) {
         return response()->json($request->user());
     });
+    Route::get('categories',[CategoryController::class,'index']);
+    Route::post('category',[CategoryController::class,'show']);
+
 });
  Broadcast::routes();
 

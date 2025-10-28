@@ -99,7 +99,7 @@ Route::redirect('/', '/login')->name('root');
 
         /** Categories */
         Route::resource('categories', CategoryController::class);
-        Route::put('/reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('reactive_category');
+        Route::put('/reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('categories.reactivate');
         Route::post('/category-search', [CategoryController::class, 'search'])->name('category-search');
         Route::post('/category-search-history', [CategoryController::class, 'searchHistory'])->name('category-search-history');
         Route::get('/category_history/{isHistory?}', [CategoryController::class, 'index'])->name('category_history');

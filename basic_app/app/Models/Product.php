@@ -57,5 +57,7 @@ class Product extends Model
     {
     return $this->belongsTo(Type::class, 'type_id');
     }
-
+    public function products(){
+        return $this->belongsToMany(Category::class,'id','category_id');
+    }
 }

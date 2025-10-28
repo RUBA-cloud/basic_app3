@@ -38,6 +38,8 @@ return [
        'image'=>'الصورة',
        'modules'=>'الوحدات',
        'orders'=>'الطلبات',
+       'order_status'=>'خالات الطلب',
+       'company_delivery'=>'شركات التوصيل'
 
 
 ];

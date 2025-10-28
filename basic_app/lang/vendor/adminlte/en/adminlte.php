@@ -502,5 +502,41 @@ return [
     'send_reset_passwaord_mail' => 'We will send a password reset link to your email address.',
     'confirm_password' => 'Send Password Reset Link',
     'email' => 'Email Address',
+
+    'verify_email_subject' => 'Verify your email for :app',
+    'verify_headline' => 'Verify your email address',
+    'verify_intro' => 'Hello :name, thank you for signing up!',
+    'verify_cta_text' => 'Please confirm your email address by clicking the button below.',
+    'verify_button' => 'Verify Email',
+    'verify_alt' => 'If you are unable to click the button, copy and paste this link into your browser: :url',
+    'email_footer_notice' => 'This message was sent by :app. Please do not reply.',
+     'reset_password_subject' => 'Reset your password for :app',
+    'reset_preheader' => 'Use the secure link below to reset your :app password.',
+
+    // Header helper
+    'security_notice' => 'Secure message',
+
+    // Headlines & copy
+    'reset_headline' => 'Reset your password',
+    'reset_intro' => 'Hello :name, we received a request to reset your password.',
+    'reset_cta_text' => 'Click the button below to create a new password.',
+    'reset_button' => 'Reset Password',
+
+    // Notes & alt text
+    'reset_expiry_note' => 'This link will expire in :minutes minutes for your security.',
+    'reset_alt' => 'If the button does not work, copy and paste this link into your browser: :url',
+'update_information'=>'Update Information',
+    // Footer
+    'email_footer_notice' => 'This email was sent by :app. Please do not reply to this message.',
+"payment_module"=>'Payment Module',
+"company_delivery_module"=>"Company Delivery Module",
+"region_module"=>"Region Module",
+"order_status_module"=>"Order Status Module",
+"company_delivery"=>"Company Delivery",
+    'auth' => [
+        'user' => 'User',
+    ],
+
+
 ];
 

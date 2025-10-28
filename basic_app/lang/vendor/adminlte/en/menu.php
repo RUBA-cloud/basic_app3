@@ -33,4 +33,10 @@ return [
 'modules'=>'Modules',
 "name"=>"Name",
 'orders'=>'Orders',
+ 'order_status'=>'Order Status ',
+'company_delivery'=>'Company Delivery ',
+'region_module'=>'Region Module',
+'payment_module'=>'Payment Module',
+'company_delivery_model'=>'Company Delivery '
+
 ];

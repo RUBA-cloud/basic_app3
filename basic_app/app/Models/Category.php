@@ -21,5 +21,13 @@ return $this->belongsToMany(CompanyBranch::class, 'category_branch', 'category_i
     {
         return $this->hasMany(CategoryHistory::class, 'category_id');
     }
+// app/Models/Category.php
+public function products()
+{
+    // Eager-load the nested relations on Product
+    return $this->hasMany(\App\Models\Product::class, 'category_id')
+        ->with(['images', 'sizes', 'additionals','category','type']);  // <- adjust names to your Product relations
+}
+
 
 }

@@ -78,9 +78,10 @@
     </div>
 
     <x-adminlte-button
-        :label="isset($branch) ? __('adminlte::adminlte.update_information') : __('adminlte::adminlte.save_information')"
+        :label="isset($branch) ? __('adminlte::adminlte.save_information') : __('adminlte::adminlte.save_information')"
         type="submit" theme="success" class="w-100" icon="fas fa-save" />
-</form>
+
+    </form>
 
 @once
     {{-- load Pusher once (or include globally) --}}

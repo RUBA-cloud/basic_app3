@@ -111,7 +111,7 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
         <div class="col-md-6 mb-3">
             <label for="additional">{{ __('adminlte::adminlte.additional') }}</label>
             @php $oldAdditional = collect(old('additional', data_get($productObj,'additional_ids', []))); @endphp
-            <select name="additional[]" id="additional" class="form-control select2" multiple required>
+            <select name="additional[]" id="additional" class="form-control select2" multiple >
                 @foreach($additionals as $additional)
                     <option value="{{ $additional->id }}" {{ $oldAdditional->contains($additional->id) ? 'selected' : '' }}>
                         {{ $isAr ? ($additional->name_ar ?? $additional->name_en) : $additional->name_en }}
