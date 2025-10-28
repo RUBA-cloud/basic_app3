@@ -526,6 +526,8 @@ return [
     'reset_expiry_note' => 'This link will expire in :minutes minutes for your security.',
     'reset_alt' => 'If the button does not work, copy and paste this link into your browser: :url',
 'update_information'=>'Update Information',
+'regions'=>'Regions',
+'country'=>'Country',
     // Footer
     'email_footer_notice' => 'This email was sent by :app. Please do not reply to this message.',
 "payment_module"=>'Payment Module',

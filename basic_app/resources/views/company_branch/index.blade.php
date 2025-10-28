@@ -12,7 +12,7 @@
 
 <x-action_buttons label="{{ __('adminlte::adminlte.company_branch') }}"
     addRoute="companyBranch.create"
-    historyRoute="branches.index"
+    historyRoute="companyBranch.index"
     :historyParams="['isHistory' => 'true']"
     :showAdd="true"
 />

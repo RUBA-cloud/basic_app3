@@ -3,7 +3,7 @@
     use Illuminate\Support\Str;
 
     // Inputs expected:
-    // $action (string), $method ('POST'|'PUT'|'PATCH')
+    //$action (string), $method ('POST'|'PUT'|'PATCH')
     // Optional: $permission (model|null), $featuresForRadios (array), $defaultFeatureKey (string|null)
     // Optional Pusher config (like your branch form):
     //   - $pusher_key, $pusher_cluster

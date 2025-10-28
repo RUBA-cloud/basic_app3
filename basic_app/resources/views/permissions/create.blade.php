@@ -18,12 +18,12 @@
                 <div class="alert alert-success"><i class="far fa-check-circle me-1"></i>{{ session('success') }}</div>
             @endif
 
-            <form action="{{ route('permissions.store') }}" method="POST" novalidate>
-                @csrf
                 @include('permissions.form', [
+                    'action'=> route('permissions.store'),
                     'modulesRow'        => $modulesRow,
                     'featuresForRadios' => $featuresForRadios,
                     'defaultFeatureKey' => $defaultFeatureKey,
+                    'method'=>'Post'
                     // optional: 'permission' => null
                 ])
  <x-adminlte-button
@@ -34,7 +34,6 @@
                 icon="fas fa-save"
             />
 
-            </form>
         </div>
     </div>
 </div>

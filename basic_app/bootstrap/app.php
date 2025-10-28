@@ -15,6 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         //
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
+        // --- Route middleware aliases (use in routes) ---
+        $middleware->alias([
+            'module' => \App\Http\Middleware\EnsureModuleEnabled::class,
+            'perm'   => \App\Http\Middleware\EnsurePermission::class,
+        ]);
                 // Add your JWT middleware here
 
     })

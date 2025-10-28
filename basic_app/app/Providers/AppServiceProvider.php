@@ -1,4 +1,5 @@
-<?php // app/Providers/AppServiceProvider.php
+<?php
+// app/Providers/AppServiceProvider.php
 
 namespace App\Providers;
 
@@ -11,22 +12,30 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
+
 use App\Helpers\CustomSettings;
+use App\Helpers\MenuBuilder;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        //
+    }
 
     public function boot(): void
     {
         /**
-         * Customize Auth emails (runs in HTTP + console/queues).
-         * Blade views:
-         *  - resources/views/emails/auth/verify.blade.php
-         *  - resources/views/emails/auth/reset.blade.php
+         * ===========================
+         * Auth email customizations
+         * ===========================
+         * Runs in HTTP + queues/console.
+         * Views you should have:
+         * - resources/views/emails/auth/verify.blade.php
+         * - resources/views/emails/auth/reset.blade.php
          */
 
-        // Helper to pull theme colors safely (works in queue/console too)
+        // Resolve brand colors safely (works in queue/console)
         $resolveColors = function (): array {
             $defaults = [
                 'main_color' => '#FF2D20',
@@ -48,7 +57,7 @@ class AppServiceProvider extends ServiceProvider
             }
         };
 
-        // 1) Verify Email customization
+        // Verify Email
         VerifyEmail::toMailUsing(function ($notifiable, string $url) use ($resolveColors) {
             $colors = $resolveColors();
             $locale = method_exists($notifiable, 'preferred_locale')
@@ -57,7 +66,7 @@ class AppServiceProvider extends ServiceProvider
 
             // Optional SPA override:
             // $url = rtrim(config('app.frontend_url', config('app.url')), '/')
-            //     . '/email/verify?verify_url=' . urlencode($url);
+            //      . '/email/verify?verify_url=' . urlencode($url);
 
             return (new MailMessage)
                 ->subject(__('adminlte::adminlte.verify_email_subject', ['app' => config('app.name')], $locale))
@@ -66,20 +75,20 @@ class AppServiceProvider extends ServiceProvider
                     'verificationUrl' => $url,
                     'appName'         => config('app.name'),
                     'locale'          => $locale,
-                    'colors'          => $colors,          // <-- pass resolved array
+                    'colors'          => $colors,
                     'logoUrl'         => config('app.logo_url', ''), // optional
                     'preheader'       => __('adminlte::adminlte.verify_email_preheader', [], $locale),
                 ]);
         });
 
-        // 2) Reset Password customization
+        // Reset Password
         ResetPassword::toMailUsing(function ($notifiable, string $token) use ($resolveColors) {
             $colors = $resolveColors();
             $locale = method_exists($notifiable, 'preferred_locale')
                 ? ($notifiable->preferred_locale() ?: (App::getLocale() ?: 'en'))
                 : (App::getLocale() ?: 'en');
 
-            // Default Laravel password reset route (web flow)
+            // Default web reset URL
             $url = url(route('password.reset', [
                 'token' => $token,
                 'email' => $notifiable->getEmailForPasswordReset(),
@@ -87,15 +96,15 @@ class AppServiceProvider extends ServiceProvider
 
             // Optional SPA override:
             // $url = rtrim(config('app.frontend_url', config('app.url')), '/')
-            //     . '/reset-password?token=' . urlencode($token)
-            //     . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
+            //      . '/reset-password?token=' . urlencode($token)
+            //      . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
 
             $pwdBroker = config('auth.defaults.passwords');
             $minutes   = (int) (config("auth.passwords.$pwdBroker.expire") ?? 60);
 
             return (new MailMessage)
                 ->subject(__('adminlte::adminlte.reset_password_subject', ['app' => config('app.name')], $locale))
-                ->view('emails.auth.reset', [      // <-- use email view
+                ->view('emails.auth.reset', [
                     'user'      => $notifiable,
                     'resetUrl'  => $url,
                     'appName'   => config('app.name'),
@@ -108,109 +117,43 @@ class AppServiceProvider extends ServiceProvider
         });
 
         /**
-         * The rest only runs in HTTP (skip in console/queues).
+         * ===========================
+         * HTTP-only bootstrapping
+         * ===========================
          */
         if (App::runningInConsole()) {
             return;
         }
 
-        // Set locale from session if present
+        // Set locale from session (if present)
         try {
             if (Session::has('locale')) {
                 App::setLocale(Session::get('locale'));
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+            // ignore
+        }
 
-        // One composer to inject colors and build AdminLTE menu
+        /**
+         * One view composer: shares colors + injects AdminLTE menu per request
+         * The menu is assembled by App\Helpers\MenuBuilder::build($user, $iconColor)
+         */
         View::composer('*', function ($view) use ($resolveColors) {
-            // Colors
+            // Colors (shared with all views)
             $colors    = $resolveColors();
             $mainColor = $colors['main_color'];
             $subColor  = $colors['sub_color'];
             $textColor = $colors['text_color'];
             $iconColor = $colors['icon_color'];
 
-            // Base menu
-            $menu = [[
-                'text'       => 'dashboard',
-                'url'        => '/',
-                'icon'       => 'fas fa-fw fa-tachometer-alt',
-                'icon_color' => $iconColor,
-            ]];
+            // Build menu only when user is present
+            $user = Auth::user();
+            $menu = $user ? MenuBuilder::build($user, $iconColor) : [];
 
-            // Modules (if user is logged in)
-            /** @var \App\Models\User|null $user */
-            $user    = Auth::user();
-            $modules = $user?->modulesHistory;
-
-            if ($modules?->company_info_module) {
-                $menu[] = ['text'=>'company_info','url'=>'/companyInfo','icon'=>'fas fa-fw fa-info-circle','icon_color'=>$iconColor];
-            }
-            if ($modules?->company_branch_module) {
-                $menu[] = ['text'=>'branches','url'=>'/branches','icon'=>'fas fa-fw fa-code-branch','icon_color'=>$iconColor];
-            }
-            if ($modules?->company_category_module) {
-                $menu[] = ['text'=>'category','url'=>'/categories','icon'=>'fas fa-fw fa-list','icon_color'=>$iconColor];
-            }
-            if ($modules?->company_size_module) {
-                $menu[] = ['text'=>'size','url'=>'/sizes','icon'=>'fas fa-fw fa-square','icon_color'=>$iconColor];
-            }
-
-            // Always visible
-            if($modules?->additional_module){
-            $menu[] = ['text'=>'additional','url'=>'/additional','icon'=>'fas fa-fw fa-plus-square','icon_color'=>$iconColor];
-            }
-            if ($modules?->company_type_module) {
-                $menu[] = ['text'=>'type','url'=>'/type','icon'=>'fas fa-fw fa-list','icon_color'=>$iconColor];
-            }
-            if ($modules?->company_offers_type_module) {
-                $menu[] = ['text'=>'offers_type','url'=>'/offers_type','icon'=>'fas fa-fw fa-list','icon_color'=>$iconColor];
-            }
-            if ($modules?->company_offers_module) {
-                $menu[] = ['text'=>'offers','url'=>'/offers','icon'=>'fas fa-fw fa-heart','icon_color'=>$iconColor];
-            }
-            if ($modules?->product_module) {
-                $menu[] = ['text'=>'products','url'=>'/product','icon'=>'fas fa-fw fa-box','icon_color'=>$iconColor];
-            }
-            if ($modules?->employee_module) {
-                $menu[] = ['text'=>'employees','url'=>'/employees','icon'=>'fas fa-fw fa-users','icon_color'=>$iconColor];
-            }
-            if ($modules?->order_module) {
-                $menu[] = ['text'=>'orders','url'=>'/orders','icon'=>'fas fa-fw fa-shopping-cart','icon_color'=>$iconColor];
-                if ($modules?->order_status_module) {
-                    $menu[] = ['text'=>'order_status','url'=>'/order_status','icon'=>'fas fa-fw fa-clipboard-check','icon_color'=>$iconColor];
-                }
-            }
-            if ($modules?->region_module) {
-                $menu[] = ['text'=>'regions','url'=>'/regions','icon'=>'fas fa-fw fa-map-marked-alt','icon_color'=>$iconColor];
-            }
-            if ($modules?->payment_module) {
-                $menu[] = ['text'=>'payment','url'=>'/payment','icon'=>'fas fa-fw fa-credit-card','icon_color'=>$iconColor];
-            }
-            if ($modules?->company_delivery_module) {
-                $menu[] = ['text'=>'company_delivery_model','url'=>'/company_delivery','icon'=>'fas fa-fw fa-truck','icon_color'=>$iconColor];
-            }
-
-            // Admin-only
-            if ($user && ($user->role === 'admin')) {
-                $menu[] = [
-                    'text'       => 'permissions',
-                    'url'        => '/permissions',
-                    'icon'       => 'fas fa-fw fa-user-shield',
-                    'icon_color' => $iconColor,
-                ];
-                $menu[] = [
-                    'text'       => 'modules',
-                    'url'        => '/modules',
-                    'icon'       => 'fas fa-fw fa-cogs',
-                    'icon_color' => $iconColor,
-                ];
-            }
-
-            // Inject into AdminLTE config for this request
+            // Set AdminLTE menu for this request
             Config::set('adminlte.menu', $menu);
 
-            // Share colors to all views
+            // Share colors
             $view->with(compact('mainColor', 'subColor', 'textColor', 'iconColor'));
         });
     }

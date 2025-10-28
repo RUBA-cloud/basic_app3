@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\CompanyInfo;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -19,7 +19,7 @@ class EmployeeEventUpdate implements ShouldBroadcastNow
     // If you want to force the connection regardless of .env:
     // public string $connection = 'pusher';
 
-    public function __construct(CompanyInfo $employee)
+    public function __construct(User $employee)
     {
         // Prepare a clean payload
         $this->employee = $employee->toArray();

@@ -31,6 +31,7 @@ return [
     "additional"=>"الاضافات",
     "type"=>"النوع",
     "offers"=>"العروض",
+
     "offers_type"=>" انواع العروض",
     "product"=>"المنتج",
   "products"=>"المنتجات",

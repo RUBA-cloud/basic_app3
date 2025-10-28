@@ -48,8 +48,8 @@ return [
 'region_module'=>'وحدة المناطق',
 'payment_module'=>'وحدة الدفع',
 'update_information'=>'تعديل المعلومات',
-
-
+'regions'=>'المناطق',
+'country'=>'القرية',
     // Sorting / filters
     'sort_recent' => 'الترتيب=> الأحدث',
     'sort_oldest' => 'الأقدم',

@@ -10,7 +10,7 @@
                      collapsible maximizable>
 
         <div class="d-flex flex-wrap justify-content-end align-items-center mt-4">
-            <a href="{{ route('company_history') }}" class="btn btn-outline-primary">
+            <a href="{{ route('companyInfo.history') }}" class="btn btn-outline-primary">
                 <i class="fas fa-history me-2"></i>
                 {{ __('adminlte::adminlte.view_history') }}
             </a>

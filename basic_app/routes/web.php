@@ -1,229 +1,477 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
 
 use App\Http\Middleware\SetLocale;
-
 use App\Models\User;
 
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CompanyInfoController;
-use App\Http\Controllers\CompanyBranchController;
-use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\SizeController;
-use App\Http\Controllers\AdditionalController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\OfferController;
-use App\Http\Controllers\OfferTypeController;
-use App\Http\Controllers\ModulesController;
-use App\Http\Controllers\TypeController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\RegionController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\OrderStatusController;
-use App\Http\Controllers\CompanyDeliveryController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\DeviceTokenController;
-use Illuminate\Support\Facades\Broadcast;
-/** Root -> login
+// Controllers
+use App\Http\Controllers\{
+    HomeController, CategoryController, CompanyInfoController, CompanyBranchController,
+    EmployeeController, SizeController, AdditionalController, ProductController,
+    OfferController, OfferTypeController, ModulesController, TypeController,
+    PermissionController, OrderController, RegionController, PaymentController,
+    OrderStatusController, CompanyDeliveryController, NotificationController,
+    DeviceTokenController, ProfileController, ChatController
+};
+
+/*
+|--------------------------------------------------------------------------
+| Root → login
+|--------------------------------------------------------------------------
+*/
 Route::redirect('/', '/login')->name('root');
-/** Locale wrapper */
- Broadcast::routes();
+
+/*
+|--------------------------------------------------------------------------
+| Broadcast auth endpoints (Echo/Pusher)
+|--------------------------------------------------------------------------
+*/
+Broadcast::routes();
+
+/*
+|--------------------------------------------------------------------------
+| Localized routes wrapper
+|--------------------------------------------------------------------------
+*/
 Route::middleware([SetLocale::class])->group(function () {
+    /*
+    |----------------------------------------------------------------------
+    | Public auth (no module/perm here)
+    |----------------------------------------------------------------------
+    */
+    Auth::routes(['verify' => false]);
 
-    /** Laravel-UI auth (NO built-in verify to avoid conflicts) */
-    Auth::routes([
-        'verify'  => false, // we provide custom verify routes below
-        // 'reset' => false,
-        // 'confirm' => false,
-    ]);
+    Route::get('/email/verify', fn () => view('auth.verify'))
+        ->middleware('auth')->name('verification.notice');
 
-
-Route::redirect('/', '/login')->name('root');
-
-    Route::get('/email/verify', function () {
-        return view('auth.verify');
-    })->middleware('auth')->name('verification.notice');
-
-    /** Resend verification email */
     Route::post('/email/verification-notification', function (Request $request) {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended('/home');
-        }
+        if ($request->user()->hasVerifiedEmail()) return redirect()->intended('/home');
         $request->user()->sendEmailVerificationNotification();
         return back()->with('status', 'verification-link-sent');
-    })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+    })->middleware(['auth','throttle:6,1'])->name('verification.send');
 
-    /** Custom verify via signed link (no login required) */
     Route::get('/email/verify/{id}/{hash}', function (Request $request) {
         $user = User::findOrFail($request->route('id'));
-
-        // validate signed hash
-        abort_unless(
-            hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification())),
-            403
-        );
-
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();      // sets email_verified_at
-            event(new Verified($user));
-        }
-
-        // optional: auto-login after verify
+        abort_unless(hash_equals((string)$request->route('hash'), sha1($user->getEmailForVerification())), 403);
+        if (!$user->hasVerifiedEmail()) { $user->markEmailAsVerified(); event(new Verified($user)); }
         Auth::login($user);
-
         return redirect('/home?verified=1');
-    })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    })->middleware(['signed','throttle:6,1'])->name('verification.verify');
 
-    /** Language switcher */
     Route::post('/change-language', function (Request $request) {
-        $locale = $request->query('locale', $request->input('locale') ??'en');
-        if (! in_array($locale, ['en', 'ar'], true)) $locale = 'en';
+        $locale = $request->query('locale', $request->input('locale') ?? 'en');
+        if (!in_array($locale, ['en','ar'], true)) $locale = 'en';
         session(['locale' => $locale]);
-
-        $target = $request->query('redirect')
-            ?: ($request->headers->get('referer') ?: route('home'));
-
+        $target = $request->query('redirect') ?: ($request->headers->get('referer') ?: route('home'));
         return redirect()->to($target);
     })->name('change.language');
 
-    /** Auth + Verified area */
-    Route::middleware(['auth', 'verified'])->group(function () {
+    /*
+    |----------------------------------------------------------------------
+    | Auth + Verified → All module/permission–gated routes
+    |----------------------------------------------------------------------
+    */
+    Route::middleware(['auth','verified'])->group(function () {
 
-        Route::get('/home', [HomeController::class, 'index'])->name('home');
+        /* ==============================
+         * Dashboard (company_dashboard_module)
+         * ============================== */
+        Route::get('/home', [HomeController::class, 'index'])
+            ->middleware('module:company_dashboard_module')
+            ->name('home');
 
-        /** Categories */
-        Route::resource('categories', CategoryController::class);
-        Route::put('/reactive_category/{id}', [CategoryController::class, 'reactivate'])->name('categories.reactivate');
-        Route::post('/category-search', [CategoryController::class, 'search'])->name('category-search');
-        Route::post('/category-search-history', [CategoryController::class, 'searchHistory'])->name('category-search-history');
-        Route::get('/category_history/{isHistory?}', [CategoryController::class, 'index'])->name('category_history');
+        /* ==============================
+         * Company Info (company_info_module)
+         * ============================== */
+        Route::controller(CompanyInfoController::class)
+            ->prefix('companyInfo')
+            ->name('companyInfo.')
+            ->middleware('module:company_info_module')
+            ->group(function () {
+                Route::get('/',               'index')->name('index');
+                Route::get('/create',         'create')->middleware('perm:company_info,can_add')->name('create');
+                Route::post('/',              'store')->middleware('perm:company_info,can_add')->name('store');
+                Route::get('/{companyInfo}',  'show')->name('show');
+                Route::get('/{companyInfo}/edit','edit')->middleware('perm:company_info,can_edit')->name('edit');
+                Route::put('/{companyInfo}',  'update')->middleware('perm:company_info,can_edit')->name('update');
+                Route::delete('/{companyInfo}','destroy')->middleware('perm:company_info,can_delete')->name('destroy');
 
-        /** Company Info */
-        Route::resource('companyInfo', CompanyInfoController::class);
-        Route::post('/companyInfo_search', [CompanyInfoController::class, 'searchHistory'])->name('companyInfo_search');
-        Route::get('/companyInfoHistory', [CompanyInfoController::class, 'history'])->name('company_history');
+                Route::post('/search',        'searchHistory')->middleware('perm:company_info,can_view_history')->name('search');
+                Route::get('/history',        'history')->middleware('perm:company_info,can_view_history')->name('history');
+            });
 
-        /** Company Branch */
-        Route::resource('companyBranch', CompanyBranchController::class);
-        Route::put('/reactive_branch/{id}', [CompanyBranchController::class, 'reactivate'])->name('reactive_branch');
-        Route::post('/companyBranch_search', [CompanyBranchController::class, 'search'])->name('companyBranch_search');
-        Route::post('/branch_history/search', [CompanyBranchController::class, 'searchHistory'])->name('branch_history.search');
-        Route::get('/branches/{isHistory?}', [CompanyBranchController::class, 'index'])->name('branches.index');
+        /* ==============================
+         * Company Branch (company_branch_module)
+         * ============================== */
+        Route::controller(CompanyBranchController::class)
+            ->prefix('companyBranch')
+            ->name('companyBranch.')
+            ->middleware('module:company_branch_module')
+            ->group(function () {
+                Route::get('/',                'index')->name('index');
+                Route::get('/create',          'create')->middleware('perm:branch,can_add')->name('create');
+                Route::post('/',               'store')->middleware('perm:branch,can_add')->name('store');
+                Route::get('/{companyBranch}', 'show')->name('show');
+                Route::get('/{companyBranch}/edit','edit')->middleware('perm:branch,can_edit')->name('edit');
+                Route::put('/{companyBranch}', 'update')->middleware('perm:branch,can_edit')->name('update');
+                Route::delete('/{companyBranch}','destroy')->middleware('perm:branch,can_delete')->name('destroy');
 
-        /** Sizes */
-        Route::resource('sizes', SizeController::class);
-        Route::get('/sizes_history/{isHistory?}', [SizeController::class, 'index'])->name('sizes.history');
-        Route::put('/sizes/reactive/{id}', [SizeController::class, 'reactive'])->name('sizes.reactive');
-        Route::post('/size_search_history', [SizeController::class, 'searchHistory'])->name('size_search_history');
-        Route::post('/size_search', [SizeController::class, 'search'])->name('sizes.search');
+                Route::put('/reactive/{id}',   'reactivate')->middleware('perm:branch,can_edit')->name('reactivate');
+                Route::post('/search',         'search')->middleware('perm:branch,can_view_history')->name('search');
+                Route::post('/history/search', 'searchHistory')->middleware('perm:branch,can_view_history')->name('history.search');
+                Route::get('/list/{isHistory?}','index')->middleware('perm:branch,can_view_history')->name('list');
+            });
 
-        /** Additional */
-        Route::resource('additional', AdditionalController::class);
-        Route::get('/additional_history/{isHistory?}', [AdditionalController::class, 'index'])->name('additional.history');
-        Route::put('/additional/reactive/{id}', [AdditionalController::class, 'reactive'])->name('additional.reactive');
-        Route::post('/additional/search', [AdditionalController::class, 'search'])->name('additional.search');
-        Route::post('/additional/search_history', [AdditionalController::class, 'searchHistory'])->name('additional.search_history');
+        /* ==============================
+         * Categories (company_category_module)
+         * ============================== */
+        Route::controller(CategoryController::class)
+            ->prefix('categories')
+            ->name('categories.')
+            ->middleware('module:company_category_module')
+            ->group(function () {
+                Route::get('/',            'index')->name('index');
+                Route::get('/create',      'create')->middleware('perm:category,can_add')->name('create');
+                Route::post('/',           'store')->middleware('perm:category,can_add')->name('store');
+                Route::get('/{category}',  'show')->name('show');
+                Route::get('/{category}/edit','edit')->middleware('perm:category,can_edit')->name('edit');
+                Route::put('/{category}',  'update')->middleware('perm:category,can_edit')->name('update');
+                Route::delete('/{category}','destroy')->middleware('perm:category,can_delete')->name('destroy');
 
-        /** Type */
-        Route::resource('type', TypeController::class);
-        Route::get('/type_history/{isHistory?}', [TypeController::class, 'index'])->name('type.history');
-        Route::put('/type/reactive/{id}', [TypeController::class, 'reactivate'])->name('type.reactive');
-        Route::post('/type_search', [TypeController::class, 'search'])->name('type.search');
-        Route::post('/type_search_history', [TypeController::class, 'searchHistory'])->name('type.search_history');
+                Route::put('/reactive/{id}', 'reactivate')->middleware('perm:category,can_edit')->name('reactivate');
+                Route::post('/search',       'search')->middleware('perm:category,can_view_history')->name('search');
+                Route::post('/search-history','searchHistory')->middleware('perm:category,can_view_history')->name('search_history');
+                Route::get('/history/{isHistory?}', 'index')->middleware('perm:category,can_view_history')->name('history');
+            });
 
-        /** Product */
-        Route::resource('product', ProductController::class);
-        Route::get('/product_history/{isHistory?}', [ProductController::class, 'index'])->name('product.history');
-        Route::put('/product/reactive/{id}', [ProductController::class, 'reactivate'])->name('product.reactive');
-        Route::post('/product_search', [ProductController::class, 'search'])->name('product.search');
-        Route::post('/product_search_history', [ProductController::class, 'searchHistory'])->name('product_history.search');
+        /* ==============================
+         * Types (company_type_module)
+         * ============================== */
+        Route::controller(TypeController::class)
+            ->prefix('type')
+            ->name('type.')
+            ->middleware('module:company_type_module')
+            ->group(function () {
+                Route::get('/',        'index')->name('index');
+                Route::get('/create',  'create')->middleware('perm:type,can_add')->name('create');
+                Route::post('/',       'store')->middleware('perm:type,can_add')->name('store');
+                Route::get('/{type}',  'show')->name('show');
+                Route::get('/{type}/edit','edit')->middleware('perm:type,can_edit')->name('edit');
+                Route::put('/{type}',  'update')->middleware('perm:type,can_edit')->name('update');
+                Route::delete('/{type}','destroy')->middleware('perm:type,can_delete')->name('destroy');
 
-        /** Offer Type */
-        Route::resource('offers_type', OfferTypeController::class);
-        Route::get('/offers_type_history/{isHistory?}', [OfferTypeController::class, 'index'])->name('offer_type.history');
-        Route::put('/offers_type/reactive/{id}', [OfferTypeController::class, 'reactive'])->name('offer_type.reactive');
-        Route::post('/offer_type_search', [OfferTypeController::class, 'search'])->name('offer_type.search');
-        Route::post('/offer_search_type_history', [OfferTypeController::class, 'searchHistory'])->name('offer_type.search_history');
+                Route::get('/history/{isHistory?}', 'index')->middleware('perm:type,can_view_history')->name('history');
+                Route::put('/reactive/{id}',        'reactivate')->middleware('perm:type,can_edit')->name('reactive');
+                Route::post('/search',              'search')->middleware('perm:type,can_view_history')->name('search');
+                Route::post('/search_history',      'searchHistory')->middleware('perm:type,can_view_history')->name('search_history');
+            });
 
-        /** Permissions */
-        Route::resource('permissions', PermissionController::class);
+        /* ==============================
+         * Sizes (company_size_module)
+         * ============================== */
+        Route::controller(SizeController::class)
+            ->prefix('sizes')
+            ->name('sizes.')
+            ->middleware('module:company_size_module')
+            ->group(function () {
+                Route::get('/',       'index')->name('index');
+                Route::get('/create', 'create')->middleware('perm:size,can_add')->name('create');
+                Route::post('/',      'store')->middleware('perm:size,can_add')->name('store');
+                Route::get('/{size}','show')->name('show');
+                Route::get('/{size}/edit','edit')->middleware('perm:size,can_edit')->name('edit');
+                Route::put('/{size}','update')->middleware('perm:size,can_edit')->name('update');
+                Route::delete('/{size}','destroy')->middleware('perm:size,can_delete')->name('destroy');
 
-        /** Offers */
-        Route::resource('offers', OfferController::class);
-        Route::get('/offers/history/{isHistory?}', [OfferController::class, 'index'])->name('offers.history');
-        Route::put('/offers_reactive/{id}', [OfferController::class, 'reactive'])->name('offers.reactive');
-        Route::post('/offer_search', [OfferController::class, 'search'])->name('offer.search');
-        Route::post('/offer_search_history', [OfferController::class, 'searchHistory'])->name('offer.search_history');
+                Route::get('/history/{isHistory?}', 'index')->middleware('perm:size,can_view_history')->name('history');
+                Route::put('/reactive/{id}',        'reactive')->middleware('perm:size,can_edit')->name('reactive');
+                Route::post('/search_history',      'searchHistory')->middleware('perm:size,can_view_history')->name('search_history');
+                Route::post('/search',              'search')->middleware('perm:size,can_view_history')->name('search');
+            });
 
-        /** Modules */
-        Route::resource('modules', ModulesController::class);
-        Route::post('modules/search', [ModulesController::class, 'index'])->name('modules.search');
+        /* ==============================
+         * Offer Types (company_offers_type_module)
+         * ============================== */
+        Route::controller(OfferTypeController::class)
+            ->prefix('offers_type')
+            ->name('offers_type.')
+            ->middleware('module:company_offers_type_module')
+            ->group(function () {
+                Route::get('/',              'index')->name('index');
+                Route::get('/create',        'create')->middleware('perm:offers_type,can_add')->name('create');
+                Route::post('/',             'store')->middleware('perm:offers_type,can_add')->name('store');
+                Route::get('/{offers_type}', 'show')->name('show');
+                Route::get('/{offers_type}/edit','edit')->middleware('perm:offers_type,can_edit')->name('edit');
+                Route::put('/{offers_type}', 'update')->middleware('perm:offers_type,can_edit')->name('update');
+                Route::delete('/{offers_type}','destroy')->middleware('perm:offers_type,can_delete')->name('destroy');
 
-        /** Employees */
-        Route::resource('employees', EmployeeController::class);
-        Route::get('/employees/history', [EmployeeController::class, 'history'])->name('employees.history');
-        Route::put('/employees/history/{history}/reactivate', [EmployeeController::class, 'reactivate'])->name('employees.reactivate');
+                Route::get('/history/{isHistory?}','index')->middleware('perm:offers_type,can_view_history')->name('history');
+                Route::put('/reactive/{id}',      'reactive')->middleware('perm:offers_type,can_edit')->name('reactive');
+                Route::post('/search',            'search')->middleware('perm:offers_type,can_view_history')->name('search');
+                Route::post('/search_history',    'searchHistory')->middleware('perm:offers_type,can_view_history')->name('search_history');
+            });
 
-        /** Device Tokens */
-        Route::post('/device-tokens', [DeviceTokenController::class, 'store'])->name('device-tokens.store');
+        /* ==============================
+         * Offers (company_offers_module)
+         * ============================== */
+        Route::controller(OfferController::class)
+            ->prefix('offers')
+            ->name('offers.')
+            ->middleware('module:company_offers_module')
+            ->group(function () {
+                Route::get('/',           'index')->name('index');
+                Route::get('/create',     'create')->middleware('perm:offers,can_add')->name('create');
+                Route::post('/',          'store')->middleware('perm:offers,can_add')->name('store');
+                Route::get('/{offer}',    'show')->name('show');
+                Route::get('/{offer}/edit','edit')->middleware('perm:offers,can_edit')->name('edit');
+                Route::put('/{offer}',    'update')->middleware('perm:offers,can_edit')->name('update');
+                Route::delete('/{offer}', 'destroy')->middleware('perm:offers,can_delete')->name('destroy');
 
-        /** Orders */
-        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/history', [OrderController::class, 'history'])->name('orders.history');
-        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-        Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
-        Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
-        Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
-        Route::delete('/orders/{order}/items/{item}', [OrderController::class, 'destroyItem'])->name('orders.items.destroy');
+                Route::get('/history/{isHistory?}','index')->middleware('perm:offers,can_view_history')->name('history');
+                Route::put('/reactive/{id}',      'reactive')->middleware('perm:offers,can_edit')->name('reactive');
+                Route::post('/search',            'search')->middleware('perm:offers,can_view_history')->name('search');
+                Route::post('/search_history',    'searchHistory')->middleware('perm:offers,can_view_history')->name('search_history');
+            });
 
-        /** Notifications */
-        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
-        Route::post('/notifications/{notification}/mark', [NotificationController::class, 'mark'])->name('notifications.mark');
-        Route::post('/notifications/mark-all', [NotificationController::class, 'markAll'])->name('notifications.markAll');
-        Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+        /* ==============================
+         * Additional (use its own module flag if you have one)
+         * If you *do* have 'additional_module', change the module middleware below to it.
+         * ============================== */
+        Route::controller(AdditionalController::class)
+            ->prefix('additional')
+            ->name('additional.')
+            ->middleware('module:company_offers_module')
+            ->group(function () {
+                Route::get('/',             'index')->name('index');
+                Route::get('/create',       'create')->middleware('perm:additional,can_add')->name('create');
+                Route::post('/',            'store')->middleware('perm:additional,can_add')->name('store');
+                Route::get('/{additional}', 'show')->name('show');
+                Route::get('/{additional}/edit','edit')->middleware('perm:additional,can_edit')->name('edit');
+                Route::put('/{additional}', 'update')->middleware('perm:additional,can_edit')->name('update');
+                Route::delete('/{additional}','destroy')->middleware('perm:additional,can_delete')->name('destroy');
 
-        /** Payment */
-        Route::resource('payment', PaymentController::class);
-        Route::prefix('payment')->name('payment.')->group(function () {
-            Route::post('search', [PaymentController::class, 'search'])->name('search');
-            Route::post('restore', [PaymentController::class, 'restore'])->name('restore');
-            Route::get('history', [PaymentController::class, 'history'])->name('history');
-        });
+                Route::get('/history/{isHistory?}','index')->middleware('perm:additional,can_view_history')->name('history');
+                Route::put('/reactive/{id}',      'reactive')->middleware('perm:additional,can_edit')->name('reactive');
+                Route::post('/search',            'search')->middleware('perm:additional,can_view_history')->name('search');
+                Route::post('/search_history',    'searchHistory')->middleware('perm:additional,can_view_history')->name('search_history');
+            });
 
-        /** Company Delivery */
-        Route::resource('company_delivery', CompanyDeliveryController::class);
-        Route::prefix('company_delivery')->name('company_delivery.')->group(function () {
-            Route::post('search', [CompanyDeliveryController::class, 'search'])->name('search');
-            Route::post('restore', [CompanyDeliveryController::class, 'restore'])->name('restore');
-            Route::get('history', [CompanyDeliveryController::class, 'history'])->name('history');
-        });
+        /* ==============================
+         * Product (product_module)
+         * ============================== */
+        Route::controller(ProductController::class)
+            ->prefix('product')
+            ->name('product.')
+            ->middleware('module:product_module')
+            ->group(function () {
+                Route::get('/',          'index')->name('index');
+                Route::get('/create',    'create')->middleware('perm:product,can_add')->name('create');
+                Route::post('/',         'store')->middleware('perm:product,can_add')->name('store');
+                Route::get('/{product}', 'show')->name('show');
+                Route::get('/{product}/edit','edit')->middleware('perm:product,can_edit')->name('edit');
+                Route::put('/{product}', 'update')->middleware('perm:product,can_edit')->name('update');
+                Route::delete('/{product}','destroy')->middleware('perm:product,can_delete')->name('destroy');
 
-        /** Order Status */
-        Route::resource('order_status', OrderStatusController::class);
+                Route::get('/history/{isHistory?}','index')->middleware('perm:product,can_view_history')->name('history');
+                Route::put('/reactive/{id}',      'reactivate')->middleware('perm:product,can_edit')->name('reactive');
+                Route::post('/search',            'search')->middleware('perm:product,can_view_history')->name('search');
+                Route::post('/search_history',    'searchHistory')->middleware('perm:product,can_view_history')->name('search_history');
+            });
 
-        Route::prefix('order_status')->name('order_status.')->group(function () {
-            Route::get('history', [OrderStatusController::class, 'history'])->name('history');
-            Route::post('search', [OrderStatusController::class, 'search'])->name('search');
-            Route::post('restore', [OrderStatusController::class, 'restore'])->name('restore');
-        });
-        /** User Profile */
-        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+        /* ==============================
+         * Employees (employee_module)
+         * ============================== */
+        Route::controller(EmployeeController::class)
+            ->prefix('employees')
+            ->name('employees.')
+            ->middleware('module:employee_module')
+            ->group(function () {
+                Route::get('/',       'index')->name('index');
+                Route::get('/create', 'create')->middleware('perm:employees,can_add')->name('create');
+                Route::post('/',      'store')->middleware('perm:employees,can_add')->name('store');
+                Route::get('/{employee}','show')->name('show');
+                Route::get('/{employee}/edit','edit')->middleware('perm:employees,can_edit')->name('edit');
+                Route::put('/{employee}','update')->middleware('perm:employees,can_edit')->name('update');
+                Route::delete('/{employee}','destroy')->middleware('perm:employees,can_delete')->name('destroy');
+
+                Route::get('/history',               'history')->middleware('perm:employees,can_view_history')->name('history');
+                Route::put('/history/{history}/reactivate', 'reactivate')->middleware('perm:employees,can_edit')->name('reactivate');
+            });
+
+        /* ==============================
+         * Orders (order_module)
+         * ============================== */
+        Route::prefix('orders')
+            ->middleware('module:order_module')
+            ->group(function () {
+                Route::get('/',                 [OrderController::class, 'index'])->name('orders.index');
+                Route::get('/history',          [OrderController::class, 'history'])->middleware('perm:order,can_view_history')->name('orders.history');
+                Route::get('/{order}',          [OrderController::class, 'show'])->name('orders.show');
+                Route::get('/{order}/edit',     [OrderController::class, 'edit'])->middleware('perm:order,can_edit')->name('orders.edit');
+                Route::put('/{order}',          [OrderController::class, 'update'])->middleware('perm:order,can_edit')->name('orders.update');
+                Route::delete('/{order}',       [OrderController::class, 'destroy'])->middleware('perm:order,can_delete')->name('orders.destroy');
+                Route::delete('/{order}/items/{item}', [OrderController::class, 'destroyItem'])->middleware('perm:order,can_delete')->name('orders.items.destroy');
+            });
+
+        /* ==============================
+         * Regions (region_module)
+         * ============================== */
+        Route::controller(RegionController::class)
+            ->prefix('regions')
+            ->name('regions.')
+            ->middleware('module:region_module')
+            ->group(function () {
+                Route::get('/',          'index')->name('index');
+                Route::get('/create',    'create')->middleware('perm:regions,can_add')->name('create');
+                Route::post('/',         'store')->middleware('perm:regions,can_add')->name('store');
+                Route::get('/{region}',  'show')->name('show');
+                Route::get('/{region}/edit','edit')->middleware('perm:regions,can_edit')->name('edit');
+                Route::put('/{region}',  'update')->middleware('perm:regions,can_edit')->name('update');
+                Route::delete('/{region}','destroy')->middleware('perm:regions,can_delete')->name('destroy');
+
+                Route::put('/reactive/{id}', 'reactive')->middleware('perm:regions,can_edit')->name('reactive');
+                Route::get('/history/{isHistory?}', 'index')->middleware('perm:regions,can_view_history')->name('history');
+                Route::post('/search',          'search')->middleware('perm:regions,can_view_history')->name('search');
+                Route::post('/search_history',  'searchHistory')->middleware('perm:regions,can_view_history')->name('search_history');
+            });
+
+        /* ==============================
+         * Payment (payment_module)
+         * ============================== */
+        Route::prefix('payment')
+            ->name('payment.')
+            ->middleware('module:payment_module')
+            ->group(function () {
+                Route::get('/',               [PaymentController::class, 'index'])->name('index');
+                Route::get('/create',         [PaymentController::class, 'create'])->middleware('perm:payment,can_add')->name('create');
+                Route::post('/',              [PaymentController::class, 'store'])->middleware('perm:payment,can_add')->name('store');
+                Route::get('/{payment}',      [PaymentController::class, 'show'])->name('show');
+                Route::get('/{payment}/edit', [PaymentController::class, 'edit'])->middleware('perm:payment,can_edit')->name('edit');
+                Route::put('/{payment}',      [PaymentController::class, 'update'])->middleware('perm:payment,can_edit')->name('update');
+                Route::delete('/{payment}',   [PaymentController::class, 'destroy'])->middleware('perm:payment,can_delete')->name('destroy');
+
+                Route::post('/search',        [PaymentController::class, 'search'])->middleware('perm:payment,can_view_history')->name('search');
+                Route::post('/restore',       [PaymentController::class, 'restore'])->middleware('perm:payment,can_edit')->name('restore');
+                Route::get('/history',        [PaymentController::class, 'history'])->middleware('perm:payment,can_view_history')->name('history');
+            });
+
+        /* ==============================
+         * Company Delivery (company_delivery_module)
+         * ============================== */
+        Route::controller(CompanyDeliveryController::class)
+            ->prefix('company_delivery')
+            ->name('company_delivery.')
+            ->middleware('module:company_delivery_module')
+            ->group(function () {
+                Route::get('/',                 'index')->name('index');
+                Route::get('/create',           'create')->middleware('perm:company_delivery,can_add')->name('create');
+                Route::post('/',                'store')->middleware('perm:company_delivery,can_add')->name('store');
+                Route::get('/{company_delivery}','show')->name('show');
+                Route::get('/{company_delivery}/edit','edit')->middleware('perm:company_delivery,can_edit')->name('edit');
+                Route::put('/{company_delivery}','update')->middleware('perm:company_delivery,can_edit')->name('update');
+                Route::delete('/{company_delivery}','destroy')->middleware('perm:company_delivery,can_delete')->name('destroy');
+
+                Route::post('/search',          'search')->middleware('perm:company_delivery,can_view_history')->name('search');
+                Route::post('/restore',         'restore')->middleware('perm:company_delivery,can_edit')->name('restore');
+                Route::get('/history',          'history')->middleware('perm:company_delivery,can_view_history')->name('history');
+            });
+
+        /* ==============================
+         * Order Status (order_status_module)
+         * ============================== */
+        Route::controller(OrderStatusController::class)
+            ->prefix('order_status')
+            ->name('order_status.')
+            ->middleware('module:order_status_module')
+            ->group(function () {
+                Route::get('/',               'index')->name('index');
+                Route::get('/create',         'create')->middleware('perm:order_status,can_add')->name('create');
+                Route::post('/',              'store')->middleware('perm:order_status,can_add')->name('store');
+                Route::get('/{order_status}', 'show')->name('show');
+                Route::get('/{order_status}/edit','edit')->middleware('perm:order_status,can_edit')->name('edit');
+                Route::put('/{order_status}', 'update')->middleware('perm:order_status,can_edit')->name('update');
+                Route::delete('/{order_status}','destroy')->middleware('perm:order_status,can_delete')->name('destroy');
+
+                Route::get('/history',        'history')->middleware('perm:order_status,can_view_history')->name('history');
+                Route::post('/search',        'search')->middleware('perm:order_status,can_view_history')->name('search');
+                Route::post('/restore',       'restore')->middleware('perm:order_status,can_edit')->name('restore');
+            });
+
+        /* ==============================
+         * Modules & Permissions (admin area; change the gate if needed)
+         * ============================== */
+        Route::controller(ModulesController::class)
+            ->prefix('modules')
+            ->name('modules.')
+            ->middleware('module:company_dashboard_module')
+            ->group(function () {
+                Route::get('/',       'index')->name('index');
+                Route::get('/create', 'create')->name('create')->middleware('perm:modules,can_add');
+                Route::post('/',      'store')->name('store')->middleware('perm:modules,can_add');
+                Route::get('/{module}','show')->name('show');
+                Route::get('/{module}/edit','edit')->name('edit')->middleware('perm:modules,can_edit');
+                Route::put('/{module}','update')->name('update')->middleware('perm:modules,can_edit');
+                Route::delete('/{module}','destroy')->name('destroy')->middleware('perm:modules,can_delete');
+
+                Route::post('/search','index')->name('search')->middleware('perm:modules,can_view_history');
+            });
+
+        Route::controller(PermissionController::class)
+            ->prefix('permissions')
+            ->name('permissions.')
+            ->middleware('module:company_dashboard_module')
+            ->group(function () {
+                Route::get('/',           'index')->name('index');
+                Route::get('/create',     'create')->middleware('perm:permissions,can_add')->name('create');
+                Route::post('/',          'store')->middleware('perm:permissions,can_add')->name('store');
+                Route::get('/{permission}','show')->name('show');
+                Route::get('/{permission}/edit','edit')->middleware('perm:permissions,can_edit')->name('edit');
+                Route::put('/{permission}','update')->middleware('perm:permissions,can_edit')->name('update');
+                Route::delete('/{permission}','destroy')->middleware('perm:permissions,can_delete')->name('destroy');
+            });
+
+        /* ==============================
+         * Notifications (gate via dashboard)
+         * ============================== */
+        Route::controller(NotificationController::class)
+            ->prefix('notifications')
+            ->name('notifications.')
+            ->middleware('module:company_dashboard_module')
+            ->group(function () {
+                Route::get('/',           'index')->name('index');
+                Route::post('/',          'store')->name('store');
+                Route::post('/{notification}/mark','mark')->name('mark');
+                Route::post('/mark-all',  'markAll')->name('markAll');
+                Route::delete('/{notification}','destroy')->name('destroy');
+            });
+
+        /* ==============================
+         * Device Tokens (FCM) — behind auth; add module if you want
+         * ============================== */
+        Route::post('/device-tokens', [DeviceTokenController::class, 'store'])
+            ->name('device-tokens.store');
+
+        /* ==============================
+         * Profile (auth only)
+         * ============================== */
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+        /* ==============================
+         * Chat (gate via dashboard or create a chat_module flag)
+         * ============================== */
+        Route::controller(ChatController::class)
+            ->prefix('chat')
+            ->name('chat.')
+            ->middleware('module:company_dashboard_module')
+            ->group(function () {
+                Route::get('/',      'index')->name('index');
+                Route::post('/',     'store')->name('store');          // if you have store
+                Route::get('/{id}',  'show')->name('show');            // adjust if needed
+            });
+    });
 });
-Route::resource('regions', RegionController::class);
-Route::put('/regions/reactive/{id}', [RegionController::class, 'reactive'])->name('regions.reactive');
-Route::get('/regions_history/{isHistory?}', [RegionController::class, 'index'])->name('regions.history');
-Route::post('/region_search', [RegionController::class, 'search'])->name('region.search');
-Route::post('/region_search_history', [RegionController::class, 'searchHistory'])->name('region.search_history');
-
-Route::resource('chat', \App\Http\Controllers\ChatController::class);
-
-});
-
