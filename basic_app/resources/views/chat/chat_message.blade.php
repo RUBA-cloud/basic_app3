@@ -1,7 +1,7 @@
 {{-- resources/views/chat/chat-message.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('chat.chat'))
+@section('title', __('adminlte::adminlte.chat'))
 
 @section('adminlte_css')
 <style>
@@ -73,7 +73,7 @@
       <aside class="users-pane">
         <div class="users-head">
           <i class="fas fa-users text-primary"></i>
-          <input type="text" id="userSearch" class="form-control form-control-sm search" placeholder="{{ __('chat.search_users') }}">
+          <input type="text" id="userSearch" class="form-control form-control-sm search" placeholder="{{ __('adminlte::adminlte.search_users') }}">
           <a href="{{ route('chat.index') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-sync"></i></a>
         </div>
 
@@ -119,9 +119,9 @@
                 {{ mb_strtoupper(collect(explode(' ', trim($peer?->name ?? 'U')))->take(2)->map(fn($p)=>mb_substr($p,0,1))->implode('')) }}
               @endif
             </div>
-            <div class="conv-title">{{ $peer?->name ?? __('chat.conversation') }}</div>
+            <div class="conv-title">{{ $peer?->name ?? __('adminlte::adminlte.conversation') }}</div>
           @else
-            <div class="conv-title">{{ __('chat.conversation') }}</div>
+            <div class="conv-title">{{ __('adminlte::adminlte.conversation') }}</div>
           @endif
         </div>
 
@@ -160,12 +160,12 @@
                 <div class="text">{{ e($m->message) }}</div>
                 <div class="meta">
                   <span class="time">{{ optional($m->created_at)->format('H:i') }}</span>
-                  <span class="from ml-2 text-muted">{{ $isMe ? __('chat.you') : ($sender?->name ?? __('chat.user')) }}</span>
+                  <span class="from ml-2 text-muted">{{ $isMe ? __('adminlte::adminlte.you') : ($sender?->name ?? __('adminlte::adminlte.user')) }}</span>
                 </div>
               </div>
             </div>
           @empty
-            <div class="text-center text-muted my-3">{{ __('chat.no_messages') }}</div>
+            <div class="text-center text-muted my-3">{{ __('adminlte::adminlte.no_messages') }}</div>
           @endforelse
         </div>
 
@@ -176,13 +176,13 @@
               <input type="hidden" name="receiver_id" value="{{ (int)$activeId }}">
             @else
               <select name="receiver_id" class="form-control form-control-sm mr-2" required style="max-width:260px">
-                <option value="">{{ __('chat.choose_recipient') }}</option>
+                <option value="">{{ __('adminlte::adminlte.choose_recipient') }}</option>
                 @foreach($users as $u) @continue(($currentUser->id ?? Auth::id()) == $u->id)
                   <option value="{{ $u->id }}" @selected(request('user_id')==$u->id)>{{ $u->name }}</option>
                 @endforeach
               </select>
             @endif
-            <input type="text" name="message" class="form-control mr-2" placeholder="{{ __('chat.type_message') }}" required maxlength="2000">
+            <input type="text" name="message" class="form-control mr-2" placeholder="{{ __('adminlte::adminlte.type_message') }}" required maxlength="2000">
             <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
           </form>
         </div>
@@ -216,9 +216,9 @@
   const userSearch= $('#userSearch');
 
   const I18N = {
-    now: @json(__('chat.now') ?? 'Now'),
-    you: @json(__('chat.you') ?? 'You'),
-    user: @json(__('chat.user') ?? 'User'),
+    now: @json(__('adminlte::adminlte.now') ?? 'Now'),
+    you: @json(__('adminlte::adminlte.you') ?? 'You'),
+    user: @json(__('adminlte::adminlte.user') ?? 'User'),
   };
 
   /* ---------- SMART SCROLL ---------- */

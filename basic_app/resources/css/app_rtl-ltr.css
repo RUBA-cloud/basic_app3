@@ -1,139 +1,39 @@
-/* === Direction-aware helpers for AdminLTE + Bootstrap 4 === */
+/* يطبق فقط عند body.rtl */
+body.rtl { direction: rtl; text-align: right; }
 
-/* Flip text alignment for form fields in RTL (keep numbers LTR) */
-[dir="rtl"] input:not([type="number"]),
-[dir="rtl"] textarea,
-[dir="rtl"] select {
-    text-align: right;
+/* Navbar badges & alignment */
+body.rtl .navbar-nav.ml-auto { margin-left: 0 !important; margin-right: auto !important; }
+body.rtl .navbar-nav .dropdown-menu { text-align: right; right: 0; left: auto; }
+
+/* Chat header / search input alignment */
+body.rtl .form-control, body.rtl input, body.rtl textarea { text-align: right; }
+
+/* Breadcrumb arrow flips */
+body.rtl .breadcrumb-item + .breadcrumb-item::before {
+  content: "\f104"; /* fa-angle-left */
+  font-family: "Font Awesome 5 Free"; font-weight: 900;
 }
 
-/* Keep number inputs LTR for better UX */
-[dir="rtl"] input[type="number"] {
-    direction: ltr;
-    text-align: left;
-}
+/* Sidebar position & layout (AdminLTE 3) */
+body.rtl .main-sidebar { left: auto; right: 0; }
+body.rtl .content-wrapper, body.rtl .main-footer, body.rtl .main-header { margin-left: 0; margin-right: 250px; }
+body.rtl.sidebar-collapse .content-wrapper,
+body.rtl.sidebar-collapse .main-footer,
+body.rtl.sidebar-collapse .main-header { margin-right: 0; }
 
-/* Flip common text utilities */
-[dir="rtl"] .text-left {
-    text-align: right !important;
-}
+/* Treeview caret direction */
+body.rtl .nav-sidebar .nav-item > .nav-link .right { left: .5rem; right: auto; transform: scaleX(-1); }
 
-[dir="rtl"] .text-right {
-    text-align: left !important;
-}
+/* Badges position on icons */
+body.rtl .navbar-badge { right: auto; left: 5px; }
 
-/* Swap floats for AdminLTE header tools & common utilities */
-[dir="rtl"] .float-left {
-    float: right !important;
-}
+/* Dropdown menu icon spacing (icons قبل النص) */
+body.rtl .dropdown-item .fas,
+body.rtl .dropdown-item .far { margin-right: 0; margin-left: .5rem; }
 
-[dir="rtl"] .float-right {
-    float: left !important;
-}
+/* Form checks */
+body.rtl .form-check { padding-right: 1.25rem; padding-left: 0; }
+body.rtl .form-check-input { margin-right: -1.25rem; margin-left: 0; }
 
-/* Navbar brand + toggler spacing */
-[dir="rtl"] .navbar .navbar-brand {
-    margin-right: 0;
-    margin-left: .5rem;
-}
-
-/* Card header tools to the left in RTL (AdminLTE card-tools usually floats-right) */
-[dir="rtl"] .card .card-header>.card-tools {
-    right: auto;
-    left: .5rem;
-}
-
-[dir="rtl"] .card .card-header .card-title {
-    float: right;
-}
-
-/* Swap Bootstrap 4 margin utilities commonly used in AdminLTE blades */
-[dir="rtl"] .mr-1 {
-    margin-right: 0 !important;
-    margin-left: .25rem !important;
-}
-
-[dir="rtl"] .mr-2 {
-    margin-right: 0 !important;
-    margin-left: .5rem !important;
-}
-
-[dir="rtl"] .mr-3 {
-    margin-right: 0 !important;
-    margin-left: 1rem !important;
-}
-
-[dir="rtl"] .ml-1 {
-    margin-left: 0 !important;
-    margin-right: .25rem !important;
-}
-
-[dir="rtl"] .ml-2 {
-    margin-left: 0 !important;
-    margin-right: .5rem !important;
-}
-
-[dir="rtl"] .ml-3 {
-    margin-left: 0 !important;
-    margin-right: 1rem !important;
-}
-
-/* Direction-aware icons + input groups */
-[dir="rtl"] .input-group>.form-control,
-[dir="rtl"] .input-group>.custom-select {
-    text-align: right;
-}
-
-[dir="rtl"] .input-group .input-group-prepend {
-    order: 2;
-}
-
-[dir="rtl"] .input-group .input-group-append {
-    order: 1;
-}
-
-[dir="rtl"] .input-group .input-group-text {
-    border-radius: 0 .25rem .25rem 0;
-}
-
-/* Breadcrumb arrows direction */
-[dir="rtl"] .breadcrumb-item+.breadcrumb-item::before {
-    content: "\f104";
-    /* fa-angle-left-like */
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-}
-
-/* Tables: align headers right by default in RTL */
-[dir="rtl"] table th,
-[dir="rtl"] table td {
-    text-align: right;
-}
-
-/* AdminLTE sidebar mini arrows */
-[dir="rtl"] .main-sidebar,
-[dir="rtl"] .main-header {
-    direction: rtl;
-}
-
-[dir="rtl"] .content-wrapper,
-[dir="rtl"] .main-footer,
-[dir="rtl"] .control-sidebar {
-    margin-left: 0;
-    margin-right: 250px;
-}
-
-[dir="rtl"].sidebar-collapse .content-wrapper {
-    margin-right: 0;
-}
-
-/* Make .form-check labels appear before the checkbox in RTL (looks natural) */
-[dir="rtl"] .form-check {
-    padding-right: 1.25rem;
-    padding-left: 0;
-}
-
-[dir="rtl"] .form-check-input {
-    margin-right: -1.25rem;
-    margin-left: 0;
-}
+/* Tables/cards default */
+body.rtl .card-header, body.rtl .card-body, body.rtl table { text-align: right; }

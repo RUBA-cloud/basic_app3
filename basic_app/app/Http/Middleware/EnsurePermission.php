@@ -29,6 +29,7 @@ class EnsurePermission
 
         $user = $request->user();
         if (!$user || !$user->hasPermission($moduleName, $ability)) {
+
             abort(403, "Permission denied: {$moduleName} / {$ability}");
         }
 

@@ -156,7 +156,7 @@ class ChatController extends Controller
 
 
             ];
- AppNotification::create(attributes: $payload);
+            AppNotification::create(attributes: $payload);
             broadcast(new NotificationEvent($receiverId, $payload))->toOthers();
         } catch (Throwable $e) {
             // optional: logger()->warning('Broadcast notification failed', ['e'=>$e->getMessage()]);

@@ -535,7 +535,17 @@ return [
 "region_module"=>"Region Module",
 "order_status_module"=>"Order Status Module",
 "company_delivery"=>"Company Delivery",
-    'auth' => [
+   'no_messages'      => 'No messages',
+    'conversation'     => 'Conversation',
+    'search_users'     => 'Search users',
+    'type_message'     => 'Type a message',
+    'choose_recipient' => 'Choose recipient',
+    'notifications'=>'Notifications',
+        'mark_all_as_read' => 'Mark all as Read',
+        'view_all'=>'View All',
+        'search_user'=>"search_user",
+
+'auth' => [
         'user' => 'User',
     ],
 

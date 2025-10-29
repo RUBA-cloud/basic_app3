@@ -32,25 +32,24 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Map module feature flags (in `modules` table) to permission slugs
-     * (values stored in `permissions.module_name`).
+     * Map feature flags (columns on `modules` table) → permission slugs (`permissions.module_name`).
      */
     public const MODULE_FLAG_TO_NAME = [
-        'company_dashboard_module'   => 'dashboard',
-        'company_info_module'        => 'company_info',
-        'company_branch_module'      => 'branch',
-        'company_category_module'    => 'category',
-        'company_type_module'        => 'type',
-        'company_size_module'        => 'size',
-        'company_offers_type_module' => 'offers_type',
-        'company_offers_module'      => 'offers',
-        'product_module'             => 'product',
-        'employee_module'            => 'employees',
-        'order_module'               => 'order',
-        'order_status_module'        => 'order_status',
-        'region_module'              => 'regions',
-        'company_delivery_module'    => 'company_delivery',
-        'payment_module'             => 'payment',
+        'company_dashboard_module'   => 'company_dashboard_module',
+        'company_info_module'        => 'company_info_module',
+        'company_branch_module'      => 'company_branch_module',
+        'company_category_module'    => 'company_category_module',
+        'company_type_module'        => 'company_type_module',
+        'company_size_module'        => 'company_size_module',
+        'company_offers_type_module' => 'company_offers_type_module',
+        'company_offers_module'      => 'company_offers_module',
+        'product_module'             => 'product_module',
+        'employee_module'            => 'employee_module',
+        'order_module'               => 'order_module',
+        'order_status_module'        => 'order_status_module',
+        'region_module'              => 'region_module',
+        'company_delivery_module'    => 'company_delivery_module',
+        'payment_module'             => 'payment_module',
     ];
 
     /* ============================================================
@@ -59,17 +58,16 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * MANY-TO-MANY permissions via pivot `permission_user`.
-     * Columns expected on `permissions`: module_name, can_add, can_edit, can_delete, can_view_history, is_active, ...
+     * Expected `permissions` columns: module_name, can_add, can_edit, can_delete, can_view_history, is_active, ...
      */
     public function permissions()
     {
-        return $this->belongsToMany(\App\Models\Permission::class, 'permission_user')
-            ->withTimestamps();
+        return $this->belongsToMany(\App\Models\Permission::class, 'permission_user')->withTimestamps();
     }
 
     /**
      * Most recent modules snapshot for this user.
-     * Table: `modules` (has feature flags like product_module, ...).
+     * Table `modules` must have per-module boolean flags and `is_active`.
      */
     public function modulesHistory()
     {
@@ -89,8 +87,7 @@ class User extends Authenticatable implements MustVerifyEmail
      ============================================================ */
 
     /**
-     * Robustly resolve the current Module row for the user.
-     * Works even if relation not preloaded.
+     * Resolve the current Module row for the user (robust to relation not being preloaded).
      */
     public function moduleRow(): ?\App\Models\Module
     {
@@ -130,20 +127,42 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Full gate for menus/visibility: module flag + at least one active permission row.
+     * True if the module flag is enabled AND user has at least one active ability on that module.
+     * (This is what drives the menu visibility.)
      */
     public function canUseModule(string $featureKey): bool
     {
-        $moduleName = self::MODULE_FLAG_TO_NAME[$featureKey] ?? null;
-        if (!$moduleName) return false;
 
-        if (!$this->hasModuleFeature($featureKey)) return false;
-
-        return (bool) $this->permissionFor($moduleName);
+        return $this->hasAnyPermissionForFeature($featureKey);
     }
 
     /**
-     * Return an array of modules the user can use: [feature_flag => module_slug, ...]
+     * True if there's an active permission row for the mapped module slug
+     * AND at least one of: can_add | can_edit | can_delete | can_view_history.
+     */
+    public function hasAnyPermissionForFeature(string $featureKey): bool
+    {
+        $moduleName = self::MODULE_FLAG_TO_NAME[$featureKey] ?? null;
+
+        if (!$moduleName) {
+            return false;
+        }
+
+        $perm = $this->permissionFor($moduleName);
+        if (!$perm) {
+            return false;
+        }
+
+        return (bool)(
+            ($perm->can_add ?? false) ||
+            ($perm->can_edit ?? false) ||
+            ($perm->can_delete ?? false) ||
+            ($perm->can_view_history ?? false)
+        );
+    }
+
+    /**
+     * Return [feature_flag => module_slug, ...] for modules the user can actually use.
      */
     public function availableModules(): array
     {
@@ -180,7 +199,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Ability check for: can_add | can_edit | can_delete | can_view_history
+     * Ability check for a single ability: can_add | can_edit | can_delete | can_view_history.
      */
     public function hasPermission(string $moduleName, string $ability): bool
     {
@@ -188,7 +207,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        // Check in-memory if eager-loaded
+        // In-memory check if eager-loaded
         if ($this->relationLoaded('permissions')) {
             return $this->permissions
                 ->where('module_name', $moduleName)
@@ -220,6 +239,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->deviceTokens()->pluck('token')->all();
     }
 
+    /**
+     * Accessor: $user->avatar_url
+     */
     protected function avatarUrl(): Attribute
     {
         return Attribute::get(function () {

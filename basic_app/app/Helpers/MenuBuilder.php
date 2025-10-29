@@ -8,6 +8,7 @@ class MenuBuilder
 {
     public static function build(User $user, string $iconColor = '#000000'): array
     {
+        // Always start with dashboard (guarded)
         $menu = [
             [
                 'text'       => 'dashboard',
@@ -18,115 +19,108 @@ class MenuBuilder
             ],
         ];
 
-        $add = function(array $item) use (&$menu) {
-            if (!empty($item['can'])) $menu[] = $item;
-        };
+        // Describe all potential items once (feature flag + menu meta)
+        $candidates = [
+            [
+                'feature'    => 'company_info_module',
+                'text'       => 'company_info',
+                'url'        => '/companyInfo',
+                'icon'       => 'fas fa-fw fa-info-circle',
+            ],
+            [
+                'feature'    => 'company_branch_module',
+                'text'       => 'branches',
+                'url'        => '/companyBranch',
+                'icon'       => 'fas fa-fw fa-code-branch',
+            ],
+            [
+                'feature'    => 'company_category_module',
+                'text'       => 'category',
+                'url'        => '/categories',
+                'icon'       => 'fas fa-fw fa-list',
+            ],
+            [
+                'feature'    => 'company_type_module',
+                'text'       => 'type',
+                'url'        => '/type',
+                'icon'       => 'fas fa-fw fa-list',
+            ],
+            [
+                'feature'    => 'company_size_module',
+                'text'       => 'size',
+                'url'        => '/sizes',
+                'icon'       => 'fas fa-fw fa-square',
+            ],
+            [
+                'feature'    => 'company_offers_type_module',
+                'text'       => 'offers_type',
+                'url'        => '/offers_type',
+                'icon'       => 'fas fa-fw fa-list',
+            ],
+            [
+                'feature'    => 'company_offers_module',
+                'text'       => 'offers',
+                'url'        => '/offers',
+                'icon'       => 'fas fa-fw fa-heart',
+            ],
+            [
+                'feature'    => 'product_module',
+                'text'       => 'products',
+                'url'        => '/product',
+                'icon'       => 'fas fa-fw fa-box',
+            ],
+            [
+                'feature'    => 'employee_module',
+                'text'       => 'employees',
+                'url'        => '/employees',
+                'icon'       => 'fas fa-fw fa-users',
+            ],
+            [
+                'feature'    => 'order_module',
+                'text'       => 'orders',
+                'url'        => '/orders',
+                'icon'       => 'fas fa-fw fa-shopping-cart',
+            ],
+            [
+                'feature'    => 'region_module',
+                'text'       => 'regions',
+                'url'        => '/regions',
+                'icon'       => 'fas fa-fw fa-map-marked-alt',
+            ],
+            [
+                'feature'    => 'payment_module',
+                'text'       => 'payment',
+                'url'        => '/payment',
+                'icon'       => 'fas fa-fw fa-credit-card',
+            ],
+            // Additional items
+            [
+                'feature'    => 'additional_module',
+                'text'       => 'additional',
+                'url'        => '/additional',
+                'icon'       => 'fas fa-fw fa-plus-square',
+            ],
+            [
+                'feature'    => 'company_delivery_module',
+                'text'       => 'company_delivery', // fixed label
+                'url'        => '/company_delivery',
+                'icon'       => 'fas fa-fw fa-truck',
+            ],
+        ];
 
-        $add([
-            'text'       => 'company_info',
-            'url'        => '/companyInfo',
-            'icon'       => 'fas fa-fw fa-info-circle',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_info_module'),
-        ]);
+        // Append only items the user can use
+        foreach ($candidates as $c) {
+            if ($user->canUseModule($c['feature'])) {
+                $menu[] = [
+                    'text'       => $c['text'],
+                    'url'        => $c['url'],
+                    'icon'       => $c['icon'],
+                    'icon_color' => $iconColor,
+                ];
+          }
+        }
 
-        $add([
-            'text'       => 'branches',
-            'url'        => '/companyBranch',
-            'icon'       => 'fas fa-fw fa-code-branch',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_branch_module'),
-        ]);
-
-        $add([
-            'text'       => 'category',
-            'url'        => '/categories',
-            'icon'       => 'fas fa-fw fa-list',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_category_module'),
-        ]);
-
-        $add([
-            'text'       => 'type',
-            'url'        => '/type',
-            'icon'       => 'fas fa-fw fa-list',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_type_module'),
-        ]);
-
-        $add([
-            'text'       => 'size',
-            'url'        => '/sizes',
-            'icon'       => 'fas fa-fw fa-square',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_size_module'),
-        ]);
-
-        $add([
-            'text'       => 'offers_type',
-            'url'        => '/offers_type',
-            'icon'       => 'fas fa-fw fa-list',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_offers_type_module'),
-        ]);
-
-        $add([
-            'text'       => 'offers',
-            'url'        => '/offers',
-            'icon'       => 'fas fa-fw fa-heart',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_offers_module'),
-        ]);
-
-        $add([
-            'text'       => 'products',
-            'url'        => '/product',
-            'icon'       => 'fas fa-fw fa-box',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('product_module'),
-        ]);
-
-        $add([
-            'text'       => 'employees',
-            'url'        => '/employees',
-            'icon'       => 'fas fa-fw fa-users',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('employee_module'),
-        ]);
-
-        $add([
-            'text'       => 'orders',
-            'url'        => '/orders',
-            'icon'       => 'fas fa-fw fa-shopping-cart',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('order_module'),
-        ]);
-
-        $add([
-            'text'       => 'regions',
-            'url'        => '/regions',
-            'icon'       => 'fas fa-fw fa-map-marked-alt',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('region_module'),
-        ]);
-
-        $add([
-            'text'       => 'payment',
-            'url'        => '/payment',
-            'icon'       => 'fas fa-fw fa-credit-card',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('payment_module'),
-        ]);
-
-        $add([
-            'text'       => 'company_delivery_model',
-            'url'        => '/company_delivery',
-            'icon'       => 'fas fa-fw fa-truck',
-            'icon_color' => $iconColor,
-            'can'        => $user->canUseModule('company_delivery_module'),
-        ]);
-
-        // Optional admin area
+        // Optional admin area (shown regardless of feature flags)
         if (($user->role ?? null) === 'admin') {
             $menu[] = [
                 'text'       => 'permissions',
@@ -142,7 +136,14 @@ class MenuBuilder
             ];
         }
 
-        // Filter out items with 'can' = false
-        return array_values(array_filter($menu, fn($i) => !array_key_exists('can', $i) || $i['can']));
+        // Final pass: if any 'can' keys exist, strip false items; then drop 'can' keys
+        $menu = array_values(array_filter($menu, function ($i) {
+            return !array_key_exists('can', $i) || $i['can'];
+        }));
+        foreach ($menu as &$i) {
+            unset($i['can']);
+        }
+
+        return $menu;
     }
 }
