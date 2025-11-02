@@ -46,7 +46,8 @@ class ProfileController extends Controller
                 Storage::disk('public')->delete($user->avatar);
             }
             $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar_path = $path;
+            $user->avatar_path  = asset('storage/' . $path);
+;
         }
 
         // Password (only if provided)

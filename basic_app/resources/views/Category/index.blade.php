@@ -19,7 +19,7 @@
             {{-- Table Field Definitions --}}
             @php
                 $fields = [
-                     ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
+                    ['key' => 'name_en', 'label' => __('adminlte::adminlte.name_en')],
                     ['key' => 'name_ar', 'label' => __('adminlte::adminlte.name_ar')],
                     ['key' => 'is_active', 'label' => __('adminlte::adminlte.active'), 'type' => 'bool'],
                     ['key' => 'user.name', 'label' => __('adminlte::adminlte.user_name')],
@@ -43,4 +43,14 @@
         </div>
     </main>
 </div>
+
+@php
+    // Prefer config() here (env() is for config files)
+    $broadcast = $broadcast ?? [
+        'channel'        => 'categories',
+        'events'         => ['category_updated'],
+        'pusher_key'     => config('broadcasting.connections.pusher.key'),
+        'pusher_cluster' => config('broadcasting.connections.pusher.options.cluster', 'mt1'),
+    ];
+@endphp
 @endsection

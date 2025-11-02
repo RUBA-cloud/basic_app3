@@ -5,9 +5,10 @@
 @section('content')
 <div class="container-fluid py-4">
     <x-adminlte-card class="header_card"
+
                      title="{{ __('adminlte::adminlte.company_info') }}"
                      icon="fas fa-building"
-                     collapsible maximizable>
+                     collapsible maximizable dir="rtl">
 
         <div class="d-flex flex-wrap justify-content-end align-items-center mt-4">
             <a href="{{ route('companyInfo.history') }}" class="btn btn-outline-primary">

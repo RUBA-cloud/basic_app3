@@ -427,6 +427,8 @@ return [
     'light_mode' => 'light Mode',
     'message' => 'Message',
     'tips' => 'Tips',
+    'basic_information'=>'المعلومات الاساسية',
+    "choose_feature"=>'اختياز موديل',
     'title_messages'   => 'رسائل الدردشة',
     'chat'             => 'المحادثة',
     'home'             => 'الرئيسية',
@@ -551,4 +553,3 @@ return [
 
 
 ];
-

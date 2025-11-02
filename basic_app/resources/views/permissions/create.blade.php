@@ -26,13 +26,6 @@
                     'method'=>'Post'
                     // optional: 'permission' => null
                 ])
- <x-adminlte-button
-                label="{{ __('adminlte::adminlte.save_information') }}"
-                type="submit"
-                theme="success"
-                class="w-100"
-                icon="fas fa-save"
-            />
 
         </div>
     </div>
