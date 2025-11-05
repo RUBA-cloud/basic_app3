@@ -6,25 +6,26 @@
      *  - $method ('POST'|'PUT'|'PATCH')
      *  - $type   (Model|null)
      * Optional:
-     *  - $channel (default 'types')
-     *  - $events  (default ['type_updated'])
+     *  - $broadcast = [
+     *        'channel' => 'types',
+     *        'events'  => ['type_updated'],
+     *    ];
      */
-    $typeObj     = $type ?? null;
-    $httpMethod  = strtoupper($method ?? 'POST');
+    $typeObj    = $type ?? null;
+    $httpMethod = strtoupper($method ?? 'POST');
 
-    // Read from config (not env) at runtime
-    $pusher_key     = config('broadcasting.connections.pusher.key');
-    $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
+    $broadcast = $broadcast ?? [
+        'channel' => 'types',
+        'events'  => ['type_updated'],
+    ];
 @endphp
 
 <form id="type-form"
       method="POST"
       action="{{ $action }}"
       enctype="multipart/form-data"
-      data-channel="{{ $channel ?? 'types' }}"
-      data-events='@json($events ?? ["type_updated"])'
-      data-pusher-key="{{ $pusher_key ?? '' }}"
-      data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
+      data-channel="{{ $broadcast['channel'] }}"
+      data-events='@json($broadcast["events"])'>
     @csrf
     @unless(in_array($httpMethod, ['GET','POST']))
         @method($httpMethod)
@@ -82,95 +83,97 @@
     />
 </form>
 
-@once
-    {{-- Pusher only (no Echo) --}}
-    <script>
-      (function loadPusherOnce(){
-        if (window._pusherLoaderAdded) return;
-        window._pusherLoaderAdded = true;
-        const s = document.createElement('script');
-        s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-        s.async = true;
-        document.head.appendChild(s);
-      })();
-    </script>
-@endonce
-
-{{-- Use SECTION to avoid push/stack issues; ensure layout has @yield('js') --}}
-@section('js')
+@push('js')
 <script>
 (function () {
-    const form = document.getElementById('type-form');
-    if (!form) return;
+  'use strict';
 
-    // Read from data-* then fall back to meta tags
-    const ds = form.dataset;
+  const form = document.getElementById('type-form');
+  if (!form) {
+    console.warn('[type-form] form not found');
+    return;
+  }
+
+  function applyPayloadToForm(payload) {
+    if (!payload || typeof payload !== 'object') return;
+
+    Object.entries(payload).forEach(([name, value]) => {
+      const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+      if (!nodes.length) return;
+
+      nodes.forEach((el) => {
+        const type = (el.getAttribute('type') || el.tagName).toLowerCase();
+
+        if (type === 'radio') {
+          el.checked = (String(el.value) === String(value));
+        } else if (type === 'checkbox') {
+          el.checked = Boolean(value) && String(value) !== '0';
+        } else {
+          el.value = (value ?? '');
+        }
+      });
+    });
+
+    form.classList.add('border', 'border-success');
+    setTimeout(() => form.classList.remove('border', 'border-success'), 800);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const ds          = form.dataset;
     const channelName = ds.channel || 'types';
 
     let events;
-    try { events = JSON.parse(ds.events || '["type_updated"]'); }
-    catch { events = ['type_updated']; }
-    if (!Array.isArray(events) || events.length === 0) events = ['type_updated'];
-
-    const dataKey     = ds.pusherKey || '';
-    const dataCluster = ds.pusherCluster || '';
-    const metaKey     = document.querySelector('meta[name="pusher-key"]')?.content || '';
-    const metaCluster = document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-    const key         = dataKey || metaKey;
-    const cluster     = dataCluster || metaCluster;
-
-    if (!key || !cluster) {
-        console.warn('[type-form] Missing Pusher key/cluster. Provide data-pusher-key/cluster or <meta> tags.');
-        return;
+    try {
+      events = JSON.parse(ds.events || '["type_updated"]');
+    } catch (_) {
+      events = ['type_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['type_updated'];
     }
 
-    // Wait for Pusher to load
-    const ensurePusher = () => new Promise((resolve, reject) => {
-        if (window.Pusher) return resolve();
-        const t = setInterval(() => { if (window.Pusher) { clearInterval(t); resolve(); } }, 50);
-        setTimeout(() => { clearInterval(t); if (!window.Pusher) reject(new Error('Pusher JS not loaded')); }, 5000);
+    // Optional: only react for the current type
+    const currentIdInput = form.querySelector('input[name="id"]');
+    const currentId      = currentIdInput ? currentIdInput.value : null;
+
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    events.forEach((evtName) => {
+      const event = String(evtName);
+
+      const handler = function (e) {
+        // shapes: { payload: { type: {...} } }, { type: {...} }, or plain
+        const raw = e?.payload || e?.type || e;
+        const t   = raw?.type || raw || {};
+
+        const incomingId = t.id ?? raw?.id;
+        if (currentId && incomingId && String(incomingId) !== String(currentId)) {
+          return; // different type → ignore
+        }
+
+        applyPayloadToForm(t);
+
+        if (window.toastr) {
+          toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+        }
+      };
+
+      // register with global broadcaster bootstrap
+      window.__pageBroadcasts.push({
+        channel: channelName,
+        event:   event,
+        handler: handler,
+      });
+
+      // subscribe immediately if AppBroadcast exists
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, event, handler);
+        console.info('[type-form] subscribed via AppBroadcast →', channelName, '/', event);
+      } else {
+        console.info('[type-form] registered in __pageBroadcasts; layout will subscribe later →', channelName, '/', event);
+      }
     });
-
-    // Fill form from payload
-    function applyPayloadToForm(payload) {
-        if (!payload || typeof payload !== 'object') return;
-        Object.entries(payload).forEach(([name, value]) => {
-            const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
-            if (!nodes.length) return;
-
-            nodes.forEach((el) => {
-                const type = (el.getAttribute('type') || el.tagName).toLowerCase();
-                if (type === 'radio') {
-                    el.checked = (String(el.value) === String(value));
-                } else if (type === 'checkbox') {
-                    el.checked = Boolean(value) && String(value) !== '0';
-                } else {
-                    el.value = (value ?? '');
-                }
-            });
-        });
-
-        form.classList.add('border','border-success');
-        setTimeout(() => form.classList.remove('border','border-success'), 800);
-    }
-
-    // Subscribe + bind (Pusher only)
-    ensurePusher()
-      .then(() => {
-          // eslint-disable-next-line no-undef
-          const pusher = new Pusher(key, { cluster, forceTLS: true });
-          const ch = pusher.subscribe(channelName);
-
-          // Support dotted, plain, lowercase names
-          events.forEach(ev => {
-              ch.bind(ev,               e => applyPayloadToForm(e?.payload || e));
-              ch.bind('.' + ev,         e => applyPayloadToForm(e?.payload || e));
-              ch.bind(ev.toLowerCase(), e => applyPayloadToForm(e?.payload || e));
-          });
-
-          console.info('[type-form] Pusher listening on', channelName, 'events:', events);
-      })
-      .catch((e) => console.error('[type-form] Failed to init Pusher:', e));
+  });
 })();
 </script>
-@endsection
+@endpush

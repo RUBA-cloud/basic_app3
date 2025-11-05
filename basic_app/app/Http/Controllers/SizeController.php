@@ -20,14 +20,14 @@ class SizeController extends Controller
     public function index($history = false)
     {
         if ($history) {
-            $sizes = SizeHistory::with('user')->where('is_active',true)->orderByDesc('created_at')->paginate(10);
+            $sizes = SizeHistory::with('user')->where('is_active',true)->orderByDesc('created_at')->paginate(5);
             return view('size.history', compact('sizes'));
         }
 
         $sizes = Size::with('user')
             ->where('is_active', 1)
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('size.index', compact('sizes', 'history'));
     }
@@ -95,7 +95,7 @@ class SizeController extends Controller
                     ->orWhere('price', 'like', '%' . $searchTerm . '%');
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('Size.index', compact('sizes', 'history'));
     }
@@ -116,7 +116,7 @@ class SizeController extends Controller
                     ->orWhere('price', 'like', '%' . $searchTerm . '%');
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('Size.history', compact('sizes'));
     }

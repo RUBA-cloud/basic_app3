@@ -76,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
                     'appName'         => config('app.name'),
                     'locale'          => $locale,
                     'colors'          => $colors,
-                    'logoUrl'         => config('app.logo_url', ''), // optional
+                    'logoUrl'         => asset('images/imageverify.jpg'),
                     'preheader'       => __('adminlte::adminlte.verify_email_preheader', [], $locale),
                 ]);
         });
@@ -94,11 +94,6 @@ class AppServiceProvider extends ServiceProvider
                 'email' => $notifiable->getEmailForPasswordReset(),
             ], false));
 
-            // Optional SPA override:
-            // $url = rtrim(config('app.frontend_url', config('app.url')), '/')
-            //      . '/reset-password?token=' . urlencode($token)
-            //      . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
-
             $pwdBroker = config('auth.defaults.passwords');
             $minutes   = (int) (config("auth.passwords.$pwdBroker.expire") ?? 60);
 
@@ -111,7 +106,7 @@ class AppServiceProvider extends ServiceProvider
                     'expiresIn' => $minutes,
                     'locale'    => $locale,
                     'colors'    => $colors,
-                    'logoUrl'   => config('app.logo_url', asset('images/logo.png')),
+                    'logoUrl'   =>asset('images/imageverify.jpg'),
                     'preheader' => __('adminlte::adminlte.reset_preheader', ['app' => config('app.name')], $locale),
                 ]);
         });

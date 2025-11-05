@@ -1,14 +1,22 @@
 {{-- resources/views/livewire/dashboard/custom-dashboard.blade.php --}}
 <div class="container-fluid {{ app()->getLocale()==='ar' ? 'text-right' : '' }}" {{ $autoRefresh ? 'wire:poll.30s' : '' }}>
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-
-        <div class="d-flex gap-2">
-            <button wire:click="$dispatch('dashboard:refresh')" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-sync-alt me-1"></i> {{ __('adminlte::adminlte.refresh') }}
+    <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
+        <div class="d-flex flex-wrap" style="margin: 5px">
+            {{-- Refresh button --}}
+            <button
+                wire:click="$dispatch('dashboard:refresh')"
+                class="btn btn-outline-secondary btn-sm mr-2 mb-2" style="margin: 5px"
+            >
+                <i class="fas fa-sync-alt me-1"></i>
+                {{ __('adminlte::adminlte.refresh') }}
             </button>
-            <button wire:click="$toggle('autoRefresh')" class="btn btn-outline-{{ $autoRefresh ? 'success' : 'secondary' }} btn-sm">
-                <i class="far fa-clock me-1"></i>
 
+            {{-- Auto refresh toggle --}}
+            <button style="margin: 5px"
+                wire:click="$toggle('autoRefresh')"
+                class="btn btn-outline-{{ $autoRefresh ? 'success' : 'secondary' }} btn-sm mb-2"
+            >
+                <i class="far fa-clock me-1"></i>
                 {{ $autoRefresh ? __('adminlte::adminlte.auto_refresh') : __('adminlte::adminlte.refresh_off') }}
             </button>
         </div>
@@ -158,7 +166,7 @@
                         <tr>
                             <th>#</th>
                             <th>{{ __('adminlte::adminlte.name_en') }}</th>
-                                  <th>{{ __('adminlte::adminlte.name_ar') }}</th>
+                            <th>{{ __('adminlte::adminlte.name_ar') }}</th>
                             <th class="{{ app()->getLocale()==='ar' ? 'text-left' : 'text-end' }}">{{ __('adminlte::adminlte.price') }}</th>
                             <th>{{ __('adminlte::adminlte.created_at') }}</th>
                             <th>{{ __('adminlte::adminlte.action') }}</th>
@@ -169,6 +177,7 @@
                             <tr>
                                 <td>{{ $p->id }}</td>
                                 <td>{{ $p->name_en }}</td>
+                                <td>{{ $p->name_ar }}</td>
                                 <td class="{{ app()->getLocale()==='ar' ? 'text-left' : 'text-end' }}">{{ $money($p->price ?? null) }}</td>
                                 <td><small class="text-muted">{{ optional($p->created_at)->diffForHumans() }}</small></td>
                                 <td>

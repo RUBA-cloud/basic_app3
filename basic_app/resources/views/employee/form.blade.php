@@ -1,16 +1,12 @@
 {{-- resources/views/employees/_form.blade.php --}}
-{{-- expects: $action (string), $method ('POST'|'PUT'|'PATCH'), $permissions (Collection), optional $employee (model|null)
-     Optional Pusher config via data-* or meta tags:
-     - data-pusher-key / data-pusher-cluster on the form
-     - OR <meta name="pusher-key"> and <meta name="pusher-cluster"> in your layout
---}}
+{{-- expects: $action (string), $method ('POST'|'PUT'|'PATCH'), $permissions (Collection), optional $employee (model|null) --}}
 
 @php($emp = $employee ?? null)
 @php
-$pusher_key     = config('broadcasting.connections.pusher.key');
-$pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
-
+    $pusher_key     = config('broadcasting.connections.pusher.key'); // kept if needed elsewhere
+    $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
 @endphp
+
 <form method="POST"
       action="{{ $action }}"
       enctype="multipart/form-data"
@@ -98,25 +94,11 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
 @push('js')
 @once
 <script>
-(function(){
+document.addEventListener('DOMContentLoaded', function () {
   'use strict';
-
-  // Load Pusher once (same pattern as your branch form)
-  function loadPusher(){
-    return new Promise((resolve, reject)=>{
-      if (window.Pusher) return resolve();
-      const s = document.createElement('script');
-      s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
 
   const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : s;
 
-  // Helpers
   const setField = (name, value) => {
     if (value === undefined || value === null) return;
     const el = document.querySelector(`[name="${esc(name)}"]`);
@@ -126,19 +108,11 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
-  const setCheckbox = (selector, on) => {
-    const el = (typeof selector === 'string')
-      ? document.querySelector(selector)
-      : selector;
-    if (!el) return;
-    el.checked = !!Number(on);
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-
   const setPermissions = (ids = []) => {
     const want = (ids || []).map(v => String(v));
     document.querySelectorAll('input[name="permissions[]"]').forEach(cb => {
       cb.checked = want.includes(String(cb.value));
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
     });
   };
 
@@ -147,18 +121,20 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     if (img && url) img.src = url;
   };
 
-  // Apply incoming payload {employee:{...}} or object itself
+  // Apply incoming payload {employee:{...}} or flat object
   const applyPayload = (payload) => {
     const e = payload?.employee ?? payload ?? {};
 
     setField('name',  e.name);
     setField('email', e.email);
 
-    // Security: never fill password from payload; if you want to clear it:
-    const pwd = document.querySelector('[name="password"]');
-    if (pwd && e.clear_password) { pwd.value = ''; }
+    // Never fill password from broadcast for security
+    if (e.clear_password) {
+      const pwd = document.querySelector('[name="password"]');
+      if (pwd) pwd.value = '';
+    }
 
-    // Permissions: accept array of ids or array of objects with id
+    // Permissions: accept array of IDs or array of objects with id
     const permIds = e.permission_ids || (Array.isArray(e.permissions) ? e.permissions.map(p => p.id) : []);
     setPermissions(permIds);
 
@@ -167,15 +143,20 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     if (window.bsCustomFileInput && document.querySelector('input[type="file"][name="avatar"]')) {
       try { bsCustomFileInput.init(); } catch (_) {}
     }
-    if (window.toastr) { try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_){} }
 
-    console.log('[employees] form updated', e);
+    if (window.toastr) {
+      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch (_) {}
+    }
+
+    console.log('[employees] form updated from broadcast payload', e);
   };
 
-  // Optional manual reset (if you want to clear after event)
+  // Optional helper to clear form manually if you ever need it
   window.resetEmployeeForm = function(){
-    setField('name', ''); setField('email', '');
-    const pwd = document.querySelector('[name="password"]'); if (pwd) pwd.value = '';
+    setField('name',  '');
+    setField('email', '');
+    const pwd = document.querySelector('[name="password"]');
+    if (pwd) pwd.value = '';
     setPermissions([]);
     previewAvatar('');
     if (window.bsCustomFileInput && document.querySelector('input[type="file"][name="avatar"]')) {
@@ -183,42 +164,29 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     }
   };
 
-  // Setup Pusher listener (pure Pusher, same as branch pattern)
-  document.addEventListener('DOMContentLoaded', async () => {
-    const form = document.getElementById('employee-form');
-    if (!form) return;
+  const form = document.getElementById('employee-form');
+  if (!form) return;
 
-    const channel = form.dataset.channel || 'employees';
-    const events  = JSON.parse(form.dataset.events || '["EmployeeUpdated"]');
+  const channel   = form.dataset.channel || 'employees';
+  const eventsArr = JSON.parse(form.dataset.events || '["employee_updated"]');
+  const eventName = eventsArr[0] || 'employee_updated';
 
-    // Prefer data-*; fallback to <meta> tags
-    let key     = form.dataset.pusherKey || document.querySelector('meta[name="pusher-key"]')?.content || '';
-    let cluster = form.dataset.pusherCluster || document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-
-    if (!key || !cluster) {
-      console.warn('[employees] Missing Pusher key/cluster. Add data-pusher-key/data-pusher-cluster or <meta> tags.');
-      return;
-    }
-
-    try {
-      await loadPusher();
-      // eslint-disable-next-line no-undef
-      const pusher = new Pusher(key, { cluster, forceTLS: true });
-      const ch = pusher.subscribe(channel);
-
-      // Bind common variants (exact/lowercase/dotted)
-      events.forEach(ev => {
-        ch.bind(ev,               e => applyPayload(e));
-        ch.bind(ev.toLowerCase(), e => applyPayload(e));
-        ch.bind('.' + ev,         e => applyPayload(e));
-      });
-
-      console.log(`[employees] Pusher listening on "${channel}" for`, events);
-    } catch (e) {
-      console.error('[employees] Failed to init Pusher:', e);
-    }
+  // Register into global broadcast config (same pattern as company info)
+  window.__pageBroadcasts = window.__pageBroadcasts || [];
+  window.__pageBroadcasts.push({
+    channel: channel,
+    event:   eventName,
+    handler: applyPayload,
   });
-})();
+
+  // If AppBroadcast is already ready (layout side), subscribe right now
+  if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+    window.AppBroadcast.subscribe(channel, eventName, applyPayload);
+    console.info('[employees] subscribed via AppBroadcast →', channel, '/', eventName);
+  } else {
+    console.info('[employees] registered in __pageBroadcasts; layout will subscribe later:', channel, '/', eventName);
+  }
+});
 </script>
 @endonce
 @endpush

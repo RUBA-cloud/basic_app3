@@ -21,10 +21,10 @@ class CompanyBranchController extends Controller
     public function index(bool $isHistory = false)
     {
         if ($isHistory) {
-            $branches = CompanyBranchesHistory::with('user')->paginate(10);
+            $branches = CompanyBranchesHistory::with('user')->paginate(5);
             return view('company_branch.index', compact('branches'));
         }
-        $branches = CompanyBranch::with('user')->where('is_active',true)->paginate(10);
+        $branches = CompanyBranch::with('user')->where('is_active',true)->paginate(5);
         return view('company_branch.index', compact('branches'))->with('is_history', $isHistory);
     }
 
@@ -48,7 +48,7 @@ class CompanyBranchController extends Controller
             ->orWhere('email', 'like', '%' . $searchTerm . '%')
             ->orWhere('phone', 'like', '%' . $searchTerm . '%')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
             return view('company_branch.history', compact('branches'));
     }
@@ -65,7 +65,7 @@ class CompanyBranchController extends Controller
             ->orWhere('email', 'like', '%' . $searchTerm . '%')
             ->orWhere('phone', 'like', '%' . $searchTerm . '%')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
             return view('company_branch.index', compact('branches'));
     }

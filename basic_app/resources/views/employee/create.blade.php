@@ -15,7 +15,7 @@
         @include('employee.form', [
             'action'     => route('employees.store'),
             'method'     => 'POST',
-            'employee' => null,
+            'emp' => null,
         ])
     </div>
 </div>

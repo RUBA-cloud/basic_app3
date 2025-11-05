@@ -1,167 +1,181 @@
-{{-- resources/views/payment/_form.blade.php --}}
-@php
-    // Expected:
-    // $action (string), $method ('POST'|'PUT'|'PATCH'), optional $payment (model|null)
-    // Optional Pusher config (same pattern you use elsewhere):
-    // $pusher_key, $pusher_cluster, $channel (default 'payment'), $events (default ['payment_updated'])
-    $paymentObj = $payment ?? null;
-    $httpMethod = strtoupper($method ?? 'POST');
- $pusher_key     = config('broadcasting.connections.pusher.key');
-$pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
+{{-- resources/views/payment/show.blade.php --}}
+@extends('adminlte::page')
 
-@endphp
+@section('title', __('adminlte::adminlte.payment'))
 
-<form method="POST"
-      action="{{ $action }}"
-      id="payment-form"
-      enctype="multipart/form-data"
-      style="margin: 10px"
-      data-channel="{{ $channel ?? 'payments' }}"
-      data-events='@json($events ?? ["payments_updated"])'
-      data-pusher-key="{{ $pusher_key ?? '' }}"
-      data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
-    @csrf
-    @unless (in_array($httpMethod, ['GET','POST']))
-        @method($httpMethod)
-    @endunless
+@section('content')
+<div class="container py-4">
 
-    {{-- Hidden ID if editing (optional) --}}
-    @if(!empty($paymentObj?->id))
-        <input type="hidden" name="id" value="{{ $paymentObj->id }}">
-    @endif
+    {{-- Header --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 mb-0 text-dark fw-bold">
+            <i class="fas fa-money-check-alt me-2 text-primary"></i>
+            @if (app()->getLocale() === 'ar')
+                {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.payment') }}
+            @else
+                {{ __('adminlte::adminlte.payment') }} {{ __('adminlte::adminlte.details') }}
+            @endif
+        </h2>
 
-    {{-- Errors --}}
-    @if ($errors->any())
-        <div class="alert alert-danger mb-3">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $e)
-                    <li>{{ $e }}</li>
-                @endforeach
-            </ul>
+        <div>
+            <a href="{{ route('payments.edit', $payment->id) }}" class="btn btn-primary px-4 py-2">
+                <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
+            </a>
+            <a href="{{ route('payments.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
+            </a>
         </div>
-    @endif
-
-    {{-- Name EN --}}
-    <x-form.textarea
-        id="name_en"
-        name="name_en"
-        label="{{ __('adminlte::adminlte.name_en') }}"
-        :value="old('name_en', data_get($paymentObj, 'name_en', ''))"
-    />
-    @error('name_en') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
-
-    {{-- Name AR --}}
-    <x-form.textarea
-        id="name_ar"
-        name="name_ar"
-        label="{{ __('adminlte::adminlte.name_ar') }}"
-        dir="rtl"
-        :value="old('name_ar', data_get($paymentObj, 'name_ar', ''))"
-    />
-    @error('name_ar') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
-
-    {{-- Is Active --}}
-    <div class="form-group" style="margin:20px 0;">
-        <input type="hidden" name="is_active" value="0">
-        @php $isActive = old('is_active', (int) data_get($paymentObj, 'is_active', 1)); @endphp
-        <label>
-            <input type="checkbox" name="is_active" value="1" {{ (int)$isActive ? 'checked' : '' }}>
-            {{ __('adminlte::adminlte.is_active') }}
-        </label>
     </div>
-    @error('is_active') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
 
-    <x-adminlte-button
-        label="{{ $httpMethod === 'POST'
-            ? __('adminlte::adminlte.save_information')
-            : __('adminlte::adminlte.update_information') }}"
-        type="submit"
-        theme="success"
-        class="w-100"
-        icon="fas fa-save"
-    />
-</form>
+    {{-- Card --}}
+    <x-adminlte-card theme="light" theme-mode="outline" class="shadow-sm">
+        <div class="row g-4">
 
-@once
-    {{-- CDN Echo + Pusher --}}
-    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8/dist/web/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
-@endonce
+            {{-- Details --}}
+            <div class="col-12">
+                <div class="row gy-3">
+
+                    {{-- Name EN --}}
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
+                        <div id="payment-name-en" class="fs-5 fw-bold text-dark">
+                            {{ $payment->name_en }}
+                        </div>
+                    </div>
+
+                    {{-- Name AR --}}
+                    <div class="col-md-6">
+                        <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
+                        <div id="payment-name-ar" class="fs-5 fw-bold text-dark">
+                            {{ $payment->name_ar }}
+                        </div>
+                    </div>
+
+                    {{-- Status --}}
+                    <div class="col-12">
+                        <small class="text-muted d-block mb-1">{{ __('adminlte::adminlte.is_active') }}</small>
+                        <span id="payment-status"
+                              class="badge {{ $payment->is_active ? 'bg-success' : 'bg-danger' }} px-3 py-2">
+                            @if($payment->is_active)
+                                <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
+                            @else
+                                <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
+                            @endif
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </x-adminlte-card>
+</div>
+
+{{-- Listener anchor for broadcasting (for reference / id binding) --}}
+<div id="payment-listener"
+     data-channel="payments"
+     data-events='["payment_updated","PaymentUpdated"]'
+     data-payment-id="{{ $payment->id }}">
+</div>
+@endsection
 
 @push('js')
+@once
 <script>
 (function () {
-    const form = document.getElementById('payment-form');
-    if (!form) return;
+  'use strict';
 
-    const ds = form.dataset;
-    const pusherKey     = ds.pusherKey || (document.querySelector('meta[name="pusher-key"]')?.content || '');
-    const pusherCluster = ds.pusherCluster || (document.querySelector('meta[name="pusher-cluster"]')?.content || '');
-    const channelName   = ds.channel || 'payment';
+  function norm(v) {
+    if (v === undefined || v === null) return '';
+    return String(v);
+  }
 
-    let events = [];
-    try { events = JSON.parse(ds.events || '[]'); } catch (_) { events = []; }
-    if (!Array.isArray(events) || events.length === 0) events = ['payment_updated'];
+  // Update DOM from broadcast payload
+  function applyPaymentPayload(payload) {
+    if (!payload) return;
 
-    if (!pusherKey || !pusherCluster) {
-        console.warn('[payment-form] Missing Pusher key/cluster. Provide data-pusher-key/cluster or <meta> fallbacks.');
-        return;
+    const p = payload.payment ?? payload ?? {};
+
+    const anchor    = document.getElementById('payment-listener');
+    const currentId = anchor ? anchor.dataset.paymentId : null;
+    if (currentId && p.id && String(p.id) !== String(currentId)) {
+      // event for another payment → ignore
+      return;
     }
 
-    if (!window.Echo) {
-        try {
-            window.Echo = new Echo({
-                broadcaster: 'pusher',
-                key: pusherKey,
-                cluster: pusherCluster,
-                forceTLS: true,          // set to false if you use plain ws in dev
-                enabledTransports: ['ws','wss'],
-            });
-        } catch (e) {
-            console.error('[payment-form] Echo init failed:', e);
-            return;
-        }
+    // name_en
+    const nameEnEl = document.getElementById('payment-name-en');
+    if (nameEnEl && p.name_en !== undefined) {
+      nameEnEl.textContent = norm(p.name_en) || '-';
     }
 
-    const channel = window.Echo.channel(channelName);
-    if (!channel) {
-        console.error('[payment-form] Cannot subscribe to channel:', channelName);
-        return;
+    // name_ar
+    const nameArEl = document.getElementById('payment-name-ar');
+    if (nameArEl && p.name_ar !== undefined) {
+      nameArEl.textContent = norm(p.name_ar) || '-';
     }
 
-    function applyPayloadToForm(payload) {
-        if (!payload || typeof payload !== 'object') return;
-
-        Object.entries(payload).forEach(([name, value]) => {
-            const inputs = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
-            if (!inputs.length) return;
-
-            inputs.forEach((el) => {
-                const type = (el.getAttribute('type') || el.tagName).toLowerCase();
-
-                if (type === 'radio') {
-                    el.checked = (String(el.value) === String(value));
-                } else if (type === 'checkbox') {
-                    el.checked = Boolean(value) && String(value) !== '0';
-                } else {
-                    el.value = (value ?? '');
-                }
-            });
-        });
+    // status
+    const statusEl = document.getElementById('payment-status');
+    if (statusEl && p.is_active !== undefined && p.is_active !== null) {
+      const on = !!Number(p.is_active);
+      statusEl.classList.remove('bg-success','bg-danger');
+      statusEl.classList.add(on ? 'bg-success' : 'bg-danger');
+      statusEl.innerHTML = on
+        ? '<i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}'
+        : '<i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}';
     }
 
-    events.forEach((evt) => {
-        channel.listen('.' + evt, (e) => {
-            // Expect payload like: { id, name_en, name_ar, is_active }
-            const payload = e?.payload || e;
-            applyPayloadToForm(payload);
+    if (window.toastr) {
+      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_) {}
+    }
 
-            form.classList.add('border','border-success');
-            setTimeout(() => form.classList.remove('border','border-success'), 800);
-        });
+    console.log('[payments show] updated from broadcast', p);
+  }
+
+  // Optional global helper
+  window.updatePaymentShow = applyPaymentPayload;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const anchor = document.getElementById('payment-listener');
+    if (!anchor) {
+      console.warn('[payments show] listener anchor not found');
+      return;
+    }
+
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    let events;
+    try {
+      events = JSON.parse(anchor.dataset.events || '["payment_updated"]');
+    } catch (_) {
+      events = ['payment_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['payment_updated'];
+    }
+
+    const handler = function (e) {
+      // Try common shapes: {payment: {...}} or flat payload
+      applyPaymentPayload(e && (e.payment ?? e.payload ?? e));
+    };
+
+    // Register so your layout-level broadcaster can attach later
+    window.__pageBroadcasts.push({
+      channel: 'payments',          // must match broadcastOn()
+      event:   'payment_updated',   // must match broadcastAs()
+      handler: handler
     });
 
-    console.info('[payment-form] Listening on', channelName, 'events:', events);
+    // If AppBroadcast is already booted (like in your layout), subscribe now
+    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+      window.AppBroadcast.subscribe('payments', 'payment_updated', handler);
+      console.info('[payments show] subscribed via AppBroadcast → payments / payment_updated');
+    } else {
+      console.info('[payments show] registered in __pageBroadcasts; layout will subscribe later.');
+    }
+  });
 })();
 </script>
+@endonce
 @endpush

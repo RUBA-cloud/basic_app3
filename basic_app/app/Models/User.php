@@ -17,7 +17,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'role',
+        'role',           // includes 'main_admin'
         'avatar_path',
         'address',
         'street',
@@ -32,7 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Map feature flags (columns on `modules` table) → permission slugs (`permissions.module_name`).
+     * Map module feature flags → permission slugs
      */
     public const MODULE_FLAG_TO_NAME = [
         'company_dashboard_module'   => 'company_dashboard_module',
@@ -53,45 +53,112 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /* ============================================================
-     | Relations
+     | === RELATIONS ===
      ============================================================ */
 
-    /**
-     * MANY-TO-MANY permissions via pivot `permission_user`.
-     * Expected `permissions` columns: module_name, can_add, can_edit, can_delete, can_view_history, is_active, ...
-     */
     public function permissions()
     {
         return $this->belongsToMany(\App\Models\Permission::class, 'permission_user')->withTimestamps();
     }
 
-    /**
-     * Most recent modules snapshot for this user.
-     * Table `modules` must have per-module boolean flags and `is_active`.
-     */
     public function modulesHistory()
     {
         return $this->hasOne(\App\Models\Module::class, 'user_id')->latestOfMany();
     }
 
-    /**
-     * Device tokens (for FCM).
-     */
     public function deviceTokens()
     {
         return $this->hasMany(\App\Models\DeviceToken::class, 'user_id');
     }
 
     /* ============================================================
-     | Module helpers (for EnsureModuleEnabled)
+     | === MAIN ADMIN LOGIC ===
      ============================================================ */
 
     /**
-     * Resolve the current Module row for the user (robust to relation not being preloaded).
+     * Determine if the user is a main admin.
      */
+    public function isMainAdmin(): bool
+    {
+        return strtolower($this->role ?? '') === 'admin';
+    }
+
+    /**
+     * Main admin can use all modules.
+     */
+    public function hasModuleFeature(string $featureKey): bool
+    {
+        if ($this->isMainAdmin()) {
+            return true;
+        }
+
+        $m = $this->canUseModule($featureKey);
+        return $m ;
+    }
+
+    /**
+     * Main admin can use all modules.
+     */
+    public function canUseModule(string $featureKey): bool
+    {
+        if ($this->isMainAdmin()) {
+            return true;
+        }
+
+        return $this->hasAnyPermissionForFeature($featureKey);
+    }
+
+    /**
+     * Main admin has all permissions.
+     */
+    public function hasPermission(string $moduleName, string $ability): bool
+    {
+        if ($this->isMainAdmin()) {
+            return true;
+        }
+
+        if (!in_array($ability, ['can_add', 'can_edit', 'can_delete', 'can_view_history'], true)) {
+            return false;
+        }
+
+        if ($this->relationLoaded('permissions')) {
+            return $this->permissions
+                ->where('module_name', $moduleName)
+                ->where('is_active', true)
+                ->contains(fn($p) => (bool) ($p->{$ability} ?? false));
+        }
+
+        return $this->permissions()
+            ->where('permissions.module_name', $moduleName)
+            ->where('permissions.is_active', true)
+            ->where("permissions.$ability", true)
+            ->exists();
+    }
+
+    /**
+     * Main admin has all features, so availableModules returns all.
+     */
+    public function availableModules(): array
+    {
+        if ($this->isMainAdmin()) {
+            return self::MODULE_FLAG_TO_NAME;
+        }
+
+        $mods = [];
+        foreach (self::MODULE_FLAG_TO_NAME as $flag => $slug) {
+            if ($this->canUseModule($flag)) {
+                $mods[$flag] = $slug;
+            }
+        }
+        return $mods;
+    }
+
+    /* ============================================================
+     | === MODULE HELPERS ===
+     ===================================================x========= */
+
     public function moduleRow(): ?\App\Models\Module
     {
-        // 1) Already-loaded relation?
         if ($this->relationLoaded('modulesHistory')) {
             $rel = $this->getRelation('modulesHistory');
             if ($rel instanceof \App\Models\Module) {
@@ -99,15 +166,11 @@ class User extends Authenticatable implements MustVerifyEmail
             }
         }
 
-        // 2) Try relation query
         try {
             $rel = $this->modulesHistory()->first();
             if ($rel) return $rel;
-        } catch (\Throwable $e) {
-            // ignore and fallback
-        }
+        } catch (\Throwable $e) {}
 
-        // 3) Fallback: latest row by user_id
         try {
             return \App\Models\Module::where('user_id', $this->id)
                 ->orderByDesc('id')
@@ -117,29 +180,6 @@ class User extends Authenticatable implements MustVerifyEmail
         }
     }
 
-    /**
-     * Check a feature flag (e.g., 'product_module') for this user.
-     */
-    public function hasModuleFeature(string $featureKey): bool
-    {
-        $m = $this->moduleRow();
-        return $m && $m->is_active && (bool) ($m->{$featureKey} ?? false);
-    }
-
-    /**
-     * True if the module flag is enabled AND user has at least one active ability on that module.
-     * (This is what drives the menu visibility.)
-     */
-    public function canUseModule(string $featureKey): bool
-    {
-
-        return $this->hasAnyPermissionForFeature($featureKey);
-    }
-
-    /**
-     * True if there's an active permission row for the mapped module slug
-     * AND at least one of: can_add | can_edit | can_delete | can_view_history.
-     */
     public function hasAnyPermissionForFeature(string $featureKey): bool
     {
         $moduleName = self::MODULE_FLAG_TO_NAME[$featureKey] ?? null;
@@ -161,72 +201,34 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
-    /**
-     * Return [feature_flag => module_slug, ...] for modules the user can actually use.
-     */
-    public function availableModules(): array
-    {
-        $mods = [];
-        foreach (self::MODULE_FLAG_TO_NAME as $flag => $slug) {
-            if ($this->canUseModule($flag)) {
-                $mods[$flag] = $slug;
-            }
-        }
-        return $mods;
-    }
-
-    /* ============================================================
-     | Permission helpers (for EnsurePermission)
-     ============================================================ */
-
-    /**
-     * Get the first **active** permission row for a module slug (e.g., 'product', 'order').
-     */
     public function permissionFor(string $moduleName): ?\App\Models\Permission
     {
-        // Prefer loaded permissions if available
+        if ($this->isMainAdmin()) {
+            // Main admin always has permission
+            return new \App\Models\Permission([
+                'module_name' => $moduleName,
+                'can_add' => true,
+                'can_edit' => true,
+                'can_delete' => true,
+                'can_view_history' => true,
+                'is_active' => true,
+            ]);
+        }
+
         if ($this->relationLoaded('permissions')) {
             return $this->permissions->first(function ($p) use ($moduleName) {
                 return $p->module_name === $moduleName && (bool) $p->is_active;
             });
         }
 
-        // Otherwise query via pivot
         return $this->permissions()
             ->where('permissions.module_name', $moduleName)
             ->where('permissions.is_active', true)
             ->first();
     }
 
-    /**
-     * Ability check for a single ability: can_add | can_edit | can_delete | can_view_history.
-     */
-    public function hasPermission(string $moduleName, string $ability): bool
-    {
-        if (!in_array($ability, ['can_add', 'can_edit', 'can_delete', 'can_view_history'], true)) {
-            return false;
-        }
-
-        // In-memory check if eager-loaded
-        if ($this->relationLoaded('permissions')) {
-            return $this->permissions
-                ->where('module_name', $moduleName)
-                ->where('is_active', true)
-                ->contains(function (\App\Models\Permission $p) use ($ability) {
-                    return (bool) ($p->{$ability} ?? false);
-                });
-        }
-
-        // Efficient DB check
-        return $this->permissions()
-            ->where('permissions.module_name', $moduleName)
-            ->where('permissions.is_active', true)
-            ->where("permissions.$ability", true)
-            ->exists();
-    }
-
     /* ============================================================
-     | Scopes / Notifications / Accessors
+     | === SCOPES / NOTIFICATIONS / ACCESSORS ===
      ============================================================ */
 
     public function scopeEmployees($q)
@@ -239,9 +241,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->deviceTokens()->pluck('token')->all();
     }
 
-    /**
-     * Accessor: $user->avatar_url
-     */
     protected function avatarUrl(): Attribute
     {
         return Attribute::get(function () {

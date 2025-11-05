@@ -60,7 +60,8 @@ return [
     'global_unassigned' => 'Global / Unassigned',
     'enabled_modules' => 'Enabled Modules',
     'updated' => 'Updated',
-
+    'mark_as_read'=>'Mark as Read',
+    'mark_as_unread' => 'Mark As Unread',
     // Actions
     'view' => 'View',
     'edit' => 'Edit',
@@ -530,6 +531,8 @@ return [
 'update_information'=>'Update Information',
 'regions'=>'Regions',
 'country'=>'Country',
+'all'=>'All',
+'Unread'=>'Unread',
     // Footer
     'email_footer_notice' => 'This email was sent by :app. Please do not reply to this message.',
 "payment_module"=>'Payment Module',

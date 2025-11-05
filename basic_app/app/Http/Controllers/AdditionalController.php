@@ -12,11 +12,11 @@ class AdditionalController extends Controller
     public function index($isHistory = false)
     {
         if ($isHistory) {
-            $additionals = AdditonalHistory::with('user')->paginate(10);
+            $additionals = AdditonalHistory::with('user')->paginate(5);
             return view('additionals.history', compact('additionals'));
         }
 
-        $additionals = Additonal::with('user')->where('is_active', true)->paginate(10);
+        $additionals = Additonal::with('user')->where('is_active', true)->paginate(5);
         return view('additionals.index', compact('additionals'));
     }
 
@@ -53,7 +53,7 @@ class AdditionalController extends Controller
             ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
             ->orWhere('descripation', 'like', '%' . $searchTerm . '%')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('additionals.history', compact('additionals'));
     }
@@ -67,7 +67,7 @@ class AdditionalController extends Controller
             ->orWhere('name_ar', 'like', '%' . $searchTerm . '%')
             ->orWhere('descripation', 'like', '%' . $searchTerm . '%')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('additionals.index', compact('additionals'));
     }

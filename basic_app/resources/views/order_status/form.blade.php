@@ -6,17 +6,17 @@
         ? __('adminlte::adminlte.create').' '.__('adminlte::adminlte.order_status')
         : __('adminlte::adminlte.edit').' '.__('adminlte::adminlte.order_status') }}
 @endsection
+
 @php
-$pusher_key     = config('broadcasting.connections.pusher.key');
-$pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
-
-
+    $statusObj  = $status ?? null;
+    $httpMethod = strtoupper($method ?? 'POST');
 @endphp
+
 @section('content')
 <div style="min-height: 100vh; display:flex;">
     <div class="card" style="padding:24px; width:100%;">
         <h2 style="font-size:2rem; font-weight:700; color:#22223B; margin-bottom:24px;">
-            {{ strtoupper($method ?? 'POST') === 'POST'
+            {{ $httpMethod === 'POST'
                 ? __('adminlte::adminlte.create').' '.__('adminlte::adminlte.order_status')
                 : __('adminlte::adminlte.edit').' '.__('adminlte::adminlte.order_status') }}
         </h2>
@@ -32,23 +32,12 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
             </div>
         @endif
 
-        @php
-            // Expected:
-            // $action (string), $method ('POST'|'PUT'|'PATCH'), optional $status (model|null)
-            // Optional Pusher config (same as your permission/branch forms):
-            // $pusher_key, $pusher_cluster, $channel (default 'order_status'), $events (default ['order_status_updated'])
-            $statusObj = $status ?? null;
-            $httpMethod = strtoupper($method ?? 'POST');
-        @endphp
-
         <form method="POST"
               action="{{ $action }}"
               id="order-status-form"
               enctype="multipart/form-data"
               data-channel="{{ $channel ?? 'order_status' }}"
-              data-events='@json($events ?? ["order_status_updated"])'
-              data-pusher-key="{{ $pusher_key ?? '' }}"
-              data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
+              data-events='@json($events ?? ["order_status_updated"])'>
             @csrf
             @unless (in_array($httpMethod, ['GET','POST']))
                 @method($httpMethod)
@@ -103,87 +92,107 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
 </div>
 @endsection
 
-@once
-    {{-- Echo + Pusher (CDN, same pattern as permission form) --}}
-    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8/dist/web/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
-@endonce
-
 @push('js')
+@once
 <script>
 (function () {
+  'use strict';
+
+  const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : s;
+
+  function setField(form, name, value) {
+    if (value === undefined || value === null) return;
+    const els = form.querySelectorAll(`[name="${esc(name)}"]`);
+    if (!els.length) return;
+
+    els.forEach(el => {
+      const type = (el.getAttribute('type') || el.tagName).toLowerCase();
+
+      if (type === 'checkbox') {
+        el.checked = !!Number(value);
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } else if (type === 'radio') {
+        el.checked = String(el.value) === String(value);
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
+        el.value = String(value ?? '');
+        el.dispatchEvent(new Event('input',  { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  }
+
+  function applyPayloadToForm(form, payload) {
+    const data = payload?.order_status ?? payload?.status ?? payload ?? {};
+    if (!data || typeof data !== 'object') return;
+
+    setField(form, 'id',        data.id);
+    setField(form, 'name_en',   data.name_en);
+    setField(form, 'name_ar',   data.name_ar);
+    setField(form, 'is_active', data.is_active);
+
+    if (window.toastr) {
+      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_) {}
+    }
+
+    form.classList.add('border', 'border-success');
+    setTimeout(() => form.classList.remove('border', 'border-success'), 800);
+
+    console.log('[order_status form] patched from broadcast:', data);
+  }
+
+  // Optional global helper
+  window.updateOrderStatusForm = function (payload) {
     const form = document.getElementById('order-status-form');
     if (!form) return;
+    applyPayloadToForm(form, payload);
+  };
 
-    const ds = form.dataset;
-    const pusherKey     = ds.pusherKey || (document.querySelector('meta[name="pusher-key"]')?.content || '');
-    const pusherCluster = ds.pusherCluster || (document.querySelector('meta[name="pusher-cluster"]')?.content || '');
-    const channelName   = ds.channel || 'order_status';
-
-    let events = [];
-    try { events = JSON.parse(ds.events || '[]'); } catch (_) { events = []; }
-    if (!Array.isArray(events) || events.length === 0) events = ['order_status_updated'];
-
-    if (!pusherKey || !pusherCluster) {
-        console.warn('[order-status-form] Missing Pusher key/cluster. Provide data-pusher-key/cluster on the form or <meta> fallbacks.');
-        return;
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('order-status-form');
+    if (!form) {
+      console.warn('[order_status form] form not found');
+      return;
     }
 
-    if (!window.Echo) {
-        try {
-            window.Echo = new Echo({
-                broadcaster: 'pusher',
-                key: pusherKey,
-                cluster: pusherCluster,
-                forceTLS: true,             // set to false if you use plain ws in dev
-                enabledTransports: ['ws','wss'],
-            });
-        } catch (e) {
-            console.error('[order-status-form] Echo init failed:', e);
-            return;
-        }
+    const channelName = form.dataset.channel || 'order_status';
+
+    let events;
+    try {
+      events = JSON.parse(form.dataset.events || '["order_status_updated"]');
+    } catch (_) {
+      events = ['order_status_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['order_status_updated'];
     }
 
-    const channel = window.Echo.channel(channelName);
-    if (!channel) {
-        console.error('[order-status-form] Cannot subscribe to channel:', channelName);
-        return;
-    }
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
 
-    function applyPayloadToForm(payload) {
-        if (!payload || typeof payload !== 'object') return;
+    const handler = function (e) {
+      // accept: {order_status:{...}}, {status:{...}}, or flat payload
+      applyPayloadToForm(form, e && (e.order_status ?? e.status ?? e.payload ?? e));
+    };
 
-        Object.entries(payload).forEach(([name, value]) => {
-            const inputs = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
-            if (!inputs.length) return;
+    // Register each event for layout-level subscription
+    events.forEach(function (ev) {
+      window.__pageBroadcasts.push({
+        channel: channelName,  // must match broadcastOn()
+        event:   ev,           // must match broadcastAs()
+        handler: handler
+      });
 
-            inputs.forEach((el) => {
-                const type = (el.getAttribute('type') || el.tagName).toLowerCase();
-                if (type === 'radio') {
-                    el.checked = (String(el.value) === String(value));
-                } else if (type === 'checkbox') {
-                    el.checked = Boolean(value) && String(value) !== '0';
-                } else {
-                    el.value = (value ?? '');
-                }
-            });
-        });
-    }
-
-    events.forEach((evt) => {
-        channel.listen('.' + evt, (e) => {
-            // Expect broadcast payload keys that match input names:
-            // { id: 5, name_en: 'Shipped', name_ar: 'تم الشحن', is_active: 1 }
-            const payload = e?.payload || e;
-            applyPayloadToForm(payload);
-
-            // Small visual cue
-            form.classList.add('border','border-success');
-            setTimeout(() => form.classList.remove('border','border-success'), 800);
-        });
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, ev, handler);
+        console.info('[order_status form] subscribed via AppBroadcast →', channelName, '/', ev);
+      }
     });
 
-    console.info('[order-status-form] Listening on', channelName, 'events:', events);
+    if (!window.AppBroadcast) {
+      console.info('[order_status form] registered in __pageBroadcasts; layout will subscribe later.');
+    }
+  });
 })();
 </script>
+@endonce
 @endpush

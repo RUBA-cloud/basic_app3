@@ -38,7 +38,7 @@ class CompanyInfoController extends Controller
     {
         $history = CompanyInfoHistory::with('user')
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('company_info.history', compact('history'));
     }
@@ -122,7 +122,7 @@ class CompanyInfoController extends Controller
             }
 
             // defer broadcasting until after commit
-            DB::afterCommit(function () use (&$savedCompany) {
+            DB::afterCommit(function () use ($savedCompany) {
                 try {
                     broadcast(new CompanyInfoEventSent($savedCompany));
                                       //  dd(vars: $savedCompany);

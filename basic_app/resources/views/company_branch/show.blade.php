@@ -12,12 +12,11 @@
             {{ __('adminlte::adminlte.branch_details') }}
         </h2>
 
-        @if($branch->is_main_branch)
-            <span class="badge bg-purple text-white px-3 py-2">
-                <i class="fas fa-star me-1"></i>
-                {{ __('adminlte::adminlte.main_branch') }}
-            </span>
-        @endif
+        <span id="branch-main-badge"
+              class="badge bg-purple text-white px-3 py-2 {{ $branch->is_main_branch ? '' : 'd-none' }}">
+            <i class="fas fa-star me-1"></i>
+            {{ __('adminlte::adminlte.main_branch') }}
+        </span>
     </div>
 
     {{-- Card --}}
@@ -27,11 +26,18 @@
             {{-- Image --}}
             <div class="col-lg-4 col-md-5">
                 <div class="border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center p-2 h-100">
+                    @php
+                        $imgSrc = $branch->image
+                            ? asset($branch->image)
+                            : 'https://placehold.co/500x300?text=Branch+Image';
+                    @endphp
                     <img
-                        src="{{ $branch->image ? asset($branch->image) : 'https://placehold.co/500x300?text=Branch+Image' }}"
+                        id="branch-image"
+                        src="{{ $imgSrc }}"
                         alt="Branch Image"
                         class="img-fluid rounded-3"
                         style="max-height: 280px; object-fit: cover;"
+                        data-placeholder="{{ $imgSrc }}"
                     >
                 </div>
             </div>
@@ -39,64 +45,69 @@
             {{-- Details --}}
             <div class="col-lg-8 col-md-7">
                 <div class="row gy-3">
-                    {{-- Branch Name --}}
+
+                    {{-- Branch Name EN --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.branch_name_en') }}</small>
-                        <div class="fs-5 fw-bold text-dark">{{ $branch->name_en}}</div>
+                        <div id="branch-name-en" class="fs-5 fw-bold text-dark">
+                            {{ $branch->name_en }}
+                        </div>
                     </div>
-                    {{-- Branch Name --}}
+
+                    {{-- Branch Name AR --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.branch_name_ar') }}</small>
-                        <div class="fs-5 fw-bold text-dark">{{ $branch->name_ar }}</div>
+                        <div id="branch-name-ar" class="fs-5 fw-bold text-dark">
+                            {{ $branch->name_ar }}
+                        </div>
                     </div>
 
                     {{-- Status --}}
                     <div class="col-12">
-                        @if($branch->is_active)
-                            <span class="badge bg-success px-3 py-2">
+                        <span id="branch-status"
+                              class="badge {{ $branch->is_active ? 'bg-success' : 'bg-danger' }} px-3 py-2">
+                            @if($branch->is_active)
                                 <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
-                            </span>
-                        @else
-                            <span class="badge bg-danger px-3 py-2">
+                            @else
                                 <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
-                            </span>
-                        @endif
+                            @endif
+                        </span>
                     </div>
 
                     {{-- Contact Info --}}
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.company_phone') }}</small>
-                        <div class="fw-semibold">{{ $branch->phone ?? '-' }}</div>
+                        <div id="branch-phone" class="fw-semibold">{{ $branch->phone ?? '-' }}</div>
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.company_email') }}</small>
-                        <div class="fw-semibold">{{ $branch->email ?? '-' }}</div>
+                        <div id="branch-email" class="fw-semibold">{{ $branch->email ?? '-' }}</div>
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.fax') }}</small>
-                        <div class="fw-semibold">{{ $branch->fax ?? '-' }}</div>
+                        <div id="branch-fax" class="fw-semibold">{{ $branch->fax ?? '-' }}</div>
                     </div>
 
                     {{-- Addresses --}}
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.company_address_en') }}</small>
-                        <div class="fw-semibold">{{ $branch->address_en ?? '-' }}</div>
+                        <div id="branch-address-en" class="fw-semibold">{{ $branch->address_en ?? '-' }}</div>
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.company_address_ar') }}</small>
-                        <div class="fw-semibold">{{ $branch->address_ar ?? '-' }}</div>
+                        <div id="branch-address-ar" class="fw-semibold">{{ $branch->address_ar ?? '-' }}</div>
                     </div>
 
                     {{-- Location --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.location') }}</small>
-                        <div>
+                        <div id="branch-location">
                             @if($branch->location)
-                                <a href="{{ $branch->location }}" target="_blank" class="text-primary fw-semibold">
+                                <a id="branch-location-link" href="{{ $branch->location }}" target="_blank" class="text-primary fw-semibold">
                                     <i class="fas fa-map-marker-alt me-1"></i> {{ __('adminlte::adminlte.view_on_map') }}
                                 </a>
                             @else
-                                -
+                                <span id="branch-location-empty">-</span>
                             @endif
                         </div>
                     </div>
@@ -104,7 +115,7 @@
                     {{-- Working Days / Hours --}}
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.working_days') }}</small>
-                        <div class="fw-semibold">
+                        <div id="branch-working-days" class="fw-semibold">
                             @php
                                 $days = $branch->working_days ? explode(',', $branch->working_days) : [];
                                 $days = array_map('trim', $days);
@@ -114,7 +125,7 @@
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.working_time') }}</small>
-                        <div class="fw-semibold">
+                        <div id="branch-working-time" class="fw-semibold">
                             {{ $branch->working_hours_from ?? '-' }} - {{ $branch->working_hours_to ?? '-' }}
                         </div>
                     </div>
@@ -123,11 +134,20 @@
                     @if ($branch->companyInfo)
                         <div class="col-md-6">
                             <small class="text-muted">{{ __('adminlte::adminlte.company_name_en') }}</small>
-                            <div class="fw-semibold">{{ $branch->companyInfo->name_en ?? '-' }}</div>
+                            <div id="branch-company-name-en" class="fw-semibold">{{ $branch->companyInfo->name_en ?? '-' }}</div>
                         </div>
                         <div class="col-md-6">
                             <small class="text-muted">{{ __('adminlte::adminlte.company_name_ar') }}</small>
-                            <div class="fw-semibold">{{ $branch->companyInfo->name_ar ?? '-' }}</div>
+                            <div id="branch-company-name-ar" class="fw-semibold">{{ $branch->companyInfo->name_ar ?? '-' }}</div>
+                        </div>
+                    @else
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ __('adminlte::adminlte.company_name_en') }}</small>
+                            <div id="branch-company-name-en" class="fw-semibold">-</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ __('adminlte::adminlte.company_name_ar') }}</small>
+                            <div id="branch-company-name-ar" class="fw-semibold">-</div>
                         </div>
                     @endif
 
@@ -147,4 +167,171 @@
         </div>
     </x-adminlte-card>
 </div>
+
+{{-- Listener anchor (like additional show) --}}
+<div id="branch-listener"
+     data-channel="company_branch"
+     data-events='["company_branch_updated","CompanyBranchUpdated"]'
+     data-branch-id="{{ $branch->id }}">
+</div>
 @endsection
+
+@push('js')
+<script>
+(function () {
+    'use strict';
+
+    function norm(v) {
+        if (v === undefined || v === null) return '';
+        return String(v);
+    }
+
+    function updateDomFromPayload(payload) {
+        if (!payload) return;
+
+        const b = payload.branch ?? payload ?? {};
+
+        // Ensure we're updating the correct branch
+        const anchor = document.getElementById('branch-listener');
+        const currentId = anchor ? anchor.dataset.branchId : null;
+        if (currentId && b.id && String(b.id) !== String(currentId)) {
+            return; // another branch, ignore
+        }
+
+        // Names
+        const nameEnEl = document.getElementById('branch-name-en');
+        if (nameEnEl) nameEnEl.textContent = norm(b.name_en);
+
+        const nameArEl = document.getElementById('branch-name-ar');
+        if (nameArEl) nameArEl.textContent = norm(b.name_ar);
+
+        // Status
+        const statusEl = document.getElementById('branch-status');
+        if (statusEl && b.is_active !== undefined && b.is_active !== null) {
+            const isOn = Number(b.is_active) === 1;
+            statusEl.classList.remove('bg-success', 'bg-danger');
+            statusEl.classList.add(isOn ? 'bg-success' : 'bg-danger');
+            statusEl.innerHTML = isOn
+                ? '<i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}'
+                : '<i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}';
+        }
+
+        // Main branch badge
+        const mainBadge = document.getElementById('branch-main-badge');
+        if (mainBadge && b.is_main_branch !== undefined && b.is_main_branch !== null) {
+            const isMain = Number(b.is_main_branch) === 1;
+            if (isMain) mainBadge.classList.remove('d-none');
+            else mainBadge.classList.add('d-none');
+        }
+
+        // Contact info
+        const phoneEl = document.getElementById('branch-phone');
+        if (phoneEl) phoneEl.textContent = norm(b.phone) || '-';
+
+        const emailEl = document.getElementById('branch-email');
+        if (emailEl) emailEl.textContent = norm(b.email) || '-';
+
+        const faxEl = document.getElementById('branch-fax');
+        if (faxEl) faxEl.textContent = norm(b.fax) || '-';
+
+        // Addresses
+        const addrEnEl = document.getElementById('branch-address-en');
+        if (addrEnEl) addrEnEl.textContent = norm(b.address_en) || '-';
+
+        const addrArEl = document.getElementById('branch-address-ar');
+        if (addrArEl) addrArEl.textContent = norm(b.address_ar) || '-';
+
+        // Location
+        const locationWrapper = document.getElementById('branch-location');
+        if (locationWrapper) {
+            const href = norm(b.location);
+            if (href) {
+                locationWrapper.innerHTML =
+                    '<a id="branch-location-link" href="' + href + '" target="_blank" class="text-primary fw-semibold">' +
+                        '<i class="fas fa-map-marker-alt me-1"></i> {{ __('adminlte::adminlte.view_on_map') }}' +
+                    '</a>';
+            } else {
+                locationWrapper.innerHTML = '<span id="branch-location-empty">-</span>';
+            }
+        }
+
+        // Working days
+        const daysEl = document.getElementById('branch-working-days');
+        if (daysEl) {
+            let daysText = '-';
+            if (Array.isArray(b.working_days)) {
+                daysText = b.working_days.length ? b.working_days.join(', ') : '-';
+            } else if (typeof b.working_days === 'string') {
+                const parts = b.working_days.split(',').map(s => s.trim()).filter(Boolean);
+                daysText = parts.length ? parts.join(', ') : '-';
+            }
+            daysEl.textContent = daysText;
+        }
+
+        // Working time
+        const timeEl = document.getElementById('branch-working-time');
+        if (timeEl) {
+            const from = norm(b.working_hours_from || (b.working_hours?.from ?? ''));
+            const to   = norm(b.working_hours_to   || (b.working_hours?.to   ?? ''));
+            if (from || to) {
+                timeEl.textContent = (from || '-') + ' - ' + (to || '-');
+            } else {
+                timeEl.textContent = '-';
+            }
+        }
+
+        // Company info
+        const compEnEl = document.getElementById('branch-company-name-en');
+        const compArEl = document.getElementById('branch-company-name-ar');
+        const company  = b.companyInfo || b.company_info || {};
+        if (compEnEl) compEnEl.textContent = norm(company.name_en) || '-';
+        if (compArEl) compArEl.textContent = norm(company.name_ar) || '-';
+
+        // Image
+        const imgEl = document.getElementById('branch-image');
+        if (imgEl) {
+            const newSrc = b.image_url || b.image || imgEl.dataset.placeholder;
+            if (newSrc) imgEl.src = newSrc;
+        }
+
+        // Toast
+        if (window.toastr) {
+            toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+        }
+
+        console.log('[branch show] updated from broadcast payload', b);
+    }
+
+    // Expose globally if needed
+    window.updateBranchShow = updateDomFromPayload;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const anchor = document.getElementById('branch-listener');
+        if (!anchor) {
+            console.warn('[branch show] listener anchor not found');
+            return;
+        }
+
+        // Register with global broadcasting (same style as additional/category/company_branch form)
+        window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+        const handler = function (e) {
+            updateDomFromPayload(e && (e.branch ?? e));
+        };
+
+        window.__pageBroadcasts.push({
+            channel: 'company_branch',          // broadcastOn()
+            event:   'company_branch_updated',  // broadcastAs()
+            handler: handler
+        });
+
+        if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+            window.AppBroadcast.subscribe('company_branch', 'company_branch_updated', handler);
+            console.info('[branch show] subscribed via AppBroadcast → company_branch / company_branch_updated');
+        } else {
+            console.info('[branch show] registered in __pageBroadcasts; layout will subscribe later.');
+        }
+    });
+})();
+</script>
+@endpush

@@ -370,8 +370,10 @@ return [
     'Mark all as read' => 'وَسْم الكل كمقروء',
     'No notifications' => 'لا توجد إشعارات',
     'open' => 'فتح',
-    'Mark read' => 'وَسْم مقروء',
-    'Mark unread' => 'وَسْم غير مقروء',
+    'all'=>'الكل',
+'Unread'=>'غير مقروء',
+    'mark_as_read' => 'وَسْم مقروء',
+    'mark_as_unread' => 'وَسْم غير مقروء',
     'delete' => 'حذف',
     'User Settings' => 'إعدادات المستخدم',
     'Profile' => 'الملف الشخصي',
@@ -541,6 +543,7 @@ return [
     // العناوين والنص المسبق
     'reset_password_subject' => 'إعادة تعيين كلمة المرور في :app',
     'reset_preheader' => 'استخدم الرابط الآمن أدناه لإعادة تعيين كلمة مرور :app.',
+'mark_as_read'=>'Mark as Read',
 
     // ترويسة الأمان
     'security_notice' => 'رسالة آمنة',
@@ -570,4 +573,3 @@ return [
         'user' => 'المستخدم',
     ],
 ];
-

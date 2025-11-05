@@ -1,15 +1,10 @@
 {{-- resources/views/company_delivery/_form.blade.php --}}
-{{-- expects: $action (string|Url), $method ('POST'|'PUT'|'PATCH'), optional $delivery (model|null)
-    Optional Pusher config via data-* or meta tags:
-    - data-pusher-key / data-pusher-cluster on the form
-    - OR <meta name="pusher-key"> and <meta name="pusher-cluster"> in your layout
---}}
+{{-- expects: $action (string|Url), $method ('POST'|'PUT'|'PATCH'), optional $delivery (model|null) --}}
 @php
-
-$pusher_key     = config('broadcasting.connections.pusher.key');
-$pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
-
+    $pusher_key     = config('broadcasting.connections.pusher.key');
+    $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
 @endphp
+
 <form id="company-delivery-form"
       method="POST"
       action="{{ $action }}"
@@ -82,20 +77,7 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
 (function(){
   'use strict';
 
-  // --- Load Pusher once (same as Additional) ---
-  function loadPusher(){
-    return new Promise((resolve, reject)=>{
-      if (window.Pusher) return resolve();
-      const s = document.createElement('script');
-      s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  // --- Reset helper (clears textareas/inputs; re-checks "is_active") ---
+  // Reset helper (clears textareas/inputs; re-checks "is_active")
   function resetCompanyDeliveryForm() {
     const form = document.getElementById('company-delivery-form');
     if (!form) return;
@@ -119,47 +101,58 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
       active.checked = true;
       active.dispatchEvent(new Event('change', { bubbles: true }));
     }
+
+    if (window.toastr) {
+      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_) {}
+    }
+
+    console.log('[company_delivery] form reset from broadcast');
   }
 
-  // Optional: expose reset globally (like Additional)
+  // Optional: expose reset globally
   window.resetCompanyDeliveryForm = resetCompanyDeliveryForm;
 
-  // --- Setup Pusher listener (identical pattern to Additional) ---
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('company-delivery-form');
-    if (!form) return;
-
-    const channel = form.dataset.channel || 'company_delivery';
-    const events  = JSON.parse(form.dataset.events || '["CompanyDeliveryUpdated"]');
-
-    // Prefer data-*; fallback to <meta>
-    let key     = form.dataset.pusherKey || document.querySelector('meta[name="pusher-key"]')?.content || '';
-    let cluster = form.dataset.pusherCluster || document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-
-    if (!key || !cluster) {
-      console.warn('[company_delivery] Missing Pusher key/cluster. Add data-pusher-key/data-pusher-cluster or <meta> tags.');
+    if (!form) {
+      console.warn('[company_delivery] form not found');
       return;
     }
 
+    const channelName = form.dataset.channel || 'company_delivery';
+
+    let events;
     try {
-      await loadPusher();
-      // eslint-disable-next-line no-undef
-      const pusher = new Pusher(key, { cluster, forceTLS: true });
-      const ch = pusher.subscribe(channel);
-
-      // Bind common variants (exact/lowercase/dotted), then reset form
-      events.forEach(ev => {
-        ch.bind(ev,                () => resetCompanyDeliveryForm());
-        ch.bind(ev.toLowerCase(),  () => resetCompanyDeliveryForm());
-        ch.bind('.' + ev,          () => resetCompanyDeliveryForm());
-      });
-
-      console.log(`[company_delivery] Pusher listening on "${channel}" for`, events);
-    } catch (e) {
-      console.error('[company_delivery] Failed to init Pusher:', e);
+      events = JSON.parse(form.dataset.events || '["company_delivery_updated"]');
+    } catch (_) {
+      events = ['company_delivery_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['company_delivery_updated'];
     }
 
-    // Optional DOM fallback (manual trigger from anywhere)
+    // ---- Register with global broadcasting (like additional/category/branch) ----
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    const handler = function (e) {
+      // e may contain {delivery: {...}} in the future; for now we just reset
+      resetCompanyDeliveryForm();
+    };
+
+    window.__pageBroadcasts.push({
+      channel: 'company_delivery',          // broadcastOn()
+      event:   'company_delivery_updated',  // broadcastAs()
+      handler: handler
+    });
+
+    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+      window.AppBroadcast.subscribe('company_delivery', 'company_delivery_updated', handler);
+      console.info('[company_delivery] subscribed via AppBroadcast → company_delivery / company_delivery_updated');
+    } else {
+      console.info('[company_delivery] registered in __pageBroadcasts; layout will subscribe later.');
+    }
+
+    // Optional manual trigger
     window.addEventListener('company-delivery:update', resetCompanyDeliveryForm);
   });
 })();

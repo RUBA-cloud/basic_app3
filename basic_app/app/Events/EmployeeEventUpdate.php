@@ -35,7 +35,7 @@ class EmployeeEventUpdate implements ShouldBroadcastNow
     // Client listens for this name
     public function broadcastAs(): string
     {
-        return 'emplpyee_updated';
+        return 'employee_updated';
     }
 
     public function broadcastWith(): array

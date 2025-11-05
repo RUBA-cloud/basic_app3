@@ -20,11 +20,11 @@ class OfferController extends Controller
     public function index($isHistory = false)
     {
         if ($isHistory) {
-            $offers = OffersHistory::with(['user'])->paginate(10);
+            $offers = OffersHistory::with(['user'])->paginate(5);
             return view('Offer.history', compact('offers'));
         }
 
-        $offers = Offer::with('user')->paginate(10);
+        $offers = Offer::with('user')->paginate(5);
         return view('Offer.index', compact('offers'));
     }
 
@@ -128,7 +128,7 @@ broadcast(new \App\Events\OfferEventUpdate($offer))->toOthers();
             ->orWhere('description_en', 'like', '%' . $searchTerm . '%')
             ->orWhere('description_ar', 'like', '%' . $searchTerm . '%')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('Offer.index', compact('offers'));
     }
@@ -146,7 +146,7 @@ broadcast(new \App\Events\OfferEventUpdate($offer))->toOthers();
             ->orWhere('description_en', 'like', '%' . $searchTerm . '%')
             ->orWhere('description_ar', 'like', '%' . $searchTerm . '%')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('Offer.history', compact('offers'));
     }

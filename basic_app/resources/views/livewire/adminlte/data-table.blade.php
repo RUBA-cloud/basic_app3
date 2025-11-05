@@ -1,58 +1,171 @@
 {{-- ONE root element only --}}
-<div wire:poll.10s>
+<div class="card-body" wire:poll.10s>
 
-    {{-- Compact styles for consistent action buttons --}}
+    {{-- Local styles for this component only --}}
     <style>
-        .actions {
+        .lw-list-card {
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, .06);
+        }
+
+        /* Toolbar (search + stats) */
+        .lw-toolbar {
             display: flex;
             flex-wrap: wrap;
-            gap: .5rem;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            margin-bottom: 1rem;
         }
-        /* Same width & height for all action buttons */
-        .action-btn {
-            min-width: 110px;      /* set the width you prefer */
-            height: 36px;          /* set the height you prefer */
+
+        .lw-search-group .form-control {
+            border-radius: 999px 0 0 999px;
+            border-right: 0;
+        }
+        .lw-search-group .btn-refresh {
+            border-radius: 0 999px 999px 0;
+        }
+
+        .lw-summary {
+            font-size: .875rem;
+            color: #6b7280;
+        }
+
+        /* Table shell */
+        .lw-table-wrapper {
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .lw-table {
+            margin-bottom: 0;
+        }
+
+        .lw-table thead th {
+            vertical-align: middle;
+            background: #f9fafb;
+            border-bottom-width: 1px;
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6b7280;
+        }
+
+        .lw-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .lw-table td {
+            vertical-align: middle;
+        }
+
+        .img-thumb-40 {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: .5rem;
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, .06);
+        }
+
+        .color-swatch-24 {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: inline-block;
+            border: 1px solid rgba(0,0,0,.08);
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, .04);
+        }
+
+        /* Pills & badges */
+        .lw-pill {
+            border-radius: 999px;
+            padding: .15rem .7rem;
+            font-size: .7rem;
+            font-weight: 600;
+        }
+
+        /* Actions area */
+        .lw-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+            justify-content: flex-start;
+        }
+
+        .lw-action-btn {
+            min-width: 120px;
+            height: 36px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: .375rem .5rem; /* keep Bootstrap spacing */
+            padding: .35rem .55rem;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 500;
             white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, .10);
         }
-        .actions form { margin: 0; }  /* inline forms without extra spacing */
-        .img-thumb-40 {
-            width: 40px; height: 40px; object-fit: cover; border-radius: .25rem;
+
+        .lw-action-btn i {
+            margin-inline-end: .25rem;
         }
-        .color-swatch-24 {
-            width: 24px; height: 24px; border-radius: 4px; display: inline-block;
-            border: 1px solid rgba(0,0,0,.08);
+
+        .lw-actions form {
+            margin: 0;
         }
-        .table thead th { vertical-align: middle; }
+
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            .lw-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .lw-action-btn {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
     </style>
 
-    <x-adminlte-card>
-        {{-- Search --}}
-        <div class="mb-3">
-            <div class="input-group">
+    <x-adminlte-card class="lw-list-card">
+
+        {{-- Toolbar: search + small summary --}}
+        <div class="lw-toolbar">
+            <div class="lw-search-group input-group">
                 <input type="text"
                        class="form-control"
                        placeholder="{{ __('adminlte::adminlte.search') }}"
                        wire:model.debounce.300ms="search">
-                <button class="btn btn-primary" type="button" wire:click="$refresh" title="{{ __('adminlte::adminlte.refresh') ?? 'Refresh' }}">
+                <button class="btn btn-primary btn-refresh"
+                        type="button"
+                        wire:click="$refresh"
+                        title="{{ __('adminlte::adminlte.refresh') ?? 'Refresh' }}">
                     <i class="fas fa-sync"></i>
                 </button>
             </div>
+
+            @if(method_exists($rows, 'total'))
+                <div class="lw-summary">
+                    {{ __('adminlte::adminlte.total') ?? 'Total' }}:
+                    <strong>{{ $rows->total() }}</strong>
+                </div>
+            @endif
         </div>
 
         {{-- Table --}}
-        <div class="table-responsive-md">
-            <table class="table table-bordered table-hover text-nowrap align-middle mb-0">
-                <thead class="thead-light">
+        <div class="table-responsive-md lw-table-wrapper">
+            <table class="table table-bordered table-hover text-nowrap align-middle lw-table">
+                <thead>
                     <tr>
                         <th>#</th>
                         @foreach ($fields as $field)
                             <th>{{ $field['label'] ?? ucfirst(str_replace('_',' ', $field['key'] ?? '')) }}</th>
                         @endforeach
-                        <th style="width:1%;white-space:nowrap;">{{ __('adminlte::adminlte.actions') ?: 'Actions' }}</th>
+                        <th style="width:1%;white-space:nowrap;">
+                            {{ __('adminlte::adminlte.actions') ?: 'Actions' }}
+                        </th>
                     </tr>
                 </thead>
 
@@ -75,13 +188,15 @@
                             <td>
                                 @switch($type)
                                     @case('bool')
-                                        <span class="badge {{ $data ? 'bg-success' : 'bg-danger' }}">
+                                        <span class="badge lw-pill {{ $data ? 'bg-success' : 'bg-danger' }}">
                                             {{ $data ? __('adminlte::adminlte.yes') : __('adminlte::adminlte.no') }}
                                         </span>
                                         @break
 
                                     @case('color')
-                                        <span class="color-swatch-24" title="{{ $data }}" style="background: {{ $data }}"></span>
+                                        <span class="color-swatch-24"
+                                              title="{{ $data }}"
+                                              style="background: {{ $data }}"></span>
                                         @break
 
                                     @case('image')
@@ -92,7 +207,9 @@
                                                         : asset('storage/'.ltrim((string)$data,'/')) }}"
                                                  alt="image">
                                         @else
-                                            <span class="text-muted">{{ __('adminlte::adminlte.no_image') }}</span>
+                                            <span class="text-muted">
+                                                {{ __('adminlte::adminlte.no_image') }}
+                                            </span>
                                         @endif
                                         @break
 
@@ -114,7 +231,7 @@
                                             $label  = $labels[$status]  ?? __('adminlte::adminlte.unknown') ?: 'Unknown';
                                             $class  = $classes[$status] ?? 'bg-light text-dark';
                                         @endphp
-                                        <span class="badge {{ $class }}">{{ $label }}</span>
+                                        <span class="badge lw-pill {{ $class }}">{{ $label }}</span>
                                         @break
 
                                     @default
@@ -125,48 +242,52 @@
 
                         {{-- Actions --}}
                         <td>
-                            <div class="actions">
+                            <div class="lw-actions">
                                 {{-- Details --}}
                                 @if(!empty($detailsRoute))
-                                    <a class="btn btn-info btn-sm action-btn"
+                                    <a class="btn btn-info btn-sm lw-action-btn"
                                        href="{{ route($detailsRoute, $row->id) }}">
-                                        <i class="fas fa-eye me-1" style="padding: 5px" ></i>  {{ __('adminlte::adminlte.details') ?: 'Details' }}
+                                        <i class="fas fa-eye"></i>
+                                        {{ __('adminlte::adminlte.details') ?: 'Details' }}
                                     </a>
                                 @else
                                     <button type="button"
-                                            class="btn btn-info btn-sm action-btn"
-                                            style="padding: .375rem .5rem;"
+                                            class="btn btn-info btn-sm lw-action-btn"
                                             wire:click="details({{ $row->id }})">
-                                        <i class="fas fa-eye me-1"></i> {{ __('adminlte::adminlte.details') ?: 'Details' }}
+                                        <i class="fas fa-eye"></i>
+                                        {{ __('adminlte::adminlte.details') ?: 'Details' }}
                                     </button>
                                 @endif
 
                                 {{-- Edit --}}
                                 @if(!empty($editRoute))
-                                    <a class="btn btn-success btn-sm action-btn"
+                                    <a class="btn btn-success btn-sm lw-action-btn"
                                        href="{{ route($editRoute, $row->id) }}">
-                                        <i class="fas fa-edit me-1" style="padding: 5px"></i>  {{ __('adminlte::adminlte.edit') ?: 'Edit' }}
+                                        <i class="fas fa-edit"></i>
+                                        {{ __('adminlte::adminlte.edit') ?: 'Edit' }}
                                     </a>
                                 @endif
 
                                 @php $isActive = data_get($row, 'is_active', true); @endphp
 
-                                {{-- Delete / Reactivate (same size buttons) --}}
+                                {{-- Delete / Reactivate --}}
                                 @if($isActive)
                                     @if(!empty($deleteRoute))
                                         <form action="{{ route($deleteRoute, $row->id) }}"
                                               method="POST"
                                               onsubmit="return confirm(@json(__('adminlte::adminlte.are_you_sure_youـwant_to_delete') ?: 'Delete?'))">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm action-btn">
-                                                <i class="fas fa-trash me-1" style="padding: 5px"></i>  {{ __('adminlte::adminlte.delete') ?: 'Delete' }}
+                                            <button type="submit" class="btn btn-danger btn-sm lw-action-btn">
+                                                <i class="fas fa-trash"></i>
+                                                {{ __('adminlte::adminlte.delete') ?: 'Delete' }}
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn btn-danger btn-sm action-btn"
+                                        <button class="btn btn-danger btn-sm lw-action-btn"
                                                 wire:click="delete({{ $row->id }})"
                                                 onclick="return confirm(@json(__('adminlte::adminlte.are_you_sure_youـwant_to_delete') ?: 'Delete?'))">
-                                            <i class="fas fa-trash me-1"></i> {{ __('adminlte::adminlte.delete') ?: 'Delete' }}
+                                            <i class="fas fa-trash"></i>
+                                            {{ __('adminlte::adminlte.delete') ?: 'Delete' }}
                                         </button>
                                     @endif
                                 @else
@@ -175,15 +296,17 @@
                                               method="POST"
                                               onsubmit="return confirm(@json(__('adminlte::adminlte.do_you_want_to_reactive') ?: 'Reactivate?'))">
                                             @csrf @method('PUT')
-                                            <button type="submit" class="btn btn-warning btn-sm action-btn">
-                                                <i class="fas fa-undo me-1"></i>  {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
+                                            <button type="submit" class="btn btn-warning btn-sm lw-action-btn">
+                                                <i class="fas fa-undo"></i>
+                                                {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn btn-warning btn-sm action-btn"
+                                        <button class="btn btn-warning btn-sm lw-action-btn"
                                                 wire:click="reactivate({{ $row->id }})"
                                                 onclick="return confirm(@json(__('adminlte::adminlte.do_you_want_to_reactive') ?: 'Reactivate?'))">
-                                            <i class="fas fa-undo me-1"></i>  {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
+                                            <i class="fas fa-undo"></i>
+                                            {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
                                         </button>
                                     @endif
                                 @endif
@@ -197,31 +320,19 @@
                         </td>
                     </tr>
                 @endforelse
+
+                {{-- Pagination INSIDE table as a full-width row --}}
+                @if (method_exists($rows, 'hasPages') && $rows->hasPages())
+                    <tr>
+                        <td colspan="{{ count($fields) + 2 }}">
+                            <div class="mt-2 d-flex justify-content-end">
+                                {{ $rows->links('pagination::bootstrap-4') }}
+                            </div>
+                        </td>
+                    </tr>
+                @endif
                 </tbody>
             </table>
-        </div>
-
-        {{-- Pagination --}}
-        @if (method_exists($rows, 'hasPages') && $rows->hasPages())
-            <div class="mt-3 d-flex justify-content-end">
-                {{ $rows->links('pagination::bootstrap-4') }}
-            </div>
-        @endif
-
-        {{-- Details Modal --}}
-        <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
-            <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ __('adminlte::adminlte.details') ?: 'Details' }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') ?: 'Close' }}"></button>
-                    </div>
-                    <div id="detailsModalBody" class="modal-body">{!! $detailsHtml !!}</div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('adminlte::adminlte.close') ?: 'Close' }}</button>
-                    </div>
-                </div>
-            </div>
         </div>
 
     </x-adminlte-card>

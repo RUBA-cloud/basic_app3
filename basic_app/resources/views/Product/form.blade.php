@@ -1,34 +1,26 @@
 {{-- resources/views/product/_form.blade.php --}}
+@section('plugins.Select2', true)
 
 @php
-    /**
-     * Inputs:
-     *  - $action (route)
-     *  - $method ('POST'|'PUT'|'PATCH')
-     *  - $product (Model|null)
-     *  - $categories, $types, $additionals, $sizes (Collections)
-     * Optional Pusher (same as order_status):
-     *  - $pusher_key, $pusher_cluster
-     *  - $channel (default 'products')
-     *  - $events  (default ['product_updated'])
-     */
     $productObj = $product ?? null;
     $httpMethod = strtoupper($method ?? 'POST');
     $isAr       = app()->getLocale() === 'ar';
-$pusher_key     = config('broadcasting.connections.pusher.key');
-$pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
 
+    $broadcast = $broadcast ?? [
+        'channel' => 'products',
+        'events'  => ['product_updated'],
+    ];
 
+    $oldAdditional = collect(old('additional', data_get($productObj,'additional_ids', [])));
+    $oldSizes      = collect(old('sizes', data_get($productObj,'size_ids', [])));
 @endphp
 
 <form id="product-form"
       method="POST"
       action="{{ $action }}"
       enctype="multipart/form-data"
-      data-channel="{{ $channel ?? 'products' }}"
-      data-events='@json($events ?? ["product_updated"])'
-      data-pusher-key="{{ $pusher_key ?? '' }}"
-      data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
+      data-channel="{{ $broadcast['channel'] }}"
+      data-events='@json($broadcast["events"])'>
     @csrf
     @unless(in_array($httpMethod, ['GET','POST']))
         @method($httpMethod)
@@ -38,7 +30,7 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
         <input type="hidden" name="id" value="{{ $productObj->id }}">
     @endif
 
-    {{-- Errors --}}
+    {{-- Validation Errors --}}
     @if ($errors->any())
         <div class="alert alert-danger mb-3">
             <ul class="mb-0">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
@@ -82,7 +74,7 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
         {{-- Category --}}
         <div class="col-md-6 mb-3">
             <label for="category_id">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.category') }}</label>
-            <select name="category_id" id="category_id" class="form-control" required>
+            <select name="category_id" id="category_id" class="form-control custom-select2" required>
                 <option value="">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.category') }}</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}"
@@ -96,7 +88,7 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
         {{-- Type --}}
         <div class="col-md-6 mb-3">
             <label for="type_id">{{ __('adminlte::adminlte.type') }}</label>
-            <select name="type_id" id="type_id" class="form-control select2" required>
+            <select name="type_id" id="type_id" class="form-control custom-select2" required>
                 <option value="">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.type') }}</option>
                 @foreach($types as $type)
                     <option value="{{ $type->id }}"
@@ -107,11 +99,10 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
             </select>
         </div>
 
-        {{-- Additional (multi) --}}
+        {{-- Additional (multiple Select2) --}}
         <div class="col-md-6 mb-3">
             <label for="additional">{{ __('adminlte::adminlte.additional') }}</label>
-            @php $oldAdditional = collect(old('additional', data_get($productObj,'additional_ids', []))); @endphp
-            <select name="additional[]" id="additional" class="form-control select2" multiple >
+            <select name="additional[]" id="additional" class="form-control custom-select2" multiple>
                 @foreach($additionals as $additional)
                     <option value="{{ $additional->id }}" {{ $oldAdditional->contains($additional->id) ? 'selected' : '' }}>
                         {{ $isAr ? ($additional->name_ar ?? $additional->name_en) : $additional->name_en }}
@@ -120,46 +111,16 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
             </select>
         </div>
 
-        {{-- Sizes (multi) --}}
-<div class="col-md-6 mb-3">
+        {{-- Sizes (multiple Select2) --}}
+        <div class="col-md-6 mb-3">
             <label for="sizes">{{ __('adminlte::adminlte.select') }} {{ __('adminlte::adminlte.size') }}</label>
-            @php $oldSizes = collect(old('sizes', data_get($productObj,'size_ids', []))); @endphp
-            <select name="sizes[]" id="sizes" class="form-control select2" multiple required>
+            <select name="sizes[]" id="sizes" class="form-control custom-select2" multiple required>
                 @foreach($sizes as $size)
                     <option value="{{ $size->id }}" {{ $oldSizes->contains($size->id) ? 'selected' : '' }}>
                         {{ $isAr ? ($size->name_ar ?? $size->name_en) : $size->name_en }}
                     </option>
                 @endforeach
             </select>
-        </div>
-
-        {{-- Colors --}}
-        <div class="col-12 mb-3">
-            <label>{{ __('adminlte::adminlte.colors') }}</label>
-            <div id="colorInputs">
-                @php
-                    $initialColors = old('colors', data_get($productObj,'colors', []));
-                    $initialColors = is_array($initialColors) ? $initialColors : [];
-                    if (!count($initialColors)) { $initialColors = ['#000000']; }
-                @endphp
-                @foreach($initialColors as $c)
-                    <div class="input-group mb-2">
-                        <input type="color" name="colors[]" class="form-control form-control-color" value="{{ $c }}" style="max-width:80px;">
-                        <button type="button" class="btn btn-outline-danger remove-color">{{ __('adminlte::adminlte.Delete') }}</button>
-                    </div>
-                @endforeach
-            </div>
-            <button type="button" id="addColor" class="btn btn-sm btn-success">
-                {{ __('adminlte::adminlte.add') }} {{ __('adminlte::adminlte.colors') }}
-            </button>
-        </div>
-
-        {{-- Images --}}
-        <div class="col-12 mb-3">
-            <label>{{ __('adminlte::adminlte.image') }}</label><br>
-            <input type="file" id="imagesInput" name="images[]" accept="image/*" multiple hidden>
-            <button type="button" class="btn btn-sm btn-primary mb-2" id="chooseImages">{{ __('adminlte::adminlte.choose_file') }}</button>
-            <div id="imagePreview" class="d-flex flex-wrap"></div>
         </div>
 
         {{-- Is Active --}}
@@ -182,177 +143,68 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     />
 </form>
 
-@once
-    {{-- Echo + Pusher (CDN) --}}
-    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8/dist/web/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
-    {{-- Select2 (if not already included in your layout) --}}
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-@endonce
+@push('css')
+<style>
+/* === Custom Multi Select2 Styling === */
+.select2-container--bootstrap4 .select2-selection--multiple {
+    min-height: 42px;
+    border: 1px solid #ced4da !important;
+    border-radius: 8px !important;
+    padding: 4px 6px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    transition: all 0.2s ease;
+}
 
-{{-- Use a SECTION (works with AdminLTE) to avoid the push/stack error --}}
-@section('js')
+.select2-container--bootstrap4.select2-container--focus .select2-selection--multiple {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 0.15rem rgba(0,123,255,.25);
+}
+
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+    background-color: #0069d9 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 3px 10px !important;
+    margin: 3px 5px 3px 0 !important;
+    font-size: 0.85rem !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice:hover {
+    background-color: #0056b3 !important;
+}
+
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove {
+    color: #fff !important;
+    margin-right: 4px !important;
+    cursor: pointer;
+}
+</style>
+@endpush
+
+@push('js')
 <script>
-(function () {
-    const form = document.getElementById('product-form');
-    if (!form) return;
+$(document).ready(function () {
+  const isRtl = @json($isAr);
 
-    const isAr = {{ json_encode($isAr) }};
-
-    // ----- Select2 init (RTL-aware) -----
-    $('.select2').each(function () {
-        const $el = $(this);
-        if ($el.data('select2')) return;
-        $el.select2({
-            theme: 'bootstrap4',
-            width: '100%',
-            dir: isAr ? 'rtl' : 'ltr',
-            dropdownAutoWidth: true,
-            placeholder: $el.attr('placeholder') || @json(__('adminlte::adminlte.select'))
-        });
-        if ($el.hasClass('is-invalid')) {
-            $el.next('.select2-container').find('.select2-selection').addClass('is-invalid');
-        }
+  // initialize select2 for all
+  $('.custom-select2').each(function () {
+    const $el = $(this);
+    if ($el.data('select2')) return;
+    $el.select2({
+      theme: 'bootstrap4',
+      width: '100%',
+      dir: isRtl ? 'rtl' : 'ltr',
+      allowClear: true,
+      placeholder: $el.attr('placeholder') || @json(__('adminlte::adminlte.select')),
     });
-
-    // ----- Colors add/remove -----
-    const addColorBtn = document.getElementById('addColor');
-    const colorInputs = document.getElementById('colorInputs');
-    addColorBtn?.addEventListener('click', () => {
-        const g = document.createElement('div');
-        g.className = 'input-group mb-2';
-        g.innerHTML = `
-            <input type="color" name="colors[]" class="form-control form-control-color" style="max-width:80px;">
-            <button type="button" class="btn btn-outline-danger remove-color">{{ __('adminlte::adminlte.Delete') }}</button>
-        `;
-        colorInputs.appendChild(g);
-    });
-    colorInputs?.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-color')) e.target.closest('.input-group').remove();
-    });
-
-    // ----- Image preview -----
-    const chooseImagesBtn = document.getElementById('chooseImages');
-    const imagesInput    = document.getElementById('imagesInput');
-    const imagePreview   = document.getElementById('imagePreview');
-    chooseImagesBtn?.addEventListener('click', () => imagesInput.click());
-    imagesInput?.addEventListener('change', () => {
-        imagePreview.innerHTML = '';
-        Array.from(imagesInput.files).forEach((file) => {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                const wrap = document.createElement('div');
-                wrap.className = 'position-relative me-2 mb-2';
-                wrap.innerHTML = `
-                    <img src="${ev.target.result}" style="width:100px;height:100px;object-fit:cover;border:1px solid #ddd;border-radius:8px;">
-                `;
-                imagePreview.appendChild(wrap);
-            };
-            reader.readAsDataURL(file);
-        });
-    });
-
-    // ----- Pusher/Echo (same as order_status) -----
-    const ds = form.dataset;
-    const pusherKey     = ds.pusherKey || (document.querySelector('meta[name="pusher-key"]')?.content || '');
-    const pusherCluster = ds.pusherCluster || (document.querySelector('meta[name="pusher-cluster"]')?.content || '');
-    const channelName   = ds.channel || 'products';
-    let events = [];
-    try { events = JSON.parse(ds.events || '[]'); } catch (_) { events = []; }
-    if (!Array.isArray(events) || events.length === 0) events = ['product_updated'];
-
-    if (!pusherKey || !pusherCluster) {
-        console.warn('[product-form] Missing Pusher key/cluster. Provide data-pusher-key/cluster or meta fallbacks.');
-        return;
-    }
-
-    if (!window.Echo) {
-        try {
-            window.Echo = new Echo({
-                broadcaster: 'pusher',
-                key: pusherKey,
-                cluster: pusherCluster,
-                forceTLS: true,     // set false if using ws locally
-                enabledTransports: ['ws','wss'],
-            });
-        } catch (e) {
-            console.error('[product-form] Echo init failed:', e);
-            return;
-        }
-    }
-
-    const channel = window.Echo.channel(channelName);
-    if (!channel) {
-        console.error('[product-form] Cannot subscribe to channel:', channelName);
-        return;
-    }
-
-    function setSelectValues(selectEl, values){
-        const vals = Array.isArray(values) ? values.map(String) : [String(values)];
-        $(selectEl).val(vals).trigger('change');
-    }
-
-    function rebuildColors(colors){
-        if (!Array.isArray(colors)) return;
-        colorInputs.innerHTML = '';
-        colors.forEach(c => {
-            const g = document.createElement('div');
-            g.className = 'input-group mb-2';
-            g.innerHTML = `
-                <input type="color" name="colors[]" class="form-control form-control-color" style="max-width:80px;" value="${c || '#000000'}">
-                <button type="button" class="btn btn-outline-danger remove-color">{{ __('adminlte::adminlte.Delete') }}</button>
-            `;
-            colorInputs.appendChild(g);
-        });
-    }
-
-    function applyPayloadToForm(payload) {
-        if (!payload || typeof payload !== 'object') return;
-
-        // Simple inputs & checkboxes first
-        Object.entries(payload).forEach(([name, value]) => {
-            if (['additional','sizes','colors'].includes(name)) return; // handled below
-            const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
-            if (!nodes.length) return;
-
-            nodes.forEach((el) => {
-                const type = (el.getAttribute('type') || el.tagName).toLowerCase();
-                if (type === 'radio') {
-                    el.checked = (String(el.value) === String(value));
-                } else if (type === 'checkbox') {
-                    el.checked = Boolean(value) && String(value) !== '0';
-                } else {
-                    el.value = (value ?? '');
-                }
-            });
-        });
-
-        // Multi-selects & arrays
-        if ('additional' in payload) {
-            const el = form.querySelector('#additional'); if (el) setSelectValues(el, payload.additional);
-        }
-        if ('sizes' in payload) {
-            const el = form.querySelector('#sizes'); if (el) setSelectValues(el, payload.sizes);
-        }
-        if ('colors' in payload) {
-            rebuildColors(payload.colors);
-        }
-    }
-
-    events.forEach((evt) => {
-        channel.listen('.' + evt, (e) => {
-            // Expected payload keys:
-            // { id, name_en, name_ar, description_en, description_ar, price,
-            //   category_id, type_id, additional:[ids], sizes:[ids], colors:[hex], is_active:1 }
-            const payload = e?.payload || e;
-            applyPayloadToForm(payload);
-
-            form.classList.add('border','border-success');
-            setTimeout(() => form.classList.remove('border','border-success'), 800);
-        });
-    });
-
-    console.info('[product-form] Listening on', channelName, 'events:', events);
-})();
+  });
+});
 </script>
-@endsection
+@endpush

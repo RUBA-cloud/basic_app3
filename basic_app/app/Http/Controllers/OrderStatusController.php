@@ -16,7 +16,7 @@ class OrderStatusController extends Controller
     {
         $order_statuses = OrderStatus::with('user')
             ->orderByDesc('id')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('order_status.index', compact('order_statuses'));
     }

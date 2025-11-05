@@ -29,7 +29,8 @@ class Module extends Model
         'order_status_module',
         'region_module',
         'company_delivery_module',
-        'payment_module'
+        'payment_module',
+        'additional_module'
     ];
 
     protected $fillable = [
@@ -51,6 +52,9 @@ class Module extends Model
         'product_module'             => 'boolean',
         'employee_module'            => 'boolean',
         'order_module'               => 'boolean',
+      'additional_module'            => 'boolean',
+
+
     ];
 
     // ---------- Relations ----------

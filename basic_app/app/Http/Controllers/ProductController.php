@@ -23,11 +23,11 @@ class ProductController extends Controller
     public function index($isHistory = false)
     {
         if ($isHistory) {
-            $products = ProductHistory::with('user')->latest()->paginate(10);
+            $products = ProductHistory::with('user')->latest()->paginate(5);
             return view('Product.history', compact('products'));
         }
 
-        $products = Product::with('user')->where('is_active', 1)->latest()->paginate(10);
+        $products = Product::with('user')->where('is_active', 1)->latest()->paginate(5);
         return view('Product.index', compact('products'));
     }
 
@@ -49,7 +49,7 @@ class ProductController extends Controller
              ->orWhere('description_en', 'like', '%' . $searchTerm . '%')->orWhere('description_en', 'like', '%' . $searchTerm . '%')
 
         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->paginate(5);
 
         return view('product.index', compact('products'));
 
@@ -63,7 +63,7 @@ class ProductController extends Controller
              ->orWhere('description_en', 'like', '%' . $searchTerm . '%')->orWhere('description_en', 'like', '%' . $searchTerm . '%')
 
         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->paginate(5);
 
           return view('product.history',compact('products'));
 

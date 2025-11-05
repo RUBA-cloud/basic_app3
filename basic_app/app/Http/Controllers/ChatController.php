@@ -60,7 +60,7 @@ class ChatController extends Controller
         }
 
         // Oldest first
-        $messages = $q->orderBy('created_at', 'asc')->paginate(30);
+        $messages = $q->orderBy('created_at', 'asc')->get();
 
         // ===== Mark unread as read if a specific thread is opened =====
         if ($filteredUserId) {
@@ -136,6 +136,7 @@ class ChatController extends Controller
 
         // 1) Broadcast the chat message to chat channels
         try {
+
             broadcast(new MessageSent($msg))->toOthers();
         } catch (Throwable $e) {
             // optional: return back()->with('error', $e->getMessage());

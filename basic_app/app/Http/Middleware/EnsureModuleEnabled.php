@@ -14,10 +14,11 @@ class EnsureModuleEnabled
     public function handle(Request $request, Closure $next, string $featureKey): Response
     {
         $user = $request->user();
+        if($user->role!="admin"){
         if (!$user || !$user->hasModuleFeature($featureKey)) {
             abort(403, "Module disabled: {$featureKey}");
         }
-
+    }
         return $next($request);
     }
 }

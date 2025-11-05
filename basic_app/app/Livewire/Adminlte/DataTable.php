@@ -31,6 +31,9 @@ class DataTable extends Component
     public string $orderBy  = 'id';
     public string $orderDir = 'desc';
 
+    /** Where to show pagination: in table row (true) */
+    public bool $paginationInTable = true;
+
     /** State */
     public string  $search = '';
     public ?string $initialRouteUrl = null;
@@ -68,6 +71,10 @@ class DataTable extends Component
 
         ?int $perPage = null,
         ?int $per_page = null,
+
+        // Pagination placement (optional external control)
+        ?bool $paginationInTable = True,
+        ?bool $pagination_in_table = TRUE,
     ): void {
         $this->fields = $fields;
         $this->model  = $model;
@@ -85,6 +92,11 @@ class DataTable extends Component
 
         // Per-page
         $this->perPage = $perPage ?? $per_page ?? $this->perPage;
+
+        // Pagination placement (default true = inside table row)
+        $this->paginationInTable = $paginationInTable
+            ?? $pagination_in_table
+            ?? $this->paginationInTable;
 
         // Resolve initial route to absolute URL (accept route name OR absolute/relative URL)
         if ($this->initialRoute) {
@@ -133,11 +145,12 @@ class DataTable extends Component
 
         $collection = $q->with($relations)
             ->orderBy($this->orderBy, $this->orderDir)
-            ->paginate($this->perPage)
+            ->paginate(4)
             ->withQueryString();
 
         return view('livewire.adminlte.data-table', [
-            'rows' => $collection,
+            'rows'              => $collection,
+            'paginationInTable' => $this->paginationInTable,
         ]);
     }
 

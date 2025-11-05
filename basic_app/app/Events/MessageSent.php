@@ -1,16 +1,15 @@
 <?php
-// app/Events/MessageSent.php
 
 namespace App\Events;
 
 use App\Models\ChatMessage;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow; // ✅ use ShouldBroadcastNow for instant push
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,15 +17,16 @@ class MessageSent implements ShouldBroadcast
 
     public function __construct(ChatMessage $message)
     {
-        // Ensure relations are available for broadcast payload (optional)
+        // Preload relationships so Pusher payload includes sender/receiver info
         $this->message = $message->loadMissing([
             'sender:id,name,avatar_path',
             'receiver:id,name,avatar_path',
         ]);
+
     }
 
     /**
-     * Broadcast on *both* participants' private channels.
+     * Broadcast on *both* sender & receiver private channels.
      */
     public function broadcastOn(): array
     {
@@ -37,7 +37,7 @@ class MessageSent implements ShouldBroadcast
     }
 
     /**
-     * Custom event name clients will bind to.
+     * The event name that the frontend listens to.
      */
     public function broadcastAs(): string
     {
@@ -45,31 +45,33 @@ class MessageSent implements ShouldBroadcast
     }
 
     /**
-     * Keep payload compact & UI-friendly.
+     * The data sent to the client.
      */
     public function broadcastWith(): array
     {
         return [
-            'id'         => $this->message->id,
-            'message'    => $this->message->message,
-            'created_at' => optional($this->message->created_at)->toIso8601String(),
+            'message' => [
+                'id'          => $this->message->id,
+                'message'     => $this->message->message,
+                'sender_id'   => $this->message->sender_id,
+                'receiver_id' => $this->message->receiver_id,
+                'created_at'  => optional($this->message->created_at)->toIso8601String(),
 
-            'sender' => [
-                'id'          => $this->message->sender_id,
-                'name'        => $this->message->sender?->name,
-                'avatar_path' => $this->message->sender?->avatar_path,
-            ],
-
-            'receiver' => [
-                'id'          => $this->message->receiver_id,
-                'name'        => $this->message->receiver?->name,
-                'avatar_path' => $this->message->receiver?->avatar_path,
+                // Include sender/receiver details for UI rendering
+                'sender' => [
+                    'id'          => $this->message->sender->id,
+                    'name'        => $this->message->sender->name,
+                    'avatar_path' => $this->message->sender->avatar_path,
+                ],
+                'receiver' => [
+                    'id'          => $this->message->receiver->id,
+                    'name'        => $this->message->receiver->name,
+                    'avatar_path' => $this->message->receiver->avatar_path,
+                ],
             ],
         ];
     }
 
-    /**
-     * (Optional) Put on a specific queue.
-     */
+    // Optional queue if you prefer async (remove Now above if used)
     // public string $broadcastQueue = 'broadcasts';
 }

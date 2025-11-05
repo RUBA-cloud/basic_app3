@@ -18,7 +18,7 @@ class RegionController extends Controller
     {
         $regions = Region::with('user')
 
-            ->paginate(10);
+            ->paginate(5);
 
         return view('region.index', compact('regions'));
     }

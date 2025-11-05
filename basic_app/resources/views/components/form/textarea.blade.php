@@ -1,5 +1,5 @@
 @props([
-    'id',
+
     'name',
     'label',
     'value' => '',
@@ -7,13 +7,12 @@
     'type'=>'text'
 ])
 <div style="margin-bottom: 22px;">
-    <label for="{{ $id }}" style="display: block;" dir="{{$dir}}">
+    <label  style="display: block;" dir="{{$dir}}">
         {{ $label }}
     </label>
 
     <x-adminlte-input class="textarea"
         type="{{ $type }}"
-        id="{{ $id }}"
         name="{{ $name }}"
         dir="{{$dir}}"
         value="{{old($name, $value) }}"

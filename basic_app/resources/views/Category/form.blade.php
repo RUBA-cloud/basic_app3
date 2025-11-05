@@ -1,13 +1,25 @@
 {{-- resources/views/categories/_form.blade.php --}}
-{{-- expects: $action (string), $method ('POST'|'PUT'|'PATCH'), $branches (Collection), optional $category (model|null) --}}
+{{-- expects: $action (string), $method ('POST'|'PUT'|'PATCH'), $branches (Collection), optional $category (model|null), optional $broadcast --}}
+
+@section('plugins.Select2', true)
 
 @php
-    // Prefer config() here (env() is for config files)
+    $category = $category ?? null;
+
+    // Broadcasting setup (for live updates)
     $broadcast = $broadcast ?? [
         'channel'        => 'categories',
         'events'         => ['category_updated'],
         'pusher_key'     => config('broadcasting.connections.pusher.key'),
         'pusher_cluster' => config('broadcasting.connections.pusher.options.cluster', 'mt1'),
+    ];
+
+    // Select2 configuration
+    $select2Config = [
+        'theme'       => 'bootstrap4',
+        'width'       => '100%',
+        'placeholder' => __('adminlte::adminlte.select') . ' ' . __('adminlte::adminlte.branches'),
+        'allowClear'  => true,
     ];
 @endphp
 
@@ -16,9 +28,7 @@
       enctype="multipart/form-data"
       id="category-form"
       data-channel="{{ $broadcast['channel'] }}"
-      data-events='@json($broadcast['events'])'
-      data-pusher-key="{{ $broadcast['pusher_key'] }}"
-      data-pusher-cluster="{{ $broadcast['pusher_cluster'] }}">
+      data-events='@json($broadcast['events'])'>
     @csrf
     @unless (in_array(strtoupper($method), ['GET', 'POST']))
         @method($method)
@@ -37,195 +47,184 @@
 
     {{-- Category Image --}}
     <x-upload-image
-        :image="$category->image ?? null"
+        :image="optional($category)->image"
         label="{{ __('adminlte::adminlte.image') }}"
         name="image"
         id="image"
     />
 
-    {{-- Category Name English --}}
+    {{-- Name (English) --}}
     <x-form.textarea
         id="name_en"
         name="name_en"
         label="{{ __('adminlte::adminlte.name_en') }}"
-        :value="old('name_en', $category->name_en ?? '')"
+        :value="old('name_en', optional($category)->name_en)"
         rows="1"
     />
+    @error('name_en') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
 
-    {{-- Category Name Arabic --}}
+    {{-- Name (Arabic) --}}
     <x-form.textarea
         id="name_ar"
         name="name_ar"
         label="{{ __('adminlte::adminlte.name_ar') }}"
         dir="rtl"
-        :value="old('name_ar', $category->name_ar ?? '')"
+        :value="old('name_ar', optional($category)->name_ar)"
         rows="1"
     />
+    @error('name_ar') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
 
-    {{-- Category Branch Selection (Multiple) --}}
+    {{-- Branches (Multiple Select2) --}}
     @php
         $oldSelected = collect(
-            old('branch_ids', isset($category) ? ($category->branches->pluck('id')->all() ?? []) : [])
-        )->map(fn($v)=>(int)$v);
+            old('branch_ids', $category?->branches?->pluck('id')->all() ?? [])
+        )->map(fn($v) => (int) $v);
     @endphp
-    <div class="form-group" style="margin-bottom: 20px;">
-        <label for="branch_ids" style="display:block;margin-bottom:8px;font-weight:600;">
+
+    <div class="form-group mb-3">
+        <label for="branch_ids" class="font-weight-bold mb-2 text-muted">
             {{ __('adminlte::adminlte.branches') }}
         </label>
-        <select name="branch_ids[]" id="branch_ids" class="form-control select" multiple required style="width:100%;">
-            @foreach($branches as $branch)
+
+        <select
+            id="branch_ids"
+            name="branch_ids[]"
+            multiple="multiple"
+            :config="$select2Config"
+            class="form-control custom-select2"
+        >
+            @foreach ($branches as $branch)
                 <option value="{{ $branch->id }}"
-                    {{ $oldSelected->contains((int)$branch->id) ? 'selected' : '' }}>
-                    {{ app()->getLocale() === 'ar' ? $branch->name_ar : $branch->name_en }}
+                    {{ $oldSelected->contains((int) $branch->id) ? 'selected' : '' }}>
+                    {{ app()->isLocale('ar')
+                        ? ($branch->name_ar ?? $branch->name_en)
+                        : $branch->name_en }}
                 </option>
             @endforeach
         </select>
+
+        @error('branch_ids')
+            <small class="text-danger d-block mt-1">{{ $message }}</small>
+        @enderror
     </div>
 
-    {{-- Is Active --}}
-    <div class="form-group" style="margin: 20px 0;">
+    {{-- Active Checkbox --}}
+    <div class="form-group mt-3">
         <input type="hidden" name="is_active" value="0">
-        <input
-            type="checkbox"
-            id="is_active"
-            name="is_active"
-            value="1"
-            {{ old('is_active', isset($category) ? (int)$category->is_active : 0) ? 'checked' : '' }}
-        />
-        <label for="is_active">{{ __('adminlte::adminlte.is_active') }}</label>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
+                   {{ old('is_active', (int) optional($category)->is_active) ? 'checked' : '' }}>
+            <label class="form-check-label" for="is_active">
+                {{ __('adminlte::adminlte.is_active') }}
+            </label>
+        </div>
     </div>
+    @error('is_active') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
 
-    {{-- Submit --}}
+    {{-- Submit Button --}}
     <x-adminlte-button
-        :label="isset($category) ? __('adminlte::adminlte.update_information') : __('adminlte::adminlte.save_information')"
+        :label="$category
+            ? __('adminlte::adminlte.update_information')
+            : __('adminlte::adminlte.save_information')"
         type="submit"
         theme="success"
-        class="full-width-btn"
+        class="w-100 mt-3"
         icon="fas fa-save"
     />
 </form>
 
-@once
-    {{-- Pusher loader (optional; you can also include globally) --}}
-    <script>
-    (function loadPusherOnce(){
-        if (window._pusherLoaderAdded) return;
-        window._pusherLoaderAdded = true;
-        const s = document.createElement('script');
-        s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-        s.async = true;
-        document.head.appendChild(s);
-    })();
-    </script>
-@endonce
+@push('css')
+<style>
+/* === Custom Multi Select2 Design === */
 
-@section('js')
+.select2-container--bootstrap4 .select2-selection--multiple {
+    min-height: 42px;
+    border: 1px solid #ced4da !important;
+    border-radius: 8px !important;
+    padding: 4px 6px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+/* Focused border */
+.select2-container--bootstrap4.select2-container--focus .select2-selection--multiple {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 0.15rem rgba(0,123,255,.25);
+}
+
+/* Tag chips */
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+    background-color: #0069d9 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 3px 10px !important;
+    margin: 3px 5px 3px 0 !important;
+    font-size: 0.85rem !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color 0.2s ease;
+}
+
+/* Hover effect */
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice:hover {
+    background-color: #0056b3 !important;
+}
+
+/* Remove (x) icon */
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove {
+    color: #fff !important;
+    font-weight: bold !important;
+    margin-right: 5px !important;
+    cursor: pointer;
+}
+
+/* Placeholder style */
+.select2-container--bootstrap4 .select2-selection__placeholder {
+    color: #adb5bd !important;
+}
+
+/* Dropdown styling */
+.select2-container--bootstrap4 .select2-dropdown {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Highlighted option */
+.select2-container--bootstrap4 .select2-results__option--highlighted {
+    background-color: #007bff !important;
+    color: #fff !important;
+}
+
+/* RTL support */
+[dir="rtl"] .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+    direction: rtl;
+}
+</style>
+@endpush
+
+@push('js')
 <script>
-(function(){
-  'use strict';
-  const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : s;
+document.addEventListener('DOMContentLoaded', function () {
+  const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
 
-  // Small helpers
-  const setField = (name, value) => {
-    if (value === undefined || value === null) return;
-    const el = document.querySelector(`[name="${esc(name)}"]`);
-    if (!el) return;
-    el.value = value;
-    el.dispatchEvent(new Event('input',  { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-
-  const setCheckbox = (name, isOn) => {
-    const el = document.querySelector(`[name="${esc(name)}"]`);
-    if (!el) return;
-    el.checked = !!Number(isOn);
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-
-  const setMultiSelect = (name, values = []) => {
-    const el = document.getElementById('branch_ids') || document.querySelector(`[name="${esc(name)}[]"]`);
-    if (!el) return;
-    const want = (values || []).map(v => String(v));
-    Array.from(el.options).forEach(opt => { opt.selected = want.includes(String(opt.value)); });
-    if (window.jQuery && jQuery(el).hasClass('select')) {
-      jQuery(el).trigger('change.select2');
-    } else {
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  };
-
-  const previewImage = (url) => {
-    const img = document.querySelector('#image-preview, [data-role="image-preview"]');
-    if (img && url) img.src = url;
-  };
-
-  // Apply incoming payload
-  const applyPayload = (payload) => {
-    const c = payload?.category ?? payload ?? {};
-    setField('name_en',  c.name_en);
-    setField('name_ar',  c.name_ar);
-    setCheckbox('is_active', c.is_active);
-
-    const ids = c.branch_ids || (Array.isArray(c.branches) ? c.branches.map(b => b.id) : []);
-    setMultiSelect('branch_ids', ids);
-
-    previewImage(c.image_url || c.image);
-
-    if (window.toastr) { try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_){} }
-    console.log('[categories] form updated', c);
-  };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('category-form');
-    if (!form) return;
-
-    const channel = form.dataset.channel || 'categories';
-    let events;
-    try { events = JSON.parse(form.dataset.events || '["category_updated"]'); }
-    catch { events = ['category_updated']; }
-    if (!Array.isArray(events) || events.length === 0) events = ['category_updated'];
-
-    // ORDER OF FALLBACKS: data-* → <meta> → server-rendered config from PHP
-    const dataKey     = form.dataset.pusherKey || '';
-    const dataCluster = form.dataset.pusherCluster || '';
-    const metaKey     = document.querySelector('meta[name="pusher-key"]')?.content || '';
-    const metaCluster = document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-    const cfgKey      = @json($broadcast['pusher_key'] ?? '');
-    const cfgCluster  = @json($broadcast['pusher_cluster'] ?? 'mt1');
-
-    const key     = dataKey     || metaKey     || cfgKey;
-    const cluster = dataCluster || metaCluster || cfgCluster;
-
-    if (!key || !cluster) {
-      console.warn('[categories] Missing Pusher key/cluster. Provide data-pusher-key/data-pusher-cluster or <meta> tags or config/broadcasting.php');
-      return;
-    }
-
-    // Wait for Pusher to load if not yet present
-    const ensurePusher = () => new Promise((resolve, reject) => {
-      if (window.Pusher) return resolve();
-      const check = setInterval(() => {
-        if (window.Pusher) { clearInterval(check); resolve(); }
-      }, 50);
-      setTimeout(() => { clearInterval(check); if (!window.Pusher) reject(new Error('Pusher JS not loaded')); }, 5000);
-    });
-
-    ensurePusher()
-      .then(() => {
-        // eslint-disable-next-line no-undef
-        const pusher = new Pusher(key, { cluster, forceTLS: true });
-        const ch = pusher.subscribe(channel);
-
-        events.forEach(ev => {
-          ch.bind(ev,               e => applyPayload(e));
-          ch.bind(ev.toLowerCase(), e => applyPayload(e));
-          ch.bind('.' + ev,         e => applyPayload(e));
-        });
-
-        console.info(`[categories] Pusher listening on "${channel}" for`, events);
-      })
-      .catch((e) => console.error('[categories] Failed to init Pusher:', e));
+  // Initialize Select2
+  $('.custom-select2').select2({
+    theme: 'bootstrap4',
+    width: '100%',
+    dir: isRtl ? 'rtl' : 'ltr',
+    placeholder: @json(__('adminlte::adminlte.select') . ' ' . __('adminlte::adminlte.branches')),
+    allowClear: true,
   });
-})();
+
+  // Improve spacing dynamically
+  $('.custom-select2').on('select2:open', function() {
+    $('.select2-search__field').attr('placeholder', @json(__('adminlte::adminlte.search')));
+  });
+});
 </script>
-@endsection
+@endpush

@@ -1,99 +1,155 @@
+{{-- resources/views/order_status/show.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('adminlte::adminlte.orderStatus'))
+@section('title', __('adminlte::adminlte.order_status'))
 
 @section('content')
-<div class="container py-4">
+<div class="row justify-content-center">
+    <div class="col-md-10">
 
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h4 mb-0 text-dark fw-bold">
-            <i class="fas fa-code-branch me-2 text-primary"></i>
-            @if (app()->getLocale() === 'ar')
-                {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.orderStatus') }}
-            @else
-                {{ __('adminlte::adminlte.orderStatus') }} {{ __('adminlte::adminlte.details') }}
-            @endif
-        </h2>
+        <x-adminlte-card title="{{ __('adminlte::adminlte.order_status') }}"
+                         theme="info"
+                         icon="fas fa-info-circle"
+                         collapsible>
 
-    {{-- Card --}}
-    <x-adminlte-card theme="light" theme-mode="outline" class="shadow-sm">
-
-            {{-- Details --}}
-            <div class="col-lg-8 col-md-7">
-                <div class="row gy-3">
-
-                    {{-- Branch Name EN --}}
-                    <div class="col-12">
-                        <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
-                        <div class="fs-5 fw-bold text-dark">{{ $orderStatus->name_en }}</div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>{{ __('adminlte::adminlte.name_en')}}:</strong>
+                    <div id="order-status-name-en"
+                         class="form-control-plaintext">
+                        {{ $orderStatus->name_en ?? '-' }}
                     </div>
-
-                    {{-- Branch Name AR --}}
-                    <div class="col-12">
-                        <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
-                        <div class="fs-5 fw-bold text-dark">{{ $orderStatus->name_ar }}</div>
+                </div>
+                <div class="col-md-6">
+                    <strong>{{ __('adminlte::adminlte.name_ar')}}:</strong>
+                    <div id="order-status-name-ar"
+                         class="form-control-plaintext">
+                        {{ $orderStatus->name_ar ?? '-' }}
                     </div>
-
-                    {{-- Status --}}
-                    <div class="col-12">
-                        @if($orderStatus->is_active)
-                            <span class="badge bg-success px-3 py-2">
-                                <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
-                            </span>
-                        @else
-                            <span class="badge bg-danger px-3 py-2">
-                                <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
-                            </span>
-                        @endif
-                    </div>
-
-                    {{-- Addresses --}}
-                    <div class="col-md-6">
-                        <small class="text-muted">{{ __('adminlte::adminlte.company_address_en') }}</small>
-                        <div class="fw-semibold">{{ $orderStatus->address_en ?? '-' }}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <small class="text-muted">{{ __('adminlte::adminlte.company_address_ar') }}</small>
-                        <div class="fw-semibold">{{ $orderStatus->address_ar ?? '-' }}</div>
-                    </div>
-
-                    {{-- Branches --}}
-                    <div class="col-12">
-                        <h6 class="font-weight-bold text-secondary">{{ __('adminlte::menu.branches') }}</h6>
-                        @if($orderStatus->branches->count())
-                            <ul class="list-unstyled ps-2">
-                                @foreach($orderStatus->branches as $branch)
-                                    <li>
-                                        <a href="{{ route('companyBranch.show', $branch->id) }}" class="text-primary fw-bold">
-                                            @if(app()->getLocale()=="ar")
-                                             <i class="fas fa-code-branch me-1"></i> {{ $branch->name_ar}}@else
-                                            <i class="fas fa-code-branch me-1"></i> {{ $branch->name_en }}
-
-                                            @endif
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-muted">{{ __('adminlte::adminlte.no_branches') }}</p>
-                        @endif
-                    </div>
-
-                    {{-- Actions --}}
-                    <div class="col-12 pt-3">
-                        <a href="{{ route('orderStatus.edit', $orderStatus->id) }}" class="btn btn-primary px-4 py-2">
-                            <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
-                        </a>
-                        <a href="{{ route('orderStatus.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
-                            <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
-                        </a>
-                    </div>
-
                 </div>
             </div>
 
-        </div>
-    </x-adminlte-card>
+            <div class="mb-3">
+                <strong>{{ __('adminlte::adminlte.status') }}:</strong><br>
+                <span id="order-status-active"
+                      class="badge {{ $orderStatus->is_active ? 'bg-success' : 'bg-secondary' }}">
+                    {{ $orderStatus->is_active
+                        ? __('adminlte::adminlte.active')
+                        : __('adminlte::adminlte.inactive') }}
+                </span>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <a href="{{ route('order_status.edit', $orderStatus->id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit mr-1"></i> {{ __('adminlte::adminlte.edit') }}
+                </a>
+            </div>
+
+        </x-adminlte-card>
+
+    </div>
+</div>
+
+{{-- Listener anchor for broadcasting --}}
+<div id="order-status-listener"
+     data-channel="order_status"
+     data-events='["order_status_updated","OrderStatusUpdated"]'
+     data-order-status-id="{{ $orderStatus->id }}">
 </div>
 @endsection
+
+@push('js')
+<script>
+(function () {
+  'use strict';
+
+  function norm(v) {
+    if (v === undefined || v === null) return '';
+    return String(v);
+  }
+
+  function updateDomFromPayload(payload) {
+    if (!payload) return;
+
+    // Support different shapes: { orderStatus: {...} } or { order_status: {...} } or plain
+    const t = payload.orderStatus ?? payload.order_status ?? payload ?? {};
+
+    // Only update if this is the same status
+    const anchor    = document.getElementById('order-status-listener');
+    const currentId = anchor ? anchor.dataset.orderStatusId : null;
+    if (currentId && t.id && String(t.id) !== String(currentId)) {
+      return;
+    }
+
+    // Name EN
+    const nameEnEl = document.getElementById('order-status-name-en');
+    if (nameEnEl) nameEnEl.textContent = norm(t.name_en) || '-';
+
+    // Name AR
+    const nameArEl = document.getElementById('order-status-name-ar');
+    if (nameArEl) nameArEl.textContent = norm(t.name_ar) || '-';
+
+    // Active badge
+    if (t.is_active !== undefined) {
+      const el = document.getElementById('order-status-active');
+      if (el) {
+        const on = !!Number(t.is_active);
+        el.classList.remove('bg-success', 'bg-secondary', 'bg-danger');
+        el.classList.add(on ? 'bg-success' : 'bg-secondary');
+        el.textContent = on
+          ? '{{ __("adminlte::adminlte.active") }}'
+          : '{{ __("adminlte::adminlte.inactive") }}';
+      }
+    }
+
+    if (window.toastr) {
+      toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+    }
+
+    console.log('[order_status show] updated from broadcast payload', t);
+  }
+
+  // Optional global helper if you want to trigger manually
+  window.updateOrderStatusShow = updateDomFromPayload;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const anchor = document.getElementById('order-status-listener');
+    if (!anchor) {
+      console.warn('[order_status show] listener anchor not found');
+      return;
+    }
+
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    let events;
+    try {
+      events = JSON.parse(anchor.dataset.events || '["order_status_updated"]');
+    } catch (_) {
+      events = ['order_status_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['order_status_updated'];
+    }
+
+    const handler = function (e) {
+      updateDomFromPayload(e && (e.orderStatus ?? e.order_status ?? e));
+    };
+
+    // Register for your global broadcast bootstrapper
+    window.__pageBroadcasts.push({
+      channel: 'order_status',        // broadcastOn()
+      event:   'order_status_updated', // broadcastAs()
+      handler: handler
+    });
+
+    // If you already have window.AppBroadcast ready, subscribe now
+    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+      window.AppBroadcast.subscribe('order_status', 'order_status_updated', handler);
+      console.info('[order_status show] subscribed via AppBroadcast → order_status / order_status_updated');
+    } else {
+      console.info('[order_status show] registered in __pageBroadcasts; layout will subscribe later.');
+    }
+  });
+})();
+</script>
+@endpush

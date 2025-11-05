@@ -5,27 +5,27 @@
      *  - $action (string route)
      *  - $method ('POST'|'PUT'|'PATCH')
      *  - $region (Model|null)
-     * Optional Pusher config (same as order_status):
-     *  - $pusher_key, $pusher_cluster
-     *  - $channel (default 'regions')
-     *  - $events  (default ['region_updated'])
+     * Window broadcasting:
+     *  - $broadcast = [
+     *        'channel' => 'regions',
+     *        'events'  => ['region_updated'],
+     *    ];
      */
     $regionObj  = $region ?? null;
     $httpMethod = strtoupper($method ?? 'POST');
-    $pusher_key     = config('broadcasting.connections.pusher.key');
-$pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
 
-
+    $broadcast = $broadcast ?? [
+        'channel' => 'regions',
+        'events'  => ['region_updated'],
+    ];
 @endphp
 
 <form id="regions-form"
       method="POST"
       action="{{ $action }}"
       enctype="multipart/form-data"
-      data-channel="{{ $channel ?? 'regions' }}"
-      data-events='@json($events ?? ["region_updated"])'
-      data-pusher-key="{{ $pusher_key ?? '' }}"
-      data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
+      data-channel="{{ $broadcast['channel'] }}"
+      data-events='@json($broadcast["events"])'>
     @csrf
     @unless (in_array($httpMethod, ['GET','POST']))
         @method($httpMethod)
@@ -118,87 +118,98 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     />
 </form>
 
-@once
-    {{-- Echo + Pusher (CDN) --}}
-    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8/dist/web/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
-@endonce
-
 @push('js')
 <script>
 (function () {
-    const form = document.getElementById('regions-form');
-    if (!form) return;
+  'use strict';
 
-    // ---- Pusher/Echo bootstrap (same as order_status) ----
-    const ds = form.dataset;
-    const pusherKey     = ds.pusherKey || (document.querySelector('meta[name="pusher-key"]')?.content || '');
-    const pusherCluster = ds.pusherCluster || (document.querySelector('meta[name="pusher-cluster"]')?.content || '');
-    const channelName   = ds.channel || 'regions';
+  const form = document.getElementById('regions-form');
+  if (!form) {
+    console.warn('[regions-form] form not found');
+    return;
+  }
 
-    let events = [];
-    try { events = JSON.parse(ds.events || '[]'); } catch (_) { events = []; }
-    if (!Array.isArray(events) || events.length === 0) events = ['region_updated'];
+  function applyPayloadToForm(payload) {
+    if (!payload || typeof payload !== 'object') return;
 
-    if (!pusherKey || !pusherCluster) {
-        console.warn('[regions-form] Missing Pusher key/cluster. Provide data-pusher-key/cluster on the form or <meta> tags.');
-        return;
-    }
+    Object.entries(payload).forEach(([name, value]) => {
+      const inputs = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+      if (!inputs.length) return;
 
-    if (!window.Echo) {
-        try {
-            window.Echo = new Echo({
-                broadcaster: 'pusher',
-                key: pusherKey,
-                cluster: pusherCluster,
-                forceTLS: true,           // false if you use plain ws in local dev
-                enabledTransports: ['ws','wss'],
-            });
-        } catch (e) {
-            console.error('[regions-form] Echo init failed:', e);
-            return;
+      inputs.forEach((el) => {
+        const type = (el.getAttribute('type') || el.tagName).toLowerCase();
+
+        if (type === 'radio') {
+          el.checked = (String(el.value) === String(value));
+        } else if (type === 'checkbox') {
+          el.checked = Boolean(value) && String(value) !== '0';
+        } else {
+          el.value = (value ?? '');
         }
-    }
-
-    const channel = window.Echo.channel(channelName);
-    if (!channel) {
-        console.error('[regions-form] Cannot subscribe to channel:', channelName);
-        return;
-    }
-
-    function applyPayloadToForm(payload) {
-        if (!payload || typeof payload !== 'object') return;
-
-        Object.entries(payload).forEach(([name, value]) => {
-            const inputs = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
-            if (!inputs.length) return;
-
-            inputs.forEach((el) => {
-                const type = (el.getAttribute('type') || el.tagName).toLowerCase();
-                if (type === 'radio') {
-                    el.checked = (String(el.value) === String(value));
-                } else if (type === 'checkbox') {
-                    el.checked = Boolean(value) && String(value) !== '0';
-                } else {
-                    el.value = (value ?? '');
-                }
-            });
-        });
-    }
-
-    events.forEach((evt) => {
-        channel.listen('.' + evt, (e) => {
-            // Expect payload keys matching input names:
-            // { id, country_en, country_ar, city_en, city_ar, excepted_day_count, is_active }
-            const payload = e?.payload || e;
-            applyPayloadToForm(payload);
-
-            form.classList.add('border','border-success');
-            setTimeout(() => form.classList.remove('border','border-success'), 800);
-        });
+      });
     });
+  }
 
-    console.info('[regions-form] Listening on', channelName, 'events:', events);
+  document.addEventListener('DOMContentLoaded', function () {
+    const ds          = form.dataset;
+    const channelName = ds.channel || 'regions';
+
+    let events;
+    try {
+      events = JSON.parse(ds.events || '["region_updated"]');
+    } catch (_) {
+      events = ['region_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['region_updated'];
+    }
+
+    // Optional: only update if ID matches current region being edited
+    const currentIdInput = form.querySelector('input[name="id"]');
+    const currentId      = currentIdInput ? currentIdInput.value : null;
+
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    events.forEach((evtName) => {
+      const event = String(evtName);
+
+      const handler = function (e) {
+        // Accept shapes: { payload: { region: {...} } }, { region: {...} }, or plain
+        const raw = e?.payload || e?.region || e;
+        const t   = raw?.region || raw || {};
+
+        const incomingId = t.id ?? raw?.id;
+        if (currentId && incomingId && String(incomingId) !== String(currentId)) {
+          // Different region → ignore
+          return;
+        }
+
+        applyPayloadToForm(t);
+
+        if (window.toastr) {
+          toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+        }
+
+        form.classList.add('border', 'border-success');
+        setTimeout(() => form.classList.remove('border', 'border-success'), 800);
+      };
+
+      // Register for global bootstrapper
+      window.__pageBroadcasts.push({
+        channel: channelName,
+        event:   event,
+        handler: handler,
+      });
+
+      // Subscribe immediately if AppBroadcast is already available
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, event, handler);
+        console.info('[regions-form] subscribed via AppBroadcast →', channelName, '/', event);
+      } else {
+        console.info('[regions-form] registered in __pageBroadcasts; layout will subscribe later →', channelName, '/', event);
+      }
+    });
+  });
 })();
 </script>
 @endpush

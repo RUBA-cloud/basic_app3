@@ -23,11 +23,11 @@ class CategoryController extends Controller
     public function index($isHistory = false)
     {
         if ($isHistory) {
-            $categories = CategoryHistory::with('user')->paginate(10);
+            $categories = CategoryHistory::with('user')->paginate(5);
             return view('Category.history', compact('categories'));
         }
 
-        $categories = Category::with('user')->where('is_active', true)->paginate(10);
+        $categories = Category::with('user')->where('is_active', true)->paginate(5);
         return view('Category.index', compact('categories', 'isHistory'));
     }
 
@@ -76,7 +76,7 @@ class CategoryController extends Controller
               ->orWhere('name_ar', 'like', '%' . $searchTerm . '%');
         })
         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->paginate(5);
 
             return view('Category.history', compact('categories'));
         }
@@ -89,7 +89,7 @@ class CategoryController extends Controller
               ->orWhere('name_ar', 'like', '%' . $searchTerm . '%');
         })
         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->paginate(5);
 
           return view('Category.index', compact('categories', 'isHistory'));
 

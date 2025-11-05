@@ -101,12 +101,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::put('/{companyInfo}',  'update')->middleware('perm:company_info_module,can_edit')->name('update');
                 Route::delete('/{companyInfo}','destroy')->middleware('perm:company_info_module,can_delete')->name('destroy');
 
-                Route::post('/search',        'searchHistory')->middleware('perm:company_info_module,can_view_history')->name('search');
-                Route::get('/history',        'history')->middleware('perm:company_info_module,can_view_history')->name('history');
+                Route::post('/search', 'searchHistory')->middleware('perm:company_info_module,can_view_history')->name('search');
+                Route::get('/history',  'history')->middleware('perm:company_info_module,can_view_history')->name('history');
             });
 
         /* ==============================
-         * Company Branch (company_branch_module)
+         * Company Branch (company_brnch_module)
          * ============================== */
         Route::controller(CompanyBranchController::class)
             ->prefix('companyBranch')
@@ -285,7 +285,7 @@ Route::middleware([SetLocale::class])->group(function () {
          * ============================== */
         Route::controller(EmployeeController::class)
             ->prefix('employees')
-            ->name('employees.')
+            ->name('employees')
             ->middleware('module:employee_module')
             ->group(function () {
                 Route::get('/',       'index')->name('index');

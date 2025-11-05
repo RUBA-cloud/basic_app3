@@ -2,7 +2,6 @@
 {{-- expects: $action (string), $method (POST|PUT|PATCH), optional $branch (model|null) --}}
 
 @php
-    // Correct source for runtime access
     $pusher_key     = config('broadcasting.connections.pusher.key');
     $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
 @endphp
@@ -80,24 +79,10 @@
     <x-adminlte-button
         :label="isset($branch) ? __('adminlte::adminlte.save_information') : __('adminlte::adminlte.save_information')"
         type="submit" theme="success" class="w-100" icon="fas fa-save" />
+</form>
 
-    </form>
-
+@push('js')
 @once
-    {{-- load Pusher once (or include globally) --}}
-    <script>
-      (function loadPusherOnce(){
-        if (window._pusherLoaderAdded) return;
-        window._pusherLoaderAdded = true;
-        const s = document.createElement('script');
-        s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-        s.async = true;
-        document.head.appendChild(s);
-      })();
-    </script>
-@endonce
-
-@section('js')
 <script>
 (function(){
   'use strict';
@@ -138,6 +123,7 @@
 
   const applyPayload = (payload) => {
     const b = payload?.branch ?? payload ?? {};
+
     setField('name_en',     b.name_en);
     setField('name_ar',     b.name_ar);
     setField('email',       b.email);
@@ -147,62 +133,52 @@
     setField('location',    b.location);
     setField('fax',         b.fax);
     setCheckbox('is_active', b.is_active);
-    updateWorkingDaysHours(b.working_days, b.working_hours);
-    previewLogo(b.image_url || b.logo_url);
 
-    if (window.toastr) { try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_) {} }
-    console.log('[company_branch] form updated', b);
+    updateWorkingDaysHours(b.working_days, b.working_hours);
+    previewLogo(b.image_url || b.logo_url || b.image);
+
+    if (window.bsCustomFileInput && document.querySelector('input[type="file"][name="image"]')) {
+      try { bsCustomFileInput.init(); } catch (_) {}
+    }
+
+    if (window.toastr) {
+      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_) {}
+    }
+
+    console.log('[company_branch] form updated from broadcast payload', b);
   };
+
+  // Expose if you ever want to call it manually
+  window.updateCompanyBranchForm = applyPayload;
 
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('company-branch-form');
-    if (!form) return;
-
-    const channel = form.dataset.channel || 'company_branch';
-
-    let events;
-    try { events = JSON.parse(form.dataset.events || '["company_branch_updated"]'); }
-    catch { events = ['company_branch_updated']; }
-    if (!Array.isArray(events) || events.length === 0) events = ['company_branch_updated'];
-
-    // Fallback order: data-* → <meta> → server config (from PHP above)
-    const dataKey     = form.dataset.pusherKey || '';
-    const dataCluster = form.dataset.pusherCluster || '';
-    const metaKey     = document.querySelector('meta[name="pusher-key"]')?.content || '';
-    const metaCluster = document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-    const cfgKey      = @json($pusher_key ?? '');
-    const cfgCluster  = @json($pusher_cluster ?? 'mt1');
-
-    const key     = dataKey     || metaKey     || cfgKey;
-    const cluster = dataCluster || metaCluster || cfgCluster;
-
-    if (!key || !cluster) {
-      console.warn('[company_branch] Missing Pusher key/cluster. Provide data-pusher-key/data-pusher-cluster, or <meta>, or set broadcasting config.');
+    if (!form) {
+      console.warn('[company_branch] form not found');
       return;
     }
 
-    const ensurePusher = () => new Promise((resolve, reject) => {
-      if (window.Pusher) return resolve();
-      const check = setInterval(() => { if (window.Pusher) { clearInterval(check); resolve(); } }, 50);
-      setTimeout(() => { clearInterval(check); if (!window.Pusher) reject(new Error('Pusher JS not loaded')); }, 5000);
+    // ---- Register with global broadcasting (same style as additional show) ----
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    const handler = function (e) {
+      applyPayload(e && (e.branch ?? e));
+    };
+
+    window.__pageBroadcasts.push({
+      channel: 'company_branch',          // broadcastOn()
+      event:   'company_branch_updated',  // broadcastAs()
+      handler: handler
     });
 
-    ensurePusher()
-      .then(() => {
-        // eslint-disable-next-line no-undef
-        const pusher = new Pusher(key, { cluster, forceTLS: true });
-        const ch = pusher.subscribe(channel);
-
-        events.forEach(ev => {
-          ch.bind(ev,               e => applyPayload(e));
-          ch.bind(ev.toLowerCase(), e => applyPayload(e));
-          ch.bind('.' + ev,         e => applyPayload(e));
-        });
-
-        console.info(`[company_branch] Pusher listening on "${channel}" for`, events);
-      })
-      .catch((e) => console.error('[company_branch] Failed to init Pusher:', e));
+    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+      window.AppBroadcast.subscribe('company_branch', 'company_branch_updated', handler);
+      console.info('[company_branch] subscribed via AppBroadcast → company_branch / company_branch_updated');
+    } else {
+      console.info('[company_branch] registered in __pageBroadcasts; layout will subscribe later.');
+    }
   });
 })();
 </script>
-@endsection
+@endonce
+@endpush

@@ -16,7 +16,7 @@ class PaymentController extends Controller
     {
         $payments = Payment::with('user')
             ->orderByDesc('id')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('payments.index', compact('payments'));
     }

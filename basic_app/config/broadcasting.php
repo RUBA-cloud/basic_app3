@@ -1,59 +1,58 @@
 <?php
 
+$cluster = env('PUSHER_APP_CLUSTER', 'ap2');
+$host    = env('PUSHER_HOST');                 // leave empty for Pusher.com
+$port    = env('PUSHER_PORT', 443);            // 443 for Cloud, 6001 for self-hosted
+$scheme  = env('PUSHER_SCHEME', 'https');      // https for Cloud, http for self-hosted
+$useTLS  = $scheme === 'https';
+
+$pusherOptions = [
+    'cluster' => $cluster,
+    'useTLS'  => $useTLS,
+];
+
+// only override host/port/scheme if you're self-hosting (Reverb / laravel-websockets)
+if (!empty($host)) {
+    $pusherOptions = array_merge($pusherOptions, [
+        'host'   => $host,
+        'port'   => (int) $port,
+        'scheme' => $scheme,
+    ]);
+}
+
 return [
 
     /*
     |--------------------------------------------------------------------------
     | Default Broadcaster
     |--------------------------------------------------------------------------
-    |
-    | This option controls the default broadcaster that will be used by the
-    | framework when an event needs to be broadcast. You may set this to
-    | any of the connections defined in the "connections" array below.
-    |
-    | Supported: "reverb", "pusher", "ably", "redis", "log", "null"
-    |
     */
-
-    'default' => env('BROADCAST_CONNECTION', 'null'),
+    'default' => env('BROADCAST_CONNECTION', 'pusher'),
 
     /*
     |--------------------------------------------------------------------------
     | Broadcast Connections
     |--------------------------------------------------------------------------
-    |
-    | Here you may define all of the broadcast connections that will be used
-    | to broadcast events to other systems or over WebSockets. Samples of
-    | each available type of connection are provided inside this array.
-    |
     */
-
     'connections' => [
-
-
-
 
         'pusher' => [
             'driver' => 'pusher',
-            'key' => env('PUSHER_APP_KEY'),
+            'key'    => env('PUSHER_APP_KEY'),
             'secret' => env('PUSHER_APP_SECRET'),
             'app_id' => env('PUSHER_APP_ID'),
-            'options' => [
-                'cluster' => env('PUSHER_APP_CLUSTER'),
-                'host' => env('PUSHER_HOST') ?: 'api-'.env('PUSHER_APP_CLUSTER', 'mt1').'.pusher.com',
-                'port' => env('PUSHER_PORT', 443),
-                'scheme' => env('PUSHER_SCHEME', 'https'),
-                'encrypted' => true,
-                'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
-            ],
+            'options' => $pusherOptions,
+
+            // Optional Guzzle options (REST requests)
             'client_options' => [
-                // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
+                // 'timeout' => 2.0,
+                // 'verify' => true,
             ],
         ],
 
         'ably' => [
             'driver' => 'ably',
-            'key' => env('ABLY_KEY'),
+            'key'    => env('ABLY_KEY'),
         ],
 
         'log' => [
@@ -63,7 +62,5 @@ return [
         'null' => [
             'driver' => 'null',
         ],
-
     ],
-
 ];

@@ -1,17 +1,3 @@
-<div>
-    <!-- Simplicity is the essence of happiness. - Cedric Bledsoe -->
-</div>
-{{-- resources/views/offers/_form.blade.php --}}
-{{-- expects:
-    $action (string|Url),
-    $method ('POST'|'PUT'|'PATCH'),
-    $categories (Collection),
-    $offerTypes (Collection),
-    optional $offer (model|null)
-    Optional Pusher config via data-* or meta tags:
-      - data-pusher-key / data-pusher-cluster on the form
-      - OR <meta name="pusher-key"> and <meta name="pusher-cluster"> in your layout
---}}
 
 @php
     $isAr = app()->getLocale() === 'ar';
@@ -19,12 +5,11 @@
     $oldCategoryIds = collect(old('category_ids', $offer?->categories?->pluck('id')->all() ?? []))
         ->map(fn($v)=>(int)$v);
 
-    // AdminLTE Date config (same as your page)
+    // AdminLTE Date config
     $config = ['format' => 'DD/MM/YYYY'];
 
-$pusher_key     = config('broadcasting.connections.pusher.key');
-$pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
-
+    $pusher_key     = config('broadcasting.connections.pusher.key');
+    $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
 @endphp
 
 <form method="POST"
@@ -157,22 +142,8 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
 (function(){
   'use strict';
 
-  // --- Load Pusher once (same pattern as branch form) ---
-  function loadPusher(){
-    return new Promise((resolve, reject)=>{
-      if (window.Pusher) return resolve();
-      const s = document.createElement('script');
-      s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
   const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : s;
 
-  // --- Helpers (same style as branch form) ---
   const setField = (name, value) => {
     if (value === undefined || value === null) return;
     const el = document.querySelector(`[name="${esc(name)}"]`);
@@ -182,7 +153,6 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
-  // For AdminLTE date input (under the hood it's an <input>)
   const setDate = (name, value) => setField(name, value);
 
   const setCheckbox = (name, isOn) => {
@@ -193,7 +163,11 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
   };
 
   const setMultiSelect = (selectorOrName, values = []) => {
-    const el = document.querySelector(selectorOrName.startsWith('#') ? selectorOrName : `[name="${esc(selectorOrName)}[]"]`);
+    const el = document.querySelector(
+      selectorOrName.startsWith('#')
+        ? selectorOrName
+        : `[name="${esc(selectorOrName)}[]"]`
+    );
     if (!el) return;
     const want = (values || []).map(v => String(v));
     Array.from(el.options).forEach(opt => { opt.selected = want.includes(String(opt.value)); });
@@ -204,8 +178,7 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     }
   };
 
-  // --- Apply payload from server ---
-  // Accepts {offer:{...}} or the object itself
+  // Apply broadcast payload
   const applyPayload = (payload) => {
     const o = payload?.offer ?? payload ?? {};
 
@@ -214,7 +187,6 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     setField('description_en', o.description_en);
     setField('description_ar', o.description_ar);
 
-    // category ids can be array of ids or array of objects with id
     const categoryIds = o.category_ids || (Array.isArray(o.categories) ? o.categories.map(c => c.id) : []);
     setMultiSelect('#category_ids', categoryIds);
 
@@ -228,11 +200,14 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
 
     setCheckbox('is_active', o.is_active);
 
-    if (window.toastr) { try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_){} }
-    console.log('[offers] form updated', o);
+    if (window.toastr) {
+      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_) {}
+    }
+
+    console.log('[offers] form updated from broadcast', o);
   };
 
-  // Optional: expose a hard reset, similar to other forms
+  // Optional global reset
   window.resetOfferForm = function(){
     setField('name_en',''); setField('name_ar','');
     setField('description_en',''); setField('description_ar','');
@@ -246,39 +221,39 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
     setCheckbox('is_active', 1);
   };
 
-  // --- Setup Pusher listener (pure Pusher, identical pattern to branch) ---
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('offer-form');
-    if (!form) return;
-
-    const channel = form.dataset.channel || 'offers';
-    const events  = JSON.parse(form.dataset.events || '["OfferUpdated"]');
-
-    // Prefer data-*; fallback to <meta> tags
-    let key     = form.dataset.pusherKey || document.querySelector('meta[name="pusher-key"]')?.content || '';
-    let cluster = form.dataset.pusherCluster || document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-
-    if (!key || !cluster) {
-      console.warn('[offers] Missing Pusher key/cluster. Add data-pusher-key/data-pusher-cluster or <meta> tags.');
+    if (!form) {
+      console.warn('[offers] form not found');
       return;
     }
 
+    // Register with global broadcasting system
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    let events;
     try {
-      await loadPusher();
-      // eslint-disable-next-line no-undef
-      const pusher = new Pusher(key, { cluster, forceTLS: true });
-      const ch = pusher.subscribe(channel);
+      events = JSON.parse(form.dataset.events || '["offer_updated"]');
+    } catch (_) {
+      events = ['offer_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) events = ['offer_updated'];
 
-      // Bind common variants (exact/lowercase/dotted)
-      events.forEach(ev => {
-        ch.bind(ev,               e => applyPayload(e));
-        ch.bind(ev.toLowerCase(), e => applyPayload(e));
-        ch.bind('.' + ev,         e => applyPayload(e));
-      });
+    const handler = function (e) {
+      applyPayload(e && (e.offer ?? e));
+    };
 
-      console.log(`[offers] Pusher listening on "${channel}" for`, events);
-    } catch (e) {
-      console.error('[offers] Failed to init Pusher:', e);
+    window.__pageBroadcasts.push({
+      channel: 'offers',         // broadcastOn()
+      event:   'offer_updated',  // broadcastAs()
+      handler: handler
+    });
+
+    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+      window.AppBroadcast.subscribe('offers', 'offer_updated', handler);
+      console.info('[offers] subscribed via AppBroadcast → offers / offer_updated');
+    } else {
+      console.info('[offers] registered in __pageBroadcasts; layout will subscribe later.');
     }
   });
 })();
@@ -286,34 +261,6 @@ $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1
 @endonce
 @endpush
 
-
 @section('css')
     {{-- Tempus Dominus (Bootstrap 4) --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css">
-@stop
-
-@section('js')
-    {{-- Moment + Tempus Dominus (Bootstrap 4) --}}
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js"></script>
-
-    {{-- Select2 (if not already globally included) --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        $(function () {
-            // Datepickers (IDs must match the x-adminlte-input-date ids)
-            $('#start_date').datetimepicker({ format: 'DD/MM/YYYY' });
-            $('#end_date').datetimepicker({ format: 'DD/MM/YYYY' });
-
-            // Select2 with RTL if Arabic
-            var isAr = @json($isAr);
-            $('.select2').select2({
-                theme: 'bootstrap4',
-                width: '100%',
-                dir: isAr ? 'rtl' : 'ltr'
-            });
-        });
-    </script>
-@stop
+    <li

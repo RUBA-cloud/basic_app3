@@ -15,11 +15,11 @@ class OfferTypeController extends Controller
     public function index($isHistory = false)
     {
         if ($isHistory) {
-            $offerTypes = OffersTypeHistory::with('user')->paginate(10);
+            $offerTypes = OffersTypeHistory::with('user')->paginate(5);
             return view('OfferType.history', compact('offerTypes'));
         }
 
-        $offerTypes = OffersType::with('user')->paginate(10);
+        $offerTypes = OffersType::with('user')->paginate(5);
 
         return view('OfferType.index', compact('offerTypes'));
     }
@@ -110,7 +110,7 @@ class OfferTypeController extends Controller
              ->orWhere('description_en', 'like', '%' . $searchTerm . '%')->orWhere('description_en', 'like', '%' . $searchTerm . '%')
 
         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->paginate(5);
 
         return view('OfferType.index', compact('offerTypes'));
 
@@ -124,7 +124,7 @@ class OfferTypeController extends Controller
              ->orWhere('description_en', 'like', '%' . $searchTerm . '%')->orWhere('description_en', 'like', '%' . $searchTerm . '%')
 
         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->paginate(5);
 
           return view('OfferType.history',compact('offerTypes'));
 

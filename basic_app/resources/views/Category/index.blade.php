@@ -12,7 +12,7 @@
             <x-action_buttons
             label="{{__('adminlte::adminlte.company_categories')}}"
                 addRoute="categories.create"
-                historyRoute="category_history"
+                historyRoute="categories.history"
                 :showAdd="true"
             />
 
@@ -44,13 +44,6 @@
     </main>
 </div>
 
-@php
-    // Prefer config() here (env() is for config files)
-    $broadcast = $broadcast ?? [
-        'channel'        => 'categories',
-        'events'         => ['category_updated'],
-        'pusher_key'     => config('broadcasting.connections.pusher.key'),
-        'pusher_cluster' => config('broadcasting.connections.pusher.options.cluster', 'mt1'),
-    ];
-@endphp
+
+
 @endsection

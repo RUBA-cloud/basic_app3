@@ -16,12 +16,11 @@
             @endif
         </h2>
 
-        @if($category->is_main_branch)
-            <span class="badge bg-purple text-white px-3 py-2">
-                <i class="fas fa-star me-1"></i>
-                {{ __('adminlte::adminlte.main_branch') }}
-            </span>
-        @endif
+        <span id="category-main-badge"
+              class="badge bg-purple text-white px-3 py-2 {{ $category->is_main_branch ? '' : 'd-none' }}">
+            <i class="fas fa-star me-1"></i>
+            {{ __('adminlte::adminlte.main_branch') }}
+        </span>
     </div>
 
     {{-- Card --}}
@@ -31,11 +30,18 @@
             {{-- Image --}}
             <div class="col-lg-4 col-md-5">
                 <div class="border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center p-2 h-100">
+                    @php
+                        $imgSrc = $category->image
+                            ? asset($category->image)
+                            : 'https://placehold.co/500x300?text=Branch+Image';
+                    @endphp
                     <img
-                        src="{{ $category->image ? asset($category->image) : 'https://placehold.co/500x300?text=Branch+Image' }}"
+                        id="category-image"
+                        src="{{ $imgSrc }}"
                         alt="Branch Image"
                         class="img-fluid rounded-3"
                         style="max-height: 280px; object-fit: cover;"
+                        data-placeholder="{{ $imgSrc }}"
                     >
                 </div>
             </div>
@@ -44,61 +50,70 @@
             <div class="col-lg-8 col-md-7">
                 <div class="row gy-3">
 
-                    {{-- Branch Name EN --}}
+                    {{-- Name EN --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
-                        <div class="fs-5 fw-bold text-dark">{{ $category->name_en }}</div>
+                        <div id="category-name-en" class="fs-5 fw-bold text-dark">
+                            {{ $category->name_en }}
+                        </div>
                     </div>
 
-                    {{-- Branch Name AR --}}
+                    {{-- Name AR --}}
                     <div class="col-12">
                         <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
-                        <div class="fs-5 fw-bold text-dark">{{ $category->name_ar }}</div>
+                        <div id="category-name-ar" class="fs-5 fw-bold text-dark">
+                            {{ $category->name_ar }}
+                        </div>
                     </div>
 
                     {{-- Status --}}
                     <div class="col-12">
-                        @if($category->is_active)
-                            <span class="badge bg-success px-3 py-2">
+                        <span id="category-status"
+                              class="badge {{ $category->is_active ? 'bg-success' : 'bg-danger' }} px-3 py-2">
+                            @if($category->is_active)
                                 <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
-                            </span>
-                        @else
-                            <span class="badge bg-danger px-3 py-2">
+                            @else
                                 <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
-                            </span>
-                        @endif
+                            @endif
+                        </span>
                     </div>
 
                     {{-- Addresses --}}
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.company_address_en') }}</small>
-                        <div class="fw-semibold">{{ $category->address_en ?? '-' }}</div>
+                        <div id="category-address-en" class="fw-semibold">
+                            {{ $category->address_en ?? '-' }}
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted">{{ __('adminlte::adminlte.company_address_ar') }}</small>
-                        <div class="fw-semibold">{{ $category->address_ar ?? '-' }}</div>
+                        <div id="category-address-ar" class="fw-semibold">
+                            {{ $category->address_ar ?? '-' }}
+                        </div>
                     </div>
 
                     {{-- Branches --}}
                     <div class="col-12">
                         <h6 class="font-weight-bold text-secondary">{{ __('adminlte::menu.branches') }}</h6>
-                        @if($category->branches->count())
-                            <ul class="list-unstyled ps-2">
-                                @foreach($category->branches as $branch)
-                                    <li>
-                                        <a href="{{ route('companyBranch.show', $branch->id) }}" class="text-primary fw-bold">
-                                            @if(app()->getLocale()=="ar")
-                                             <i class="fas fa-code-branch me-1"></i> {{ $branch->name_ar}}@else
-                                            <i class="fas fa-code-branch me-1"></i> {{ $branch->name_en }}
-
-                                            @endif
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-muted">{{ __('adminlte::adminlte.no_branches') }}</p>
-                        @endif
+                        <div id="category-branches">
+                            @if($category->branches->count())
+                                <ul class="list-unstyled ps-2">
+                                    @foreach($category->branches as $branch)
+                                        <li>
+                                            <a href="{{ route('companyBranch.show', $branch->id) }}" class="text-primary fw-bold">
+                                                @if(app()->getLocale() == 'ar')
+                                                    <i class="fas fa-code-branch me-1"></i> {{ $branch->name_ar }}
+                                                @else
+                                                    <i class="fas fa-code-branch me-1"></i> {{ $branch->name_en }}
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="text-muted mb-0">{{ __('adminlte::adminlte.no_branches') }}</p>
+                            @endif
+                        </div>
                     </div>
 
                     {{-- Actions --}}
@@ -117,113 +132,208 @@
         </div>
     </x-adminlte-card>
 </div>
+
+{{-- Listener anchor for Pusher --}}
+<div id="category-listener"
+     data-channel="categories"
+     data-events='["category_updated","CategoryUpdated"]'
+     data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
+     data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}"
+     data-category-id="{{ $category->id }}">
+</div>
 @endsection
+
 @section('js')
 <script>
-(function(){
+(function () {
   'use strict';
-  const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : s;
 
-  // Small helpers
-  const setField = (name, value) => {
-    if (value === undefined || value === null) return;
-    const el = document.querySelector(`[name="${esc(name)}"]`);
-    if (!el) return;
-    el.value = value;
-    el.dispatchEvent(new Event('input',  { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
+  // Normalize → string
+  function norm(v) {
+    if (v === undefined || v === null) return '';
+    return String(v);
+  }
 
-  const setCheckbox = (name, isOn) => {
-    const el = document.querySelector(`[name="${esc(name)}"]`);
-    if (!el) return;
-    el.checked = !!Number(isOn);
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
+  // Re-render branches list if payload includes branches
+  function renderBranches(container, branches) {
+    if (!container) return;
 
-  const setMultiSelect = (name, values = []) => {
-    const el = document.getElementById('branch_ids') || document.querySelector(`[name="${esc(name)}[]"]`);
-    if (!el) return;
-    const want = (values || []).map(v => String(v));
-    Array.from(el.options).forEach(opt => { opt.selected = want.includes(String(opt.value)); });
-    if (window.jQuery && jQuery(el).hasClass('select')) {
-      jQuery(el).trigger('change.select2');
-    } else {
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  };
-
-  const previewImage = (url) => {
-    const img = document.querySelector('#image-preview, [data-role="image-preview"]');
-    if (img && url) img.src = url;
-  };
-
-  // Apply incoming payload
-  const applyPayload = (payload) => {
-    const c = payload?.category ?? payload ?? {};
-    setField('name_en',  c.name_en);
-    setField('name_ar',  c.name_ar);
-    setCheckbox('is_active', c.is_active);
-
-    const ids = c.branch_ids || (Array.isArray(c.branches) ? c.branches.map(b => b.id) : []);
-    setMultiSelect('branch_ids', ids);
-
-    previewImage(c.image_url || c.image);
-
-    if (window.toastr) { try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_){} }
-    console.log('[categories] form updated', c);
-  };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('category-form');
-    if (!form) return;
-
-    const channel = form.dataset.channel || 'categories';
-    let events;
-    try { events = JSON.parse(form.dataset.events || '["category_updated"]'); }
-    catch { events = ['category_updated']; }
-    if (!Array.isArray(events) || events.length === 0) events = ['category_updated'];
-
-    // ORDER OF FALLBACKS: data-* → <meta> → server-rendered config from PHP
-    const dataKey     = form.dataset.pusherKey || '';
-    const dataCluster = form.dataset.pusherCluster || '';
-    const metaKey     = document.querySelector('meta[name="pusher-key"]')?.content || '';
-    const metaCluster = document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-    const cfgKey      = @json($broadcast['pusher_key'] ?? '');
-    const cfgCluster  = @json($broadcast['pusher_cluster'] ?? 'mt1');
-
-    const key     = dataKey     || metaKey     || cfgKey;
-    const cluster = dataCluster || metaCluster || cfgCluster;
-
-    if (!key || !cluster) {
-      console.warn('[categories] Missing Pusher key/cluster. Provide data-pusher-key/data-pusher-cluster or <meta> tags or config/broadcasting.php');
+    if (!Array.isArray(branches) || branches.length === 0) {
+      container.innerHTML = '<p class="text-muted mb-0">{{ __('adminlte::adminlte.no_branches') }}</p>';
       return;
     }
 
-    // Wait for Pusher to load if not yet present
-    const ensurePusher = () => new Promise((resolve, reject) => {
-      if (window.Pusher) return resolve();
-      const check = setInterval(() => {
-        if (window.Pusher) { clearInterval(check); resolve(); }
-      }, 50);
-      setTimeout(() => { clearInterval(check); if (!window.Pusher) reject(new Error('Pusher JS not loaded')); }, 5000);
+    const ul = document.createElement('ul');
+    ul.className = 'list-unstyled ps-2';
+
+    branches.forEach(b => {
+      const li  = document.createElement('li');
+      const a   = document.createElement('a');
+      a.className = 'text-primary fw-bold';
+      a.href = '{{ route('companyBranch.show', '__ID__') }}'.replace('__ID__', b.id);
+
+      // We'll just show both names if available
+      const label = '{{ app()->getLocale() == "ar" ? "__AR__" : "__EN__" }}'
+        .replace('__AR__', norm(b.name_ar || b.name_en))
+        .replace('__EN__', norm(b.name_en || b.name_ar));
+
+      a.innerHTML = '<i class="fas fa-code-branch me-1"></i> ' + label;
+      li.appendChild(a);
+      ul.appendChild(li);
     });
 
-    ensurePusher()
-      .then(() => {
-        // eslint-disable-next-line no-undef
-        const pusher = new Pusher(key, { cluster, forceTLS: true });
-        const ch = pusher.subscribe(channel);
+    container.innerHTML = '';
+    container.appendChild(ul);
+  }
 
-        events.forEach(ev => {
-          ch.bind(ev,               e => applyPayload(e));
-          ch.bind(ev.toLowerCase(), e => applyPayload(e));
-          ch.bind('.' + ev,         e => applyPayload(e));
+  // Update the visible text / badges / image from payload
+  function updateDomFromPayload(payload) {
+    if (!payload) return;
+
+    const c = payload.category ?? payload ?? {};
+
+    // Only update if this is the same category
+    const anchor = document.getElementById('category-listener');
+    const currentId = anchor ? anchor.dataset.categoryId : null;
+    if (currentId && c.id && String(c.id) !== String(currentId)) {
+      return;
+    }
+
+    // Names
+    const nameEnEl = document.getElementById('category-name-en');
+    if (nameEnEl) nameEnEl.textContent = norm(c.name_en);
+
+    const nameArEl = document.getElementById('category-name-ar');
+    if (nameArEl) nameArEl.textContent = norm(c.name_ar);
+
+    // Status
+    const statusEl = document.getElementById('category-status');
+    if (statusEl && c.is_active !== undefined && c.is_active !== null) {
+      const isOn = Number(c.is_active) === 1;
+      statusEl.classList.remove('bg-success', 'bg-danger');
+      statusEl.classList.add(isOn ? 'bg-success' : 'bg-danger');
+      statusEl.innerHTML = isOn
+        ? '<i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}'
+        : '<i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}';
+    }
+
+    // Main branch badge
+    const mainBadge = document.getElementById('category-main-badge');
+    if (mainBadge && c.is_main_branch !== undefined && c.is_main_branch !== null) {
+      const isMain = Number(c.is_main_branch) === 1;
+      if (isMain) {
+        mainBadge.classList.remove('d-none');
+      } else {
+        mainBadge.classList.add('d-none');
+      }
+    }
+
+    // Addresses
+    const addrEnEl = document.getElementById('category-address-en');
+    if (addrEnEl) addrEnEl.textContent = norm(c.address_en) || '-';
+
+    const addrArEl = document.getElementById('category-address-ar');
+    if (addrArEl) addrArEl.textContent = norm(c.address_ar) || '-';
+
+    // Image
+    const imgEl = document.getElementById('category-image');
+    if (imgEl) {
+      const newSrc = c.image_url || c.image || imgEl.dataset.placeholder;
+      if (newSrc) imgEl.src = newSrc;
+    }
+
+    // Branches
+    const branchesContainer = document.getElementById('category-branches');
+    if (Array.isArray(c.branches)) {
+      renderBranches(branchesContainer, c.branches);
+    }
+
+    if (window.toastr) {
+      toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+    }
+
+    console.log('[categories] show updated from payload', c);
+  }
+
+  // Expose globally if needed
+  window.updateCategoryShow = updateDomFromPayload;
+
+  // Dynamically load Pusher if needed
+  function loadPusher() {
+    return new Promise(function (resolve, reject) {
+      if (window.Pusher) return resolve();
+      const s = document.createElement('script');
+      s.src = 'https://js.pusher.com/8.4/pusher.min.js';
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const anchor = document.getElementById('category-listener');
+    if (!anchor) {
+      console.warn('[categories] listener anchor not found');
+      return;
+    }
+
+    const channelName = anchor.dataset.channel || 'categories';
+
+    let events;
+    try {
+      events = JSON.parse(anchor.dataset.events || '["category_updated"]');
+    } catch (_) {
+      events = ['category_updated'];
+    }
+    if (!Array.isArray(events) || events.length === 0) {
+      events = ['category_updated'];
+    }
+
+    let key     = anchor.dataset.pusherKey || '';
+    let cluster = anchor.dataset.pusherCluster || 'mt1';
+
+    if (!key) {
+      const mk = document.querySelector('meta[name="pusher-key"]');
+      key = mk ? mk.content : '';
+    }
+    if (!cluster) {
+      const mc = document.querySelector('meta[name="pusher-cluster"]');
+      cluster = mc ? mc.content : 'mt1';
+    }
+
+    if (!key) {
+      console.warn('[categories] Missing Pusher key');
+      return;
+    }
+
+    loadPusher()
+      .then(function () {
+        // eslint-disable-next-line no-undef
+        const pusher = new Pusher(key, { cluster: cluster, forceTLS: true });
+        const ch = pusher.subscribe(channelName);
+
+        events.forEach(function (ev) {
+          // exact
+          ch.bind(ev, function (e) {
+            updateDomFromPayload(e.category || e);
+          });
+          // lowercase
+          ch.bind(ev.toLowerCase(), function (e) {
+            updateDomFromPayload(e.category || e);
+          });
+          // dotted (Laravel echo style)
+          ch.bind('.' + ev, function (e) {
+            updateDomFromPayload(e.category || e);
+          });
         });
 
-        console.info(`[categories] Pusher listening on "${channel}" for`, events);
+        console.info('[categories] listening on "' + channelName + '" for', events);
       })
-      .catch((e) => console.error('[categories] Failed to init Pusher:', e));
+      .catch(function (err) {
+        console.error('[categories] failed to load/init Pusher', err);
+      });
   });
 })();
 </script>
+@endsection

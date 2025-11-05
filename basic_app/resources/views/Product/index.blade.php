@@ -30,8 +30,6 @@
                     ['key' => 'user.id', 'label' => __('adminlte::adminlte.user_id')],
                 ];
             @endphp
-
-
 <livewire:adminlte.data-table
         :fields="$fields"                  {{-- same $fields array you already pass --}}
         model="\App\Models\Product"       {{-- any Eloquent model --}}

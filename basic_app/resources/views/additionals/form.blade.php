@@ -1,14 +1,11 @@
-
-
 @php
-  // Consistent defaults
+  // Consistent defaults (still OK even if listener is centralized)
   $broadcast = $broadcast ?? [
-      'channel' => 'additional',
-      'events'  => ['additional_updated'],
-    'pusher_key'     => env('PUSHER_APP_KEY'),
-    'pusher_cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
-
-];
+      'channel'        => 'additional',
+      'events'         => ['additional_updated'],
+      'pusher_key'     => env('PUSHER_APP_KEY'),
+      'pusher_cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
+  ];
 @endphp
 
 <form id="additional-form"
@@ -16,7 +13,7 @@
       action="{{ $action }}"
       enctype="multipart/form-data"
       data-channel="{{ $broadcast['channel'] ?? 'additional' }}"
-      data-events='@json($broadcast['events'] ?? ["AdditionalUpdated"])'
+      data-events='@json($broadcast['events'] ?? ["additional_updated"])'
       data-pusher-key="{{ $broadcast['pusher_key'] ?? '' }}"
       data-pusher-cluster="{{ $broadcast['pusher_cluster'] ?? '' }}">
     @csrf
@@ -74,23 +71,10 @@
 @push('js')
 @once
 <script>
-(function(){
+document.addEventListener('DOMContentLoaded', () => {
   'use strict';
 
-  // --- Load Pusher once ---
-  function loadPusher(){
-    return new Promise((resolve, reject)=>{
-      if (window.Pusher) return resolve();
-      const s = document.createElement('script');
-      s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  // --- Helpers ---
+  // ---------- Helpers (like company_info) ----------
   const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : s;
 
   const setField = (name, value) => {
@@ -115,72 +99,59 @@
     if (img) img.src = url;
   };
 
+  // ---------- Apply payload → reset/patch form ----------
   const applyPayload = (payload) => {
+    // Accept both {additional: {...}} and flat payload
     const a = (payload && (payload.additional ?? payload)) || {};
-    setField('name_en', a.name_en);
-    setField('name_ar', a.name_ar);
-    setField('price', a.price);
+
+    setField('name_en',     a.name_en);
+    setField('name_ar',     a.name_ar);
+    setField('price',       a.price);
     setField('description', a.description);
     setCheckbox('is_active', a.is_active);
+
     previewImage(a.image_url || a.image);
-    if (window.toastr) { try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_){} }
+
+    if (window.bsCustomFileInput && document.querySelector('input[type="file"][name="image"]')) {
+      try { bsCustomFileInput.init(); } catch (_) {}
+    }
+
+    if (window.toastr) {
+      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch (_) {}
+    }
+
+    console.log('[additional] patched additional form from payload', a);
   };
 
-  // Optional: expose a hard reset
+  // Optional: expose a hard reset (clear all fields)
   window.resetAdditionalForm = function(){
     setField('name_en', '');
     setField('name_ar', '');
     setField('price', '');
     setField('description', '');
     setCheckbox('is_active', 1);
-    if (window.bsCustomFileInput) { try { bsCustomFileInput.init(); } catch(_){} }
+    if (window.bsCustomFileInput && document.querySelector('input[type="file"][name="image"]')) {
+      try { bsCustomFileInput.init(); } catch (_) {}
+    }
+    console.log('[additional] form reset manually');
   };
 
-  // --- Setup Pusher listener ---
-  document.addEventListener('DOMContentLoaded', async () => {
-    const form = document.getElementById('additional-form');
-    if (!form) return;
-
-    const channel = form.dataset.channel || 'additional';
-    const events  = JSON.parse(form.dataset.events || '["AdditionalUpdated"]');
-
-    // prefer data-*; fallback to <meta>
-    let key     = form.dataset.pusherKey;
-    let cluster = form.dataset.pusherCluster;
-
-    if (!key) {
-      const m = document.querySelector('meta[name="pusher-key"]');
-      key = m ? m.content : '';
-    }
-    if (!cluster) {
-      const m = document.querySelector('meta[name="pusher-cluster"]');
-      cluster = m ? m.content : '';
-    }
-
-    if (!key || !cluster) {
-      console.warn('[additional] Missing Pusher key/cluster. Add data-pusher-key/data-pusher-cluster or <meta> tags.');
-      return;
-    }
-
-    try {
-      await loadPusher();
-      // eslint-disable-next-line no-undef
-      const pusher = new Pusher(key, { cluster, forceTLS: true });
-      const ch = pusher.subscribe(channel);
-
-      // Bind common variants: exact, lowercase, dotted
-      events.forEach(ev => {
-        ch.bind(ev,                e => applyPayload(e));
-        ch.bind(ev.toLowerCase(),  e => applyPayload(e));
-        ch.bind('.' + ev,          e => applyPayload(e));
-      });
-
-      console.log(`[additional] Pusher listening on "${channel}" for`, events);
-    } catch (e) {
-      console.error('[additional] Failed to init Pusher:', e);
-    }
+  // ---------- Register with global broadcasting (like company_info) ----------
+  window.__pageBroadcasts = window.__pageBroadcasts || [];
+  window.__pageBroadcasts.push({
+    channel: 'additional',           // must match broadcastOn()
+    event:   'additional_updated',   // must match broadcastAs()
+    handler: applyPayload
   });
-})();
+
+  // If your layout already created AppBroadcast, subscribe now
+  if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+    window.AppBroadcast.subscribe('additional', 'additional_updated', applyPayload);
+    console.info('[additional] subscribed via AppBroadcast → additional / additional_updated');
+  } else {
+    console.info('[additional] registered in __pageBroadcasts; layout will subscribe later.');
+  }
+});
 </script>
 @endonce
 @endpush

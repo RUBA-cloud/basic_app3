@@ -2,67 +2,65 @@
 
 namespace App\Events;
 
-use App\Models\CompanyInfo;
-use Illuminate\Broadcasting\PrivateChannel;  // <— use PrivateChannel
-use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\InteractsWithSockets;
 
 class CompanyInfoEventSent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * Payload sent to clients.
-     * Keep it as a plain array for safe JSON encoding.
+     * The company info payload.
      *
-     * @var array<string, mixed>
+     * @var mixed
      */
-    public array $company;
+    public $companyInfo;
 
     /**
-     * Optionally force a connection (otherwise uses broadcasting.default).
-     * Uncomment if you want to ensure Pusher is used.
+     * Create a new event instance.
+     *
+     * @param  mixed  $companyInfo
+     * @return void
      */
-    // public string $connection = 'pusher';
-
-    /**
-     * If you prefer to queue, implement ShouldBroadcast and set $queue.
-     * Using ShouldBroadcastNow avoids queue config issues in dev.
-     */
-    // public string $queue = 'broadcasts';
-
-    public function __construct(CompanyInfo $company)
+    public function __construct($companyInfo)
     {
-        // Only include fields you actually want to expose.
-        // toArray() is fine if your model hides sensitive attributes.
-        $this->company = $company->toArray();
+        $this->companyInfo = $companyInfo;
     }
 
     /**
-     * Broadcast on a **private** channel named "company_info".
-     * On the wire this becomes "private-company_info" (what Flutter subscribes to).
+     * Get the channels the event should broadcast on.
+     *
+     * @return \Illuminate\Broadcasting\Channel|\Illuminate\Broadcasting\Channel[]
      */
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [new PrivateChannel('company_info')];
+        // Public channel "company_info"
+        return new PrivateChannel('company_info');
     }
 
     /**
-     * The client listens for this event name.
+     * The event name to broadcast as.
+     *
+     * @return string
      */
-    public function broadcastAs(): string
+    public function broadcastAs()
     {
         return 'company_info_updated';
     }
 
     /**
-     * Final JSON payload returned to clients.
-     * Matches Flutter expectation: { "company": { ... } }
+     * Data to broadcast with the event.
+     *
+     * @return array
      */
-    public function broadcastWith(): array
+    public function broadcastWith()
     {
-        return ['company' => $this->company];
+        return [
+            // Frontend will receive: data.company
+            'company' => $this->companyInfo,
+        ];
     }
 }

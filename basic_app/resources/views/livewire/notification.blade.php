@@ -27,16 +27,16 @@
     >
         <div class="px-3 py-2 d-flex align-items-center justify-content-between">
             <span class="fw-bold">{{ __('adminlte::adminlte.Mark all as read') }}</span>
-            <button class="btn btn-link btn-sm p-0"
+            <button class="btn btn-link btn-sm p-4" style="margin: 5px"
                     wire:click="markAllAsRead"
                     wire:loading.attr="disabled">
-                {{ __('adminlte::adminlte.Mark all as read') }}
+                {{ __('adminlte::adminlte.mark_all_as_read') }}
             </button>
         </div>
 
         <div class="list-group list-group-flush" style="max-height: 380px; overflow:auto;">
             @forelse($items as $n)
-                <a
+                <a style="margin: 5px      "
                     href="{{ $n->link ?: '#' }}"
                     wire:key="notification-{{ $n->id }}"
                     @class([
@@ -46,7 +46,7 @@
                     ])
                     wire:click.prevent="markAsRead({{ $n->id }})"
                 >
-                    <div class="d-flex align-items-start">
+                    <div class="d-flex align-items-start" style="margin: 5px">
                         <i class="{{ $n->icon ?: 'fas fa-bell' }} mr-2 mt-1"></i>
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between">
@@ -60,14 +60,14 @@
                     </div>
                 </a>
             @empty
-                <div class="text-center text-muted py-3">{{ __('adminlte::adminlte.No notifications') }}</div>
+                <div class="text-center text-muted py-3">{{ __('adminlte::adminlte.no_notification') }}</div>
             @endforelse
         </div>
 
         <div class="dropdown-divider m-0"></div>
 
         <div class="px-3 py-2 d-flex justify-content-between align-items-center">
-            <a href="{{ route('notifications.index') }}" class="small">{{ __('adminlte::adminlte.View all') }}</a>
+            <a href="{{ route('notifications.index') }}" class="small">{{ __('adminlte::adminlte.view_all') }}</a>
             @if($items->hasMorePages())
                 <button class="btn btn-sm btn-outline-secondary"
                         wire:click="$set('perPage', {{ $perPage + 8 }})"

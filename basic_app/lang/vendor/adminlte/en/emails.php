@@ -1,13 +1,12 @@
 <?php
-
 return [
-    'verify' => [
-        'subject' => 'Verify your email',
-        'header'  => 'Verify your email',
-        'hello'   => 'Hello :name,',
-        'line'    => 'Please confirm your email (:email) by clicking the button below.',
-        'button'  => 'Verify Email',
-        'alt'     => 'If the button doesn’t work, copy this link:',
-        'thanks'  => 'Thanks,',
-    ],
+    'verify_email_subject' => 'تأكيد عنوان بريدك الإلكتروني - :app',
+    'verify_preheader'     => 'أنت على وشك الانتهاء! يرجى تأكيد بريدك الإلكتروني.',
+    'verify_headline'      => 'تأكيد عنوان بريدك الإلكتروني',
+    'verify_intro'         => 'مرحبًا :name، أنت على وشك البدء برحلتك معنا!',
+    'verify_cta_text'      => 'فقط اضغط على الزر أدناه لتأكيد عنوان بريدك الإلكتروني.',
+    'verify_button'        => 'تأكيد البريد الإلكتروني',
+    'verify_alt'           => 'إذا لم يعمل الزر، انسخ الرابط التالي والصقه في متصفحك: :url',
+    'email_footer_notice'  => 'تم إرسال هذا البريد من :app لتأكيد حسابك. يرجى عدم الرد عليه.',
+    'user'                 => 'المستخدم',
 ];

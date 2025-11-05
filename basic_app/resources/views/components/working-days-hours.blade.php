@@ -1,8 +1,8 @@
 @props([
-    'branch_working_days' => [],           // array | csv | json
-    'branch_working_hours_from' => '',
-    'branch_working_hours_to' => '',
-    'branch' => null,
+    'branch_working_days'      => [], // array | csv | json
+    'branch_working_hours_from'=> '',
+    'branch_working_hours_to'  => '',
+    'branch'                   => null,
 ])
 
 @php
@@ -18,6 +18,7 @@
 
     // Normalize working days (accept array, CSV string, or JSON)
     $workingDays = old('working_days', $branch?->working_days ?? $branch_working_days);
+
     if (is_string($workingDays)) {
         $decoded = json_decode($workingDays, true);
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -26,13 +27,18 @@
             $workingDays = array_filter(array_map('trim', explode(',', $workingDays)));
         }
     }
-    if (!is_array($workingDays)) $workingDays = [];
 
-    // If someone previously stored translated labels by mistake, map them back to keys
-    $labelToKey = array_flip(array_map(fn($k,$v)=>$v, array_keys($daysOfWeek), $daysOfWeek));
+    if (!is_array($workingDays)) {
+        $workingDays = [];
+    } else {
+        $workingDays = array_values($workingDays);
+    }
+
+    // Map translated labels back to day keys if needed
+    $labelToKey = array_flip($daysOfWeek);
     $workingDays = array_map(fn($v) => $labelToKey[$v] ?? $v, $workingDays);
 
-    // Working hours (time-only)
+    // Working hours (time-only; default values)
     $workingHoursFrom = old('working_hours_from', $branch?->working_hours_from ?? $branch_working_hours_from) ?: '09:00';
     $workingHoursTo   = old('working_hours_to',   $branch?->working_hours_to   ?? $branch_working_hours_to)   ?: '17:00';
 
@@ -49,7 +55,7 @@
                     class="form-check-input m-0"
                     type="checkbox"
                     name="working_days[]"
-                    value="{{ $key }}"                 {{-- <-- use key, not label --}}
+                    value="{{ $key }}"
                     id="day_{{ $key }}"
                     {{ in_array($key, $workingDays, true) ? 'checked' : '' }}
                 >
@@ -61,7 +67,7 @@
     </div>
 </div>
 
-{{-- Working Hours (time-only) --}}
+{{-- Working Hours (Time Picker) --}}
 <div class="mb-4">
     <label class="form-label fw-semibold">{{ __('adminlte::adminlte.working_time') }}</label>
     <div class="row g-3">
@@ -81,7 +87,6 @@
 
         <div class="col-md-6">
             <x-adminlte-input
-
                 name="working_hours_to_visible"
                 id="branch_working_hours_to_visible"
                 label="{{ __('adminlte::adminlte.to') }}"
@@ -101,11 +106,12 @@
 @if($isAr)
 <style>
     #branch_working_hours_from_visible,
-    #branch_working_hours_to_visible { text-align: right; }
+    #branch_working_hours_to_visible {
+        text-align: right;
+    }
 </style>
 @endif
 @endpush
-
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 @if($isAr)
@@ -113,38 +119,72 @@
 @endif
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    @if($isAr)
-    if (window.flatpickr?.l10ns?.ar) { flatpickr.localize(flatpickr.l10ns.ar); }
-    @endif
+(function () {
+    function initWorkingTimePickers() {
+        @if($isAr)
+        if (window.flatpickr?.l10ns?.ar) {
+            flatpickr.localize(flatpickr.l10ns.ar);
+        }
+        @endif
 
-    const opts = {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: "H:i",
-        time_24hr: true,
-        minuteIncrement: 5,
-        allowInput: true,
-        onChange: syncHidden,
-        onClose: syncHidden
-    };
+        const baseOptions = {
+            enableTime: true,
+            noCalendar: true,      // وقت فقط
+            dateFormat: "H:i",
+            time_24hr: true,
+            minuteIncrement: 5,
+            allowInput: true,
+            static: true,          // ✅ خلي الـ picker ثابت تحت الـ input
+            onChange: syncHidden,
+            onClose: syncHidden,
+        };
 
-    function syncHidden(selectedDates, dateStr, instance) {
-        const hiddenId = instance.input.dataset.hiddenTarget;
-        if (hiddenId && dateStr) document.getElementById(hiddenId).value = dateStr;
+        function syncHidden(selectedDates, dateStr, instance) {
+            const hiddenId = instance.input.dataset.hiddenTarget;
+            if (!hiddenId) return;
+            const hidden = document.getElementById(hiddenId);
+            if (hidden && typeof dateStr === 'string') {
+                hidden.value = dateStr;
+            }
+        }
+
+        const fromInput = document.getElementById('branch_working_hours_from_visible');
+        const toInput   = document.getElementById('branch_working_hours_to_visible');
+
+        if (fromInput) {
+            fromInput.dataset.hiddenTarget = 'branch_working_hours_from';
+            const fpFrom = flatpickr(fromInput, {
+                ...baseOptions,
+                defaultDate: "{{ $workingHoursFrom }}",
+            });
+
+            const hiddenFrom = document.getElementById('branch_working_hours_from');
+            if (hiddenFrom && fpFrom.input.value) {
+                hiddenFrom.value = fpFrom.input.value;
+            }
+        }
+
+        if (toInput) {
+            toInput.dataset.hiddenTarget = 'branch_working_hours_to';
+            const fpTo = flatpickr(toInput, {
+                ...baseOptions,
+                defaultDate: "{{ $workingHoursTo }}",
+            });
+
+            const hiddenTo = document.getElementById('branch_working_hours_to');
+            if (hiddenTo && fpTo.input.value) {
+                hiddenTo.value = fpTo.input.value;
+            }
+        }
     }
 
-    const fromInput = document.getElementById('branch_working_hours_from_visible');
-    fromInput.dataset.hiddenTarget = 'branch_working_hours_from';
-    const fpFrom = flatpickr(fromInput, { ...opts, defaultDate: "{{ $workingHoursFrom }}" });
-
-    const toInput = document.getElementById('branch_working_hours_to_visible');
-    toInput.dataset.hiddenTarget = 'branch_working_hours_to';
-    const fpTo = flatpickr(toInput,   { ...opts, defaultDate: "{{ $workingHoursTo }}" });
-
-    // Ensure hidden inputs populated initially
-    document.getElementById('branch_working_hours_from').value = fpFrom.input.value || "{{ $workingHoursFrom }}";
-    document.getElementById('branch_working_hours_to').value   = fpTo.input.value   || "{{ $workingHoursTo }}";
-});
+    // نتأكد أنها تشتغل سواء DOM جاهز أو لا
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initWorkingTimePickers);
+    } else {
+        initWorkingTimePickers();
+    }
+})();
 </script>
 @endpush
+

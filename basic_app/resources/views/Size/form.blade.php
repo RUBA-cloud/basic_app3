@@ -6,25 +6,26 @@
      *  - $method ('POST'|'PUT'|'PATCH')
      *  - $size   (Model|null)
      * Optional:
-     *  - $channel (default 'sizes')
-     *  - $events  (default ['size_updated'])
+     *  - $broadcast = [
+     *        'channel' => 'sizes',
+     *        'events'  => ['size_updated'],
+     *    ];
      */
-    $sizeObj     = $size ?? null;
-    $httpMethod  = strtoupper($method ?? 'POST');
+    $sizeObj    = $size ?? null;
+    $httpMethod = strtoupper($method ?? 'POST');
 
-    // Correct way to access Pusher config at runtime
-    $pusher_key     = config('broadcasting.connections.pusher.key');
-    $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
+    $broadcast = $broadcast ?? [
+        'channel' => 'sizes',
+        'events'  => ['size_updated'],
+    ];
 @endphp
 
 <form id="sizes-form"
       method="POST"
       action="{{ $action }}"
       enctype="multipart/form-data"
-      data-channel="{{ $channel ?? 'sizes' }}"
-      data-events='@json($events ?? ["size_updated"])'
-      data-pusher-key="{{ $pusher_key ?? '' }}"
-      data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
+      data-channel="{{ $broadcast['channel'] }}"
+      data-events='@json($broadcast["events"])'>
     @csrf
     @unless (in_array($httpMethod, ['GET','POST']))
         @method($httpMethod)
@@ -109,96 +110,102 @@
     />
 </form>
 
-@once
-    {{-- Pusher only (no Echo) --}}
-    <script>
-      (function loadPusherOnce(){
-        if (window._pusherLoaderAdded) return;
-        window._pusherLoaderAdded = true;
-        const s = document.createElement('script');
-        s.src = 'https://js.pusher.com/8.4/pusher.min.js';
-        s.async = true;
-        document.head.appendChild(s);
-      })();
-    </script>
-@endonce
-
-{{-- Use SECTION to avoid push/stack errors; ensure layout has @yield('js') --}}
-@section('js')
+@push('js')
 <script>
 (function () {
-    const form = document.getElementById('sizes-form');
-    if (!form) return;
+  'use strict';
 
-    // ---- Read config from data-* → meta fallbacks ----
-    const ds = form.dataset;
-    const channelName = ds.channel || 'sizes';
-    let events;
-    try { events = JSON.parse(ds.events || '["size_updated"]'); } catch { events = ['size_updated']; }
-    if (!Array.isArray(events) || events.length === 0) events = ['size_updated'];
+  const form = document.getElementById('sizes-form');
+  if (!form) {
+    console.warn('[sizes-form] form not found');
+    return;
+  }
 
-    const dataKey     = ds.pusherKey || '';
-    const dataCluster = ds.pusherCluster || '';
-    const metaKey     = document.querySelector('meta[name="pusher-key"]')?.content || '';
-    const metaCluster = document.querySelector('meta[name="pusher-cluster"]')?.content || '';
-    const key         = dataKey || metaKey;
-    const cluster     = dataCluster || metaCluster;
+  function applyPayloadToForm(payload) {
+    if (!payload || typeof payload !== 'object') return;
 
-    if (!key || !cluster) {
-        console.warn('[sizes-form] Missing Pusher key/cluster. Provide data-pusher-key/cluster or <meta> tags.');
-        return;
-    }
+    Object.entries(payload).forEach(([name, value]) => {
+      // don't try to set file inputs (image)
+      const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+      if (!nodes.length) return;
 
-    // Wait for Pusher to load
-    const ensurePusher = () => new Promise((resolve, reject) => {
-        if (window.Pusher) return resolve();
-        const t = setInterval(() => { if (window.Pusher) { clearInterval(t); resolve(); } }, 50);
-        setTimeout(() => { clearInterval(t); if (!window.Pusher) reject(new Error('Pusher JS not loaded')); }, 5000);
+      nodes.forEach((el) => {
+        const type = (el.getAttribute('type') || el.tagName).toLowerCase();
+
+        if (type === 'file') {
+          return; // skip file inputs
+        } else if (type === 'radio') {
+          el.checked = (String(el.value) === String(value));
+        } else if (type === 'checkbox') {
+          el.checked = Boolean(value) && String(value) !== '0';
+        } else {
+          el.value = (value ?? '');
+        }
+      });
     });
 
-    // Update fields from payload
-    function applyPayloadToForm(payload) {
-        if (!payload || typeof payload !== 'object') return;
+    // little highlight
+    form.classList.add('border', 'border-success');
+    setTimeout(() => form.classList.remove('border', 'border-success'), 800);
+  }
 
-        Object.entries(payload).forEach(([name, value]) => {
-            // file inputs cannot be set programmatically
-            const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
-            if (!nodes.length) return;
+  document.addEventListener('DOMContentLoaded', function () {
+    const ds          = form.dataset;
+    const channelName = ds.channel || 'sizes';
 
-            nodes.forEach((el) => {
-                const type = (el.getAttribute('type') || el.tagName).toLowerCase();
-                if (type === 'radio') {
-                    el.checked = (String(el.value) === String(value));
-                } else if (type === 'checkbox') {
-                    el.checked = Boolean(value) && String(value) !== '0';
-                } else {
-                    el.value = (value ?? '');
-                }
-            });
-        });
-
-        // quick visual feedback
-        form.classList.add('border','border-success');
-        setTimeout(() => form.classList.remove('border','border-success'), 800);
+    let events;
+    try {
+      events = JSON.parse(ds.events || '["size_updated"]');
+    } catch (_) {
+      events = ['size_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['size_updated'];
     }
 
-    // Subscribe and bind
-    ensurePusher()
-      .then(() => {
-          // eslint-disable-next-line no-undef
-          const pusher = new Pusher(key, { cluster, forceTLS: true });
-          const ch = pusher.subscribe(channelName);
+    // Optional: only update if this specific size is being edited
+    const currentIdInput = form.querySelector('input[name="id"]');
+    const currentId      = currentIdInput ? currentIdInput.value : null;
 
-          // Bind common variants: dotted, plain, and lowercase
-          events.forEach(ev => {
-              ch.bind(ev,               e => applyPayloadToForm(e?.payload || e));
-              ch.bind('.' + ev,         e => applyPayloadToForm(e?.payload || e));
-              ch.bind(ev.toLowerCase(), e => applyPayloadToForm(e?.payload || e));
-          });
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
 
-          console.info('[sizes-form] Pusher listening on', channelName, 'events:', events);
-      })
-      .catch((e) => console.error('[sizes-form] Failed to init Pusher:', e));
+    events.forEach((evtName) => {
+      const event = String(evtName);
+
+      const handler = function (e) {
+        // Accept shapes: { payload: { size: {...} } }, { size: {...} }, or plain
+        const raw = e?.payload || e?.size || e;
+        const t   = raw?.size || raw || {};
+
+        const incomingId = t.id ?? raw?.id;
+        if (currentId && incomingId && String(incomingId) !== String(currentId)) {
+          // Different size → ignore
+          return;
+        }
+
+        applyPayloadToForm(t);
+
+        if (window.toastr) {
+          toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+        }
+      };
+
+      // Register so your layout/global JS can hook it
+      window.__pageBroadcasts.push({
+        channel: channelName,
+        event:   event,
+        handler: handler,
+      });
+
+      // If AppBroadcast is already set up, subscribe now
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, event, handler);
+        console.info('[sizes-form] subscribed via AppBroadcast →', channelName, '/', event);
+      } else {
+        console.info('[sizes-form] registered in __pageBroadcasts; layout will subscribe later →', channelName, '/', event);
+      }
+    });
+  });
 })();
 </script>
-@endsection
+@endpush

@@ -22,7 +22,7 @@ class TypeController extends Controller
     if ($isHistory) {
         $types = TypeHistory::with('user')
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('type.history', compact('types'));
     }
@@ -30,7 +30,7 @@ class TypeController extends Controller
     $types = Type::with('user')
         ->where('is_active', 1)
         ->orderByDesc('created_at')
-        ->paginate(10);
+        ->paginate(5);
 
     return view('type.index', compact('types'));
 }
@@ -135,7 +135,7 @@ class TypeController extends Controller
 
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('Size.index', compact('sizes', 'history'));
     }
@@ -155,7 +155,7 @@ class TypeController extends Controller
 
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('type.history', compact('types'));
     }

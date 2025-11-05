@@ -27,13 +27,17 @@
         <div class="mb-3">
             <strong>{{ __('adminlte::adminlte.type') }}:</strong>
             @if(app()->getLocale()=="ar")
-                                {{ optional($product->type)->name_ar ?? '-' }}
-                @else
-                            {{ optional($product->type)->name_en ?? '-' }}
-
+                {{ optional($product->type)->name_ar ?? '-' }}
+            @else
+                {{ optional($product->type)->name_en ?? '-' }}
             @endif
-                <br>
-            <strong>{{ __('adminlte::adminlte.category') }}:</strong> {{ optional($product->category)->name_en ?? '-' }}
+            <br>
+            <strong>{{ __('adminlte::adminlte.category') }}:</strong>
+            @if(app()->getLocale()=="ar")
+                {{ optional($product->category)->name_ar ?? optional($product->category)->name_en ?? '-' }}
+            @else
+                {{ optional($product->category)->name_en ?? '-' }}
+            @endif
         </div>
 
         {{-- Description --}}
@@ -66,12 +70,11 @@
                 <strong>{{ __('adminlte::adminlte.size') }}:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
                     @foreach($product->sizes as $size)
-                    @if (app()->getLocale()=="ar")
-                        <x-adminlte-badge label="{{ $size->name_ar }}" theme="primary" />
-@else
-                        <x-adminlte-badge label="{{ $size->name_en }}" theme="primary" />
-
-                    @endif
+                        @if (app()->getLocale()=="ar")
+                            <x-adminlte-badge label="{{ $size->name_ar }}" theme="primary" />
+                        @else
+                            <x-adminlte-badge label="{{ $size->name_en }}" theme="primary" />
+                        @endif
                     @endforeach
                 </div>
             </div>
@@ -83,11 +86,10 @@
                 <strong>{{ __('adminlte::adminlte.additional') }}:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
                     @foreach($product->additionals as $additional)
-                    @if(app()->getLocale()=="ar")
-                        <x-adminlte-badge label="{{ $additional->name_ar}}" theme="info" />
-                            @else
-                        <x-adminlte-badge label="{{ $additional->name_en }}" theme="info" />
-
+                        @if(app()->getLocale()=="ar")
+                            <x-adminlte-badge label="{{ $additional->name_ar }}" theme="info" />
+                        @else
+                            <x-adminlte-badge label="{{ $additional->name_en }}" theme="info" />
                         @endif
                     @endforeach
                 </div>
@@ -109,6 +111,91 @@
             </div>
         @endif
 
+        <div class="d-flex justify-content-end mt-3">
+            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary me-2">
+                <i class="fas fa-edit me-1"></i> {{ __('adminlte::adminlte.edit') }}
+            </a>
+            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> {{ __('adminlte::adminlte.go_back') }}
+            </a>
+        </div>
+
     </x-adminlte-card>
 </div>
+
+{{-- Listener anchor for window broadcasting --}}
+<div id="product-show-listener"
+     data-channel="products"
+     data-events='["product_updated","ProductUpdated"]'
+     data-product-id="{{ $product->id }}">
+</div>
 @endsection
+
+@push('js')
+<script>
+(function () {
+  'use strict';
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const anchor = document.getElementById('product-show-listener');
+    if (!anchor) {
+      console.warn('[product-show] listener anchor not found');
+      return;
+    }
+
+    const channelName = anchor.dataset.channel || 'products';
+    let events;
+    try {
+      events = JSON.parse(anchor.dataset.events || '["product_updated"]');
+    } catch (_) {
+      events = ['product_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['product_updated'];
+    }
+
+    const currentId = anchor.dataset.productId || null;
+
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    events.forEach((evtName) => {
+      const event = String(evtName);
+
+      const handler = function (e) {
+        // Accept shapes: { payload: { product: {...} } }, { product: {...} }, or plain
+        const raw = e?.payload || e?.product || e;
+        const t   = raw?.product || raw || {};
+
+        const incomingId = t.id ?? raw?.id;
+        if (currentId && incomingId && String(incomingId) !== String(currentId)) {
+          // Different product → ignore
+          return;
+        }
+
+        if (window.toastr) {
+          toastr.info(@json(__('adminlte::adminlte.saved_successfully')));
+        }
+
+        // Reset page → full reload to get fresh data from server
+        window.location.reload();
+      };
+
+      // Register for global bootstrapper
+      window.__pageBroadcasts.push({
+        channel: channelName,
+        event:   event,
+        handler: handler,
+      });
+
+      // Subscribe immediately if AppBroadcast is ready
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, event, handler);
+        console.info('[product-show] subscribed via AppBroadcast →', channelName, '/', event);
+      } else {
+        console.info('[product-show] registered in __pageBroadcasts; layout will subscribe later →', channelName, '/', event);
+      }
+    });
+  });
+})();
+</script>
+@endpush

@@ -1,84 +1,140 @@
 @php
-    $dir = in_array(strtolower($locale ?? app()->getLocale()), ['ar','he','fa','ur']) ? 'rtl' : 'ltr';
+    use App\Helpers\CustomSettings;
+
+    $s = CustomSettings::appSettings();
+
+    $locale = $locale ?? app()->getLocale();
+    $dir = in_array(strtolower($locale), ['ar','he','fa','ur']) ? 'rtl' : 'ltr';
     $align = $dir === 'rtl' ? 'right' : 'left';
-    $reverse = $dir === 'rtl' ? 'rtl' : 'ltr';
-    $brand = $colors ?? ['main_color'=>'#FF2D20','sub_color'=>'#1A202C','text_color'=>'#22223B'];
+
+    $brand = [
+        'main'         => $s['main_color'] ?? '#ff7e00',     // like Headspace orange
+        'sub'          => $s['sub_color'] ?? '#fff7ef',
+        'text'         => $s['text_color'] ?? '#2d2d2d',
+        'button'       => $s['button_color'] ?? '#ff7e00',
+        'button_text'  => $s['button_text_color'] ?? '#ffffff',
+    ];
+
+    $companyName = $s['name_' . ($locale === 'ar' ? 'ar' : 'en')] ?? 'Ecommerce App';
+    $logoUrl     = $s['image'] ? asset('storage/' . $s['image']) : null;
 @endphp
 <!DOCTYPE html>
-<html lang="{{ $locale ?? app()->getLocale() }}" dir="{{ $dir }}">
+<html lang="{{ $locale }}" dir="{{ $dir }}">
 <head>
-  <meta charset="utf-8">
-  <meta name="color-scheme" content="light dark">
-  <meta name="supported-color-schemes" content="light dark">
-  <title>{{ __('auth.verify_email_subject', ['app' => $appName]) }}</title>
-  <style>
-    /* Minimal email-safe CSS */
-    .btn{
-      display:inline-block;padding:12px 20px;border-radius:8px;
-      text-decoration:none;color:#fff;background:{{ $brand['main_color'] }};
-      font-weight:700
-    }
-    .muted{color:#6B7280;font-size:12px}
-    @media (prefers-color-scheme: dark){
-      body{background:#0b0d12!important;color:#e5e7eb!important}
-      .card{background:#111827!important;border-color:#1f2937!important}
-      .muted{color:#9CA3AF!important}
-    }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>{{ __('auth.verify_email_subject', ['app' => $companyName]) }}</title>
+    <style>
+        body {
+            margin:0; padding:0;
+            background:#fefbf6;
+            font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+            color:{{ $brand['text'] }};
+            text-align:{{ $align }};
+            direction:{{ $dir }};
+        }
+        .container {
+            width:100%; max-width:620px;
+            margin:0 auto;
+            background:#fff;
+            border-radius:16px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.05);
+            overflow:hidden;
+        }
+        .header {
+            text-align:center;
+            padding:32px 20px 16px;
+            background:{{ $brand['sub'] }};
+        }
+        .header img {
+            height:48px; width:auto;
+        }
+        .illustration {
+            width:100%;
+            display:block;
+            margin:0 auto;
+            border-bottom:1px solid #eee;
+        }
+        .content {
+            padding:32px 30px;
+        }
+        h1 {
+            font-size:24px;
+            margin:0 0 16px;
+            color:{{ $brand['text'] }};
+        }
+        p {
+            font-size:16px;
+            line-height:1.6;
+            margin:0 0 16px;
+        }
+        .btn {
+            display:inline-block;
+            padding:14px 28px;
+            background:{{ $brand['button'] }};
+            color:{{ $brand['button_text'] }};
+            text-decoration:none;
+            font-weight:600;
+            border-radius:8px;
+            margin:20px 0;
+        }
+        .btn:hover { opacity:.9; }
+        .footer {
+            font-size:13px;
+            text-align:center;
+            color:#777;
+            padding:24px;
+            border-top:1px solid #eee;
+            line-height:1.5;
+        }
+        .footer a {
+            color:{{ $brand['main'] }};
+            text-decoration:none;
+        }
+    </style>
 </head>
-<body style="margin:0;padding:0;background:#f6f7fb;color:{{ $brand['text_color'] }};direction:{{ $dir }};text-align:{{ $align }}">
-  <!-- Preheader (hidden in most clients) -->
-  <div style="display:none;opacity:0;max-height:0;overflow:hidden;">
-    {{ $preheader ?? '' }}
-  </div>
+<body>
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f7fb;padding:24px 0;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" class="card" style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
-          <tr>
-            <td style="padding:20px;background:{{ $brand['sub_color'] }};">
-              <table width="100%">
-                <tr>
-                  <td style="text-align:{{ $align }};">
-                    @if(!empty($logoUrl))
-                      <img src="{{ $logoUrl }}" alt="{{ $appName }}" width="120" style="display:block">
-                    @else
-                      <h1 style="margin:0;color:#fff;font-size:20px">{{ $appName }}</h1>
-                    @endif
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+<!-- Hidden preheader -->
+<div style="display:none;opacity:0;height:0;overflow:hidden">
+    {{ __('auth.verify_preheader', ['app' => $companyName]) }}
+</div>
 
-          <tr>
-            <td style="padding:28px 24px;">
-              <h2 style="margin:0 0 12px 0;font-size:22px;">{{ __('auth.verify_headline') }}</h2>
-              <p style="margin:0 0 14px 0;line-height:1.6">{{ __('auth.verify_intro', ['name' => $user->name ?? __('auth.user')]) }}</p>
-              <p style="margin:0 0 24px 0;line-height:1.6">{{ __('auth.verify_cta_text') }}</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+<tr><td align="center" style="padding:24px 0">
 
-              <p style="margin:0 0 24px 0;">
+    <div class="container">
+        <div class="header">
+            @if($logoUrl)
+                <img src="{{ $logoUrl }}" alt="{{ $companyName }}">
+            @else
+                <h2 style="color:{{ $brand['main'] }}">{{ $companyName }}</h2>
+            @endif
+        </div>
+
+        <img src="{{ asset('images/email-verify-illustration.png') }}" alt="" class="illustration">
+
+        <div class="content">
+            <h1>{{ __('auth.verify_headline') }}</h1>
+            <p>{{ __('auth.verify_intro', ['name' => $user->name ?? __('auth.user')]) }}</p>
+            <p>{{ __('auth.verify_cta_text') }}</p>
+
+            <p style="text-align:center;">
                 <a href="{{ $verificationUrl }}" class="btn">{{ __('auth.verify_button') }}</a>
-              </p>
+            </p>
 
-              <p style="margin:0 0 8px 0;line-height:1.6" class="muted">
+            <p style="font-size:13px;color:#888;">
                 {{ __('auth.verify_alt', ['url' => $verificationUrl]) }}
-              </p>
-            </td>
-          </tr>
+            </p>
+        </div>
 
-          <tr>
-            <td style="padding:16px 24px;border-top:1px solid #e5e7eb;">
-              <p class="muted" style="margin:0;">
-                {{ __('auth.email_footer_notice', ['app' => $appName]) }}
-              </p>
-            </td>
-          </tr>
+        <div class="footer">
+            {{ __('auth.email_footer_notice', ['app' => $companyName]) }}<br>
+            <a href="{{ url('/') }}">{{ $companyName }}</a>
+        </div>
+    </div>
 
-        </table>
-      </td>
-    </tr>
-  </table>
+</td></tr>
+</table>
 </body>
 </html>

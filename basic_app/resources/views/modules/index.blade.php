@@ -1,19 +1,24 @@
+{{-- resources/views/modules/index.blade.php --}}
 @extends('adminlte::page')
 
 @section('title', __('adminlte::adminlte.modules'))
 
 @section('content_header')
-    <div class="d-flex align-items-center justify-content-between flex-wrap">
-        <div>
-            <h1 class="m-0">{{ __('adminlte::adminlte.modules') }}</h1>
-            <small class="text-muted">
-                {{ __('adminlte::adminlte.modules_manage_hint') }}
-            </small>
-        </div>
-        <a href="{{ route('modules.create') }}" class="btn btn-primary">
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="flex-grow-1 mb-2 mb-md-0">
+        <h1 class="m-0">{{ __('adminlte::adminlte.modules') }}</h1>
+        <small class="text-muted d-block">
+            {{ __('adminlte::adminlte.modules_manage_hint') }}
+        </small>
+    </div>
+
+    {{-- Always visible "Create Module" button --}}
+    <div class="text-md-right">
+        <a href="{{ route('modules.create') }}" class="btn btn-primary btn-lg shadow-sm">
             <i class="fas fa-plus mr-1"></i> {{ __('adminlte::adminlte.modules_create') }}
         </a>
     </div>
+</div>
 @stop
 
 @section('content')
@@ -61,7 +66,7 @@
         </div>
     </div>
 
-    {{-- Flash --}}
+    {{-- Flash Message --}}
     @if(session('success'))
         <div class="alert alert-success">
             <i class="far fa-check-circle mr-1"></i>{{ session('success') }}
@@ -73,7 +78,7 @@
         <div class="text-center py-5">
             <div class="h3 mb-2">{{ __('adminlte::adminlte.no_modules') }}</div>
             <p class="text-muted mb-3">{{ __('adminlte::adminlte.no_modules_hint') }}</p>
-            <a href="{{ route('modules.create') }}" class="btn btn-primary">
+            <a href="{{ route('modules.create') }}" class="btn btn-primary btn-lg shadow-sm">
                 <i class="fas fa-plus mr-1"></i> {{ __('adminlte::adminlte.modules_create') }}
             </a>
         </div>
@@ -83,7 +88,6 @@
         <div class="row">
             @foreach($modules as $module)
                 @php
-                    // Define the feature fields once with their labels
                     $featureFields = [
                         'company_dashboard_module'   => __('adminlte::adminlte.module_dashboard'),
                         'company_info_module'        => __('adminlte::adminlte.module_info'),
@@ -100,6 +104,7 @@
                         'region_module'              => __('adminlte::adminlte.region_module'),
                         'company_delivery_module'    => __('adminlte::adminlte.company_delivery_module'),
                         'payment_module'             => __('adminlte::adminlte.payment_module'),
+                        'additional_module'          => __('adminlte::adminlte.additional'),
                     ];
 
                     $enabledCount = collect(array_keys($featureFields))
@@ -110,8 +115,8 @@
                 @endphp
 
                 <div class="col-12 col-lg-6 col-xl-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header d-flex align-items-center justify-content-between">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-light d-flex align-items-center justify-content-between">
                             <div class="text-truncate" style="max-width: 70%;">
                                 <strong>
                                     {{ optional($module->user)->name ?? __('adminlte::adminlte.global_unassigned') }}
@@ -121,7 +126,7 @@
                                 </div>
                             </div>
                             <span class="badge {{ $module->is_active ? 'badge-success' : 'badge-secondary' }}">
-                                <span class="align-middle" style="display:inline-block;width:8px;height:8px;border-radius:50%;background: {{ $module->is_active ? '#28a745' : '#adb5bd' }};margin-right:6px;"></span>
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{{ $module->is_active ? '#28a745' : '#adb5bd' }};margin-right:6px;"></span>
                                 {{ $module->is_active ? __('adminlte::adminlte.active') : __('adminlte::adminlte.inactive') }}
                             </span>
                         </div>
@@ -155,16 +160,16 @@
                                 {{ __('adminlte::adminlte.updated') }} {{ optional($module->updated_at)->diffForHumans() }}
                             </div>
                             <div class="btn-group">
-                                <a href="{{ route('modules.show', $module) }}" class="btn btn-default" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.view') }}">
+                                <a href="{{ route('modules.show', $module) }}" class="btn btn-default" title="{{ __('adminlte::adminlte.view') }}">
                                     <i class="far fa-eye"></i>
                                 </a>
-                                <a href="{{ route('modules.edit', $module) }}" class="btn btn-default" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.edit') }}">
+                                <a href="{{ route('modules.edit', $module) }}" class="btn btn-default" title="{{ __('adminlte::adminlte.edit') }}">
                                     <i class="far fa-edit"></i>
                                 </a>
                                 <form action="{{ route('modules.destroy', $module) }}" method="POST"
                                       onsubmit="return confirm('{{ __('adminlte::adminlte.confirm_delete_module') }}')" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-default text-danger" style="height:50px;width:50px" title="{{ __('adminlte::adminlte.delete') }}">
+                                    <button class="btn btn-default text-danger" title="{{ __('adminlte::adminlte.delete') }}">
                                         <i class="far fa-trash-alt"></i>
                                     </button>
                                 </form>

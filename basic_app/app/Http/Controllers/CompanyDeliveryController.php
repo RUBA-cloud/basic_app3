@@ -19,7 +19,7 @@ class CompanyDeliveryController extends Controller
     {
         $company_delivery = CompanyDelivery::with('user')
             ->orderByDesc('id')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('company_delivery.index', compact('company_delivery'));
     }

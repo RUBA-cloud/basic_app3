@@ -16,9 +16,11 @@
     // selected feature
     $selectedFeature = (string) old('module_name', (string) ($defaultFeatureKey ?? ''));
 
-    // pusher creds
-    $pusher_key     = env('PUSHER_APP_KEY', '');
-    $pusher_cluster = env('PUSHER_APP_CLUSTER', 'mt1');
+    // window broadcasting defaults
+    $broadcast = $broadcast ?? [
+        'channel' => 'permissions',
+        'events'  => ['permissions_updated'],
+    ];
 @endphp
 
 <form method="POST"
@@ -27,10 +29,8 @@
       id="permission-form"
       class="permission-form-wrapper"
       dir="{{ $isRtl ? 'rtl' : 'ltr' }}"
-      data-channel="{{ $channel ?? 'permissions' }}"
-      data-events='@json($events ?? ["permissions_updated"])'
-      data-pusher-key="{{ $pusher_key ?? '' }}"
-      data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
+      data-channel="{{ $broadcast['channel'] }}"
+      data-events='@json($broadcast['events'])'>
     @csrf
     @unless (in_array(strtoupper($method), ['GET', 'POST']))
         @method($method)
@@ -428,78 +428,82 @@
     </div>
 </form>
 
-@once
-    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8/dist/web/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
-@endonce
-
 @push('js')
 <script>
 (function () {
-    const form = document.getElementById('permission-form');
-    if (!form) return;
+  'use strict';
 
-    const ds = form.dataset;
-    const pusherKey     = ds.pusherKey || (document.querySelector('meta[name="pusher-key"]')?.content || '');
-    const pusherCluster = ds.pusherCluster || (document.querySelector('meta[name="pusher-cluster"]')?.content || '');
-    const channelName   = ds.channel || 'permissions';
+  const form = document.getElementById('permission-form');
+  if (!form) {
+    console.warn('[permissions-form] form not found');
+    return;
+  }
 
-    let events = [];
-    try { events = JSON.parse(ds.events || '[]'); } catch (_) { events = []; }
-    if (!Array.isArray(events) || events.length === 0) events = ['permissions_updated'];
+  function applyPayloadToForm(payload) {
+    if (!payload || typeof payload !== 'object') return;
 
-    if (!pusherKey || !pusherCluster) {
-        console.warn('[permission-form] Missing Pusher key/cluster.');
-        return;
-    }
+    Object.entries(payload).forEach(([name, value]) => {
+      const inputs = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+      if (!inputs.length) return;
 
-    if (!window.Echo) {
-        try {
-            window.Echo = new Echo({
-                broadcaster: 'pusher',
-                key: pusherKey,
-                cluster: pusherCluster,
-                forceTLS: true,
-                enabledTransports: ['ws','wss']
-            });
-        } catch (e) {
-            console.error('[permission-form] Echo init failed:', e);
-            return;
+      inputs.forEach((el) => {
+        const type = (el.getAttribute('type') || el.tagName).toLowerCase();
+
+        if (type === 'radio') {
+          el.checked = (String(el.value) === String(value));
+        } else if (type === 'checkbox') {
+          el.checked = Boolean(value) && String(value) !== '0';
+        } else {
+          el.value = (value ?? '');
         }
-    }
-
-    const channel = window.Echo.channel(channelName);
-    if (!channel) return;
-
-    function applyPayloadToForm(payload) {
-        if (!payload || typeof payload !== 'object') return;
-
-        Object.entries(payload).forEach(([name, value]) => {
-            const inputs = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
-            if (!inputs.length) return;
-
-            inputs.forEach((el) => {
-                const type = (el.getAttribute('type') || el.tagName).toLowerCase();
-                if (type === 'radio') {
-                    el.checked = (String(el.value) === String(value));
-                } else if (type === 'checkbox') {
-                    el.checked = Boolean(value) && String(value) !== '0';
-                } else {
-                    el.value = (value ?? '');
-                }
-            });
-        });
-    }
-
-    events.forEach((evt) => {
-        channel.listen('.' + evt, (e) => {
-            const payload = e?.payload || e;
-            applyPayloadToForm(payload);
-
-            form.classList.add('border', 'border-success');
-            setTimeout(() => form.classList.remove('border', 'border-success'), 800);
-        });
+      });
     });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const ds          = form.dataset;
+    const channelName = ds.channel || 'permissions';
+
+    let events;
+    try {
+      events = JSON.parse(ds.events || '["permissions_updated"]');
+    } catch (_) {
+      events = ['permissions_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+      events = ['permissions_updated'];
+    }
+
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    events.forEach((evtName) => {
+      const event = String(evtName);
+
+      const handler = function (e) {
+        // support shapes: { payload: {...} } or { permission: {...} } or plain object
+        const payload = e?.payload || e?.permission || e;
+        applyPayloadToForm(payload);
+
+        form.classList.add('border', 'border-success');
+        setTimeout(() => form.classList.remove('border', 'border-success'), 800);
+      };
+
+      // register for global bootstrapper
+      window.__pageBroadcasts.push({
+        channel: channelName,
+        event:   event,
+        handler: handler,
+      });
+
+      // immediate subscribe if AppBroadcast is ready
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, event, handler);
+        console.info('[permissions-form] subscribed via AppBroadcast →', channelName, '/', event);
+      } else {
+        console.info('[permissions-form] registered in __pageBroadcasts; layout will subscribe later →', channelName, '/', event);
+      }
+    });
+  });
 })();
 </script>
 @endpush
