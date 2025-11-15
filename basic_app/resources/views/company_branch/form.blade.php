@@ -65,8 +65,8 @@
         :value="old('location', $branch->location ?? '')" rows="1" />
 
     <x-working-days-hours
-        :working_days="old('working_days', $branch->working_days ?? [])"
-        :working_hours="old('working_hours', $branch->working_hours ?? [])"
+        :working_days="old('working_days[]', $branch->working_days ?? [])"
+        :working_hours="old('working_hours[]', $branch->working_hours ?? [])"
         label="{{ __('adminlte::adminlte.working_days_hours') }}" />
 
     <div class="form-group" style="margin:20px 0;">

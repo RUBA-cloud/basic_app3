@@ -89,7 +89,7 @@ class AppServiceProvider extends ServiceProvider
                 : (App::getLocale() ?: 'en');
 
             // Default web reset URL
-            $url = url(route('password.reset', [
+            $url = url(route('password.confirm', [
                 'token' => $token,
                 'email' => $notifiable->getEmailForPasswordReset(),
             ], false));
@@ -99,15 +99,15 @@ class AppServiceProvider extends ServiceProvider
 
             return (new MailMessage)
                 ->subject(__('adminlte::adminlte.reset_password_subject', ['app' => config('app.name')], $locale))
-                ->view('emails.auth.reset', [
+                ->view('auth.passwords.reset', [
                     'user'      => $notifiable,
-                    'resetUrl'  => $url,
-                    'appName'   => config('app.name'),
-                    'expiresIn' => $minutes,
-                    'locale'    => $locale,
-                    'colors'    => $colors,
-                    'logoUrl'   =>asset('images/imageverify.jpg'),
-                    'preheader' => __('adminlte::adminlte.reset_preheader', ['app' => config('app.name')], $locale),
+        'resetUrl'  => $url,
+        'appName'   => config('app.name'),
+        'expiresIn' => $minutes,
+        'locale'    => $locale,
+        'colors'    => $colors,
+        'logoUrl'   => asset('images/imageverify.jpg'),
+        'preheader' => __('adminlte::adminlte.reset_preheader', ['app' => config('app.name')], $locale),
                 ]);
         });
 

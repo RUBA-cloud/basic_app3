@@ -3,126 +3,154 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\FilterRequest;
+use App\Http\Requests\FilterRequest; // fixed typo
 use App\Models\Category;
 use App\Models\Type;
 use App\Models\Size;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class FilterApiController extends Controller
 {
     /**
      * GET /api/filters
-     * return all filter data (categories, types, sizes, colors)
+     * Returns all filter data (categories, types, sizes) and
+     * derived filters (min/max price, colors) from the first category that has products.
      */
     public function index()
     {
-        // basic lists
-        $categories = Category::where('is_active', true)
-            ->select('id', 'name_en', 'name_ar')
-            ->orderBy('id', 'asc')
-            ->get();
+        // Basic lists
+        $categories = Category::query()
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get(['id', 'name_en', 'name_ar', 'is_active', 'image']);
 
-        $types = Type::where('is_active', true)
-            ->select('id', 'name_en', 'name_ar')
-            ->orderBy('id', 'asc')
-            ->get();
+        $types = Type::query()
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get(['id', 'name_en', 'name_ar', 'is_active']);
 
-        $sizes = Size::where('is_active', true)
-            ->select('id', 'name', 'code')
-            ->orderBy('id', 'asc')
-            ->get();
+        $sizes = Size::query()
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get(['id', 'name_en', 'name_ar', 'is_active']);
 
-        /**
-         * COLORS:
-         * case 1: products table has a single column `color`
-         * case 2: products table has json/array column `colors`
-         * I’ll handle both. Adjust to your real schema.
-         */
+        // First active category that HAS active products
+        $firstCategory = Category::query()
+            ->where('is_active', true)
+            ->whereHas('products', fn ($q) => $q->where('is_active', true))
+            ->with(['products' => function ($q) {
+                $q->where('is_active', true)
+                  ->select('id', 'category_id', 'price',  'colors'); // color (string) + colors (json)
+            }])
+            ->orderBy('id')
+            ->first();
 
-        // if you store a single color per product:
-        $singleColorValues = Product::where('is_active', true)
-            ->whereNotNull('color')
-            ->where('color', '!=', '')
-            ->distinct()
-            ->pluck('color')
-            ->toArray();
+        $minPrice = null;
+        $maxPrice = null;
+        $colors   = [];
+        $categoryId = $firstCategory?->id;
 
-        // if you store JSON array colors → ["red","blue"]
-        // comment this block if you don't use json
-        $jsonColorValues = Product::where('is_active', true)
-            ->whereNotNull('colors')
-            ->pluck('colors')
-            ->flatMap(function ($item) {
-                // try to decode JSON safely
-                $decoded = json_decode($item, true);
-                return is_array($decoded) ? $decoded : [];
-            })
-            ->unique()
-            ->values()
-            ->toArray();
+        if ($firstCategory) {
+            $products = collect($firstCategory->products);
 
-        // merge both
-        $colors = collect($singleColorValues)
-            ->merge($jsonColorValues)
-            ->unique()
-            ->values()
-            ->toArray();
+            // Prices
+            $prices = $products->pluck('price')
+                ->filter(fn ($p) => $p !== null && is_numeric($p))
+                ->map(fn ($p) => (float) $p);
 
+            if ($prices->isNotEmpty()) {
+                $minPrice = $prices->min();
+                $maxPrice = $prices->max();
+            }
+
+            // Colors from 'color' (single string)
+            $singleColors = $products->pluck('color')
+                ->filter()
+                ->map(fn ($c) => is_string($c) ? trim(strtolower($c)) : $c);
+
+            // Colors from 'colors' (json/array)
+            $jsonColors = $products->pluck('colors')
+                ->flatMap(function ($val) {
+                    if (is_array($val)) {
+                        return $val;
+                    }
+                    if (is_string($val)) {
+                        $decoded = json_decode($val, true);
+                        return is_array($decoded) ? $decoded : [];
+                    }
+                    return [];
+                })
+                ->filter()
+                ->map(fn ($c) => is_string($c) ? trim(strtolower($c)) : $c);
+
+            $colors = $singleColors->merge($jsonColors)
+                ->unique()
+                ->values()
+                ->toArray();
+        }
+
+        // Order: status, data, products (no products here by spec)
         return response()->json([
-            'status'     => true,
-            'categories' => $categories,
-            'types'      => $types,
-            'sizes'      => $sizes,
-            'colors'     => $colors,
+            'status' => true,
+            'data'   => [
+                'categories'  => $categories,
+                'types'       => $types,
+                'sizes'       => $sizes,
+                'category_id' => $categoryId,
+                'min_price'   => $minPrice,
+                'max_price'   => $maxPrice,
+                'colors'      => $colors,
+            ],
         ]);
     }
 
     /**
      * POST /api/filters/products
-     * filter products by multi category / type / size / color + search
+     * Filter products by multi category/type/size/color + search + price range.
+     * Returns: status, data (meta), products (items).
      */
     public function filter(FilterRequest $request)
     {
-        $data = $request->validated();
-
+        $data  = $request->validated();
         $query = Product::query()->where('is_active', true);
 
         // 1) multiple categories
-        if (!empty($data['categories'])) {
+        if (!empty($data['categories']) && is_array($data['categories'])) {
             $query->whereIn('category_id', $data['categories']);
         }
 
         // 2) multiple types
-        if (!empty($data['types'])) {
+        if (!empty($data['types']) && is_array($data['types'])) {
             $query->whereIn('type_id', $data['types']);
         }
 
         // 3) multiple sizes
-        // depends on your schema:
-        // - if you have product_size pivot → we need join
-        // - if product has size_id → simple whereIn
-        if (!empty($data['sizes'])) {
-            // simplest case: each product has one size_id
+        // If you have a pivot (product_size), replace with join/whereHas accordingly.
+        if (!empty($data['sizes']) && is_array($data['sizes'])) {
             $query->whereIn('size_id', $data['sizes']);
         }
 
-        // 4) multiple colors
-        if (!empty($data['colors'])) {
-            $query->where(function ($q) use ($data) {
-                foreach ($data['colors'] as $color) {
-                    // if you store single color string:
+        // 4) multiple colors (supports 'color' (string) and 'colors' (json))
+        if (!empty($data['colors']) && is_array($data['colors'])) {
+            $colors = array_values(array_unique(array_map(
+                fn ($c) => is_string($c) ? trim(strtolower($c)) : $c,
+                $data['colors']
+            )));
+
+            $query->where(function ($q) use ($colors) {
+                foreach ($colors as $color) {
+                    // single color column
                     $q->orWhere('color', $color);
 
-                    // if you store JSON colors, also try:
+                    // JSON array column
+                    // requires MySQL 5.7+/MariaDB 10.2+ and JSON column type
                     $q->orWhereJsonContains('colors', $color);
                 }
             });
         }
 
-        // 5) search by name / description
+        // 5) search by name/description (both EN/AR if present)
         if (!empty($data['search'])) {
             $search = $data['search'];
             $query->where(function ($q) use ($search) {
@@ -133,22 +161,41 @@ class FilterApiController extends Controller
             });
         }
 
-        // you can add price range here too:
-        if (!empty($data['price_from'])) {
-            $query->where('price', '>=', $data['price_from']);
+        // 6) price range
+        if (!empty($data['price_from']) && is_numeric($data['price_from'])) {
+            $query->where('price', '>=', (float) $data['price_from']);
         }
-        if (!empty($data['price_to'])) {
-            $query->where('price', '<=', $data['price_to']);
+        if (!empty($data['price_to']) && is_numeric($data['price_to'])) {
+            $query->where('price', '<=', (float) $data['price_to']);
         }
 
+        // Eager loads — adjust relation names to your app
+        $perPage  = (int) ($data['per_page'] ?? 20);
         $products = $query
-            ->with(['category:id,name_en,name_ar', 'type:id,name_en,name_ar', 'size:id,name,code'])
-            ->orderBy('id', 'desc')
-            ->paginate(20); // or ->get()
+            ->with(['category:id,name_en,name_ar', 'type:id,name_en,name_ar', 'sizes']) // change if different
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->appends($request->query()); // keep query string in pagination links
 
+        // Order: status, data, products
         return response()->json([
             'status'   => true,
-            'products' => $products,
+            'data'     => [
+                'count'        => $products->total(),
+                'current_page' => $products->currentPage(),
+                'per_page'     => $products->perPage(),
+                'last_page'    => $products->lastPage(),
+                'has_more'     => $products->hasMorePages(),
+                            'products' => $products->items(),
+
+            ],
+            // If you still want full paginator URLs, expose them separately:
+            'pagination' => [
+                'first_page_url' => $products->url(1),
+                'last_page_url'  => $products->url($products->lastPage()),
+                'next_page_url'  => $products->nextPageUrl(),
+                'prev_page_url'  => $products->previousPageUrl(),
+            ],
         ]);
     }
 }

@@ -31,7 +31,8 @@ return [
     "additional"=>"الاضافات",
     "type"=>"النوع",
     "offers"=>"العروض",
-
+    'payment'=>'طرق الدفع',
+'regions'=>'المناطق',
     "offers_type"=>" انواع العروض",
     "product"=>"المنتج",
   "products"=>"المنتجات",

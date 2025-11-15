@@ -112,10 +112,10 @@
         @endif
 
         <div class="d-flex justify-content-end mt-3">
-            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary me-2">
+            <a href="{{ route('product.edit', $product->id) }}" class="btn btn-primary me-2">
                 <i class="fas fa-edit me-1"></i> {{ __('adminlte::adminlte.edit') }}
             </a>
-            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
+            <a href="{{ route('product.index') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i> {{ __('adminlte::adminlte.go_back') }}
             </a>
         </div>

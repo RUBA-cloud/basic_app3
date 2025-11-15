@@ -32,7 +32,6 @@
         edit-route="employees.edit"        {{-- route names (optional) --}}
         delete-route="employees.destroy"   {{-- when set, delete uses form+route --}}
         reactive-route="employees.reactivate"
-                routeParamName="additional"
 
         initial-route="{{ route('employees.index') }}" {{-- will reload to here if called --}}
         :search-in="['name','email']"

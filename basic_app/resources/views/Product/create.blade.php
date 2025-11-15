@@ -4,7 +4,6 @@
 
 @php($isAr = app()->getLocale()==='ar')
 
-
 @section('content')
 <div class="container-fluid py-3">
     <div class="card">

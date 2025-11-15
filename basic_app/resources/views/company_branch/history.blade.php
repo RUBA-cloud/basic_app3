@@ -15,7 +15,7 @@
 <x-action_buttons
     label="{{__('adminlte::adminlte.company_branch')}}"
     addRoute="companyBranch.create"
-    historyRoute="companyBranch.history"
+    historyRoute="companyBranch.index"
     :showAdd="false"
 />
             {{-- Define Table Fields --}}

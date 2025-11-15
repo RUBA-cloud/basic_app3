@@ -12,8 +12,8 @@
             <x-action_buttons
             label="{{__('adminlte::adminlte.payment')}}"
                 addRoute="payment.create"
-                historyRoute="payment.history"
-
+                historyRoute="payment.index"
+                :historyParams="['isHistory'=>true]"
                 :showAdd="true"
             />
 

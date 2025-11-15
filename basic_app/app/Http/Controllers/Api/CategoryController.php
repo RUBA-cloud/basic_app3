@@ -20,7 +20,9 @@ class CategoryController extends Controller
 
         try {
             $categories = Category::with('products')
-                ->where('is_active', true)
+                ->where('is_active', true)  ->whereHas('products', function ($q) {
+
+    })
                 ->paginate($perPage);
 
             return response()->json([
@@ -60,7 +62,7 @@ class CategoryController extends Controller
                 'status'  => 'ok',
                 'message' => 'Category retrieved.',
                 'data'    => $category,
-            ], 200);
+            ], 200) ;
         } catch (Throwable $e) {
             return response()->json([
                 'status'  => 'error',
@@ -73,7 +75,14 @@ class CategoryController extends Controller
     /**
      * Example search by optional filters (name, active).
      * GET /api/categories/search?name=...&active=1
+     * 
+     * 
      */
+
+    public function addFaviorate()
+    {
+        //
+    }
     public function search(Request $request): JsonResponse
     {
         try {

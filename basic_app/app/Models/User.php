@@ -8,16 +8,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\HasApiTokens; // ✅ هذا المهم
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    // ✅ بدالي HasSanctumTokens بـ HasApiTokens
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',           // includes 'main_admin'
+        'role',
         'avatar_path',
         'address',
         'street',
@@ -31,9 +33,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'notification_on'   => 'boolean',
     ];
 
-    /**
-     * Map module feature flags → permission slugs
-     */
     public const MODULE_FLAG_TO_NAME = [
         'company_dashboard_module'   => 'company_dashboard_module',
         'company_info_module'        => 'company_info_module',
@@ -52,9 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'payment_module'             => 'payment_module',
     ];
 
-    /* ============================================================
-     | === RELATIONS ===
-     ============================================================ */
+    // === RELATIONS ===
 
     public function permissions()
     {
@@ -71,34 +68,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(\App\Models\DeviceToken::class, 'user_id');
     }
 
-    /* ============================================================
-     | === MAIN ADMIN LOGIC ===
-     ============================================================ */
+    // === MAIN ADMIN LOGIC ===
 
-    /**
-     * Determine if the user is a main admin.
-     */
     public function isMainAdmin(): bool
     {
         return strtolower($this->role ?? '') === 'admin';
     }
 
-    /**
-     * Main admin can use all modules.
-     */
     public function hasModuleFeature(string $featureKey): bool
     {
         if ($this->isMainAdmin()) {
             return true;
         }
 
-        $m = $this->canUseModule($featureKey);
-        return $m ;
+        return $this->canUseModule($featureKey);
     }
 
-    /**
-     * Main admin can use all modules.
-     */
     public function canUseModule(string $featureKey): bool
     {
         if ($this->isMainAdmin()) {
@@ -108,9 +93,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasAnyPermissionForFeature($featureKey);
     }
 
-    /**
-     * Main admin has all permissions.
-     */
     public function hasPermission(string $moduleName, string $ability): bool
     {
         if ($this->isMainAdmin()) {
@@ -135,9 +117,6 @@ class User extends Authenticatable implements MustVerifyEmail
             ->exists();
     }
 
-    /**
-     * Main admin has all features, so availableModules returns all.
-     */
     public function availableModules(): array
     {
         if ($this->isMainAdmin()) {
@@ -152,10 +131,6 @@ class User extends Authenticatable implements MustVerifyEmail
         }
         return $mods;
     }
-
-    /* ============================================================
-     | === MODULE HELPERS ===
-     ===================================================x========= */
 
     public function moduleRow(): ?\App\Models\Module
     {
@@ -204,14 +179,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function permissionFor(string $moduleName): ?\App\Models\Permission
     {
         if ($this->isMainAdmin()) {
-            // Main admin always has permission
             return new \App\Models\Permission([
-                'module_name' => $moduleName,
-                'can_add' => true,
-                'can_edit' => true,
-                'can_delete' => true,
-                'can_view_history' => true,
-                'is_active' => true,
+                'module_name'       => $moduleName,
+                'can_add'           => true,
+                'can_edit'          => true,
+                'can_delete'        => true,
+                'can_view_history'  => true,
+                'is_active'         => true,
             ]);
         }
 
@@ -226,10 +200,6 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('permissions.is_active', true)
             ->first();
     }
-
-    /* ============================================================
-     | === SCOPES / NOTIFICATIONS / ACCESSORS ===
-     ============================================================ */
 
     public function scopeEmployees($q)
     {
@@ -249,5 +219,15 @@ class User extends Authenticatable implements MustVerifyEmail
             }
             return asset('images/avatar-placeholder.png');
         });
+    }
+
+    public function faviorates()
+    {
+        return $this->hasMany(FaviorateModel::class, 'user_id');
+    }
+
+    public function carts()
+    {
+        return $this->hasMany(Cart::class, 'user_id');
     }
 }

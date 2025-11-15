@@ -1,181 +1,150 @@
-{{-- resources/views/payment/show.blade.php --}}
-@extends('adminlte::page')
+{{-- resources/views/payment/_form.blade.php --}}
+@php
+    /**
+     * Expected variables:
+     * - $payment  (Payment|null)
+     * - $action   (string route name, e.g. 'payment.store' or 'payment.update')
+     * - $method   (string 'POST'|'PUT'|'PATCH') – default POST
+     */
 
-@section('title', __('adminlte::adminlte.payment'))
+    /** @var \App\Models\Payment|null $payment */
+    $payment = $payment ?? null;
+    $method  = strtoupper($method ?? 'POST');
 
-@section('content')
+    $isEdit  = $payment && $payment->exists;
+@endphp
+
 <div class="container py-4">
 
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 mb-0 text-dark fw-bold">
             <i class="fas fa-money-check-alt me-2 text-primary"></i>
+
             @if (app()->getLocale() === 'ar')
-                {{ __('adminlte::adminlte.details') }} {{ __('adminlte::adminlte.payment') }}
+                {{ $isEdit
+                    ? __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.payment')
+                    : __('adminlte::adminlte.create') . ' ' . __('adminlte::adminlte.payment') }}
             @else
-                {{ __('adminlte::adminlte.payment') }} {{ __('adminlte::adminlte.details') }}
+                {{ $isEdit
+                    ? __('adminlte::adminlte.payment') . ' ' . __('adminlte::adminlte.edit')
+                    : __('adminlte::adminlte.payment') . ' ' . __('adminlte::adminlte.create') }}
             @endif
         </h2>
 
         <div>
-            <a href="{{ route('payments.edit', $payment->id) }}" class="btn btn-primary px-4 py-2">
-                <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
-            </a>
-            <a href="{{ route('payments.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+            <a href="{{ route('payment.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
                 <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
             </a>
         </div>
     </div>
 
-    {{-- Card --}}
+    {{-- Card with form --}}
     <x-adminlte-card theme="light" theme-mode="outline" class="shadow-sm">
-        <div class="row g-4">
 
-            {{-- Details --}}
-            <div class="col-12">
-                <div class="row gy-3">
+        <form method="POST"
+              action="{{ $isEdit ? route($action, $payment->id) : route($action) }}">
+            @csrf
+            @if ($method !== 'POST')
+                @method($method)
+            @endif
 
-                    {{-- Name EN --}}
-                    <div class="col-md-6">
-                        <small class="text-muted">{{ __('adminlte::adminlte.name_en') }}</small>
-                        <div id="payment-name-en" class="fs-5 fw-bold text-dark">
-                            {{ $payment->name_en }}
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="row gy-3">
+
+                        {{-- Name EN --}}
+                        <div class="col-md-6">
+                            <label for="name_en" class="form-label fw-semibold">
+                                {{ __('adminlte::adminlte.name_en') }}
+                            </label>
+                            <input type="text"
+                                   id="name_en"
+                                   name="name_en"
+                                   class="form-control @error('name_en') is-invalid @enderror"
+                                   value="{{ old('name_en', $payment->name_en ?? '') }}"
+                                   required>
+                            @error('name_en')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                    </div>
 
-                    {{-- Name AR --}}
-                    <div class="col-md-6">
-                        <small class="text-muted">{{ __('adminlte::adminlte.name_ar') }}</small>
-                        <div id="payment-name-ar" class="fs-5 fw-bold text-dark">
-                            {{ $payment->name_ar }}
+                        {{-- Name AR --}}
+                        <div class="col-md-6">
+                            <label for="name_ar" class="form-label fw-semibold">
+                                {{ __('adminlte::adminlte.name_ar') }}
+                            </label>
+                            <input type="text"
+                                   id="name_ar"
+                                   name="name_ar"
+                                   class="form-control @error('name_ar') is-invalid @enderror"
+                                   value="{{ old('name_ar', $payment->name_ar ?? '') }}"
+                                   required>
+                            @error('name_ar')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                    </div>
 
-                    {{-- Status --}}
-                    <div class="col-12">
-                        <small class="text-muted d-block mb-1">{{ __('adminlte::adminlte.is_active') }}</small>
-                        <span id="payment-status"
-                              class="badge {{ $payment->is_active ? 'bg-success' : 'bg-danger' }} px-3 py-2">
-                            @if($payment->is_active)
-                                <i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}
-                            @else
-                                <i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}
-                            @endif
-                        </span>
-                    </div>
+                        {{-- Status --}}
+                        <div class="col-12">
+                            <label class="form-label fw-semibold d-block mb-2" style="margin: 5px">
+                                {{ __('adminlte::adminlte.is_active') }}
+                            </label>
 
+                            @php
+                                $activeOld = old('is_active', isset($payment) ? (int)$payment->is_active : 1);
+                            @endphp
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="is_active"
+                                       id="is_active_yes"
+                                       style="margin: 5px"
+                                       value="1"
+                                       {{ (string)$activeOld === '1' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active_yes">
+                                    <i class="fas fa-check-circle text-success me-1"></i>
+                                    {{ __('adminlte::adminlte.active') }}
+                                </label>
+                            </div>
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" style="margin: 5px"
+                                       type="radio"
+                                       name="is_active"
+
+                                       id="is_active_no"
+                                       value="0"
+                                       {{ (string)$activeOld === '0' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active_no">
+                                    <i class="fas fa-times-circle text-danger me-1"></i>
+                                    {{ __('adminlte::adminlte.inactive') }}
+                                </label>
+                            </div>
+
+                            @error('is_active')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
-        </div>
+            <div class="mt-4 d-flex justify-content-end gap-2">
+                <a href="{{ route('payment.index') }}" class="btn btn-outline-secondary px-4">
+                    {{ __('adminlte::adminlte.cancel') }}
+                </a>
+
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save me-1"></i>
+                    {{ $isEdit
+                        ? __('adminlte::adminlte.update')
+                        : __('adminlte::adminlte.save') }}
+                </button>
+            </div>
+        </form>
+
     </x-adminlte-card>
 </div>
-
-{{-- Listener anchor for broadcasting (for reference / id binding) --}}
-<div id="payment-listener"
-     data-channel="payments"
-     data-events='["payment_updated","PaymentUpdated"]'
-     data-payment-id="{{ $payment->id }}">
-</div>
-@endsection
-
-@push('js')
-@once
-<script>
-(function () {
-  'use strict';
-
-  function norm(v) {
-    if (v === undefined || v === null) return '';
-    return String(v);
-  }
-
-  // Update DOM from broadcast payload
-  function applyPaymentPayload(payload) {
-    if (!payload) return;
-
-    const p = payload.payment ?? payload ?? {};
-
-    const anchor    = document.getElementById('payment-listener');
-    const currentId = anchor ? anchor.dataset.paymentId : null;
-    if (currentId && p.id && String(p.id) !== String(currentId)) {
-      // event for another payment → ignore
-      return;
-    }
-
-    // name_en
-    const nameEnEl = document.getElementById('payment-name-en');
-    if (nameEnEl && p.name_en !== undefined) {
-      nameEnEl.textContent = norm(p.name_en) || '-';
-    }
-
-    // name_ar
-    const nameArEl = document.getElementById('payment-name-ar');
-    if (nameArEl && p.name_ar !== undefined) {
-      nameArEl.textContent = norm(p.name_ar) || '-';
-    }
-
-    // status
-    const statusEl = document.getElementById('payment-status');
-    if (statusEl && p.is_active !== undefined && p.is_active !== null) {
-      const on = !!Number(p.is_active);
-      statusEl.classList.remove('bg-success','bg-danger');
-      statusEl.classList.add(on ? 'bg-success' : 'bg-danger');
-      statusEl.innerHTML = on
-        ? '<i class="fas fa-check-circle me-1"></i> {{ __('adminlte::adminlte.active') }}'
-        : '<i class="fas fa-times-circle me-1"></i> {{ __('adminlte::adminlte.inactive') }}';
-    }
-
-    if (window.toastr) {
-      try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch(_) {}
-    }
-
-    console.log('[payments show] updated from broadcast', p);
-  }
-
-  // Optional global helper
-  window.updatePaymentShow = applyPaymentPayload;
-
-  document.addEventListener('DOMContentLoaded', function () {
-    const anchor = document.getElementById('payment-listener');
-    if (!anchor) {
-      console.warn('[payments show] listener anchor not found');
-      return;
-    }
-
-    window.__pageBroadcasts = window.__pageBroadcasts || [];
-
-    let events;
-    try {
-      events = JSON.parse(anchor.dataset.events || '["payment_updated"]');
-    } catch (_) {
-      events = ['payment_updated'];
-    }
-    if (!Array.isArray(events) || !events.length) {
-      events = ['payment_updated'];
-    }
-
-    const handler = function (e) {
-      // Try common shapes: {payment: {...}} or flat payload
-      applyPaymentPayload(e && (e.payment ?? e.payload ?? e));
-    };
-
-    // Register so your layout-level broadcaster can attach later
-    window.__pageBroadcasts.push({
-      channel: 'payments',          // must match broadcastOn()
-      event:   'payment_updated',   // must match broadcastAs()
-      handler: handler
-    });
-
-    // If AppBroadcast is already booted (like in your layout), subscribe now
-    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
-      window.AppBroadcast.subscribe('payments', 'payment_updated', handler);
-      console.info('[payments show] subscribed via AppBroadcast → payments / payment_updated');
-    } else {
-      console.info('[payments show] registered in __pageBroadcasts; layout will subscribe later.');
-    }
-  });
-})();
-</script>
-@endonce
-@endpush

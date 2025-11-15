@@ -4,14 +4,17 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <x-adminlte-card class="header_card"
-                     title="{{ __('adminlte::adminlte.company_info') }}"
-                     icon="fas fa-building"
-                     collapsible maximizable dir="rtl">
 
+ <x-adminlte-card
+                     title="{{ __('adminlte::adminlte.company_info') }}"
+
+  icon="fas fa-building"                removable
+                collapsible
+                class="lw-list-card"
+            >
         <div class="d-flex flex-wrap justify-content-end align-items-center mt-4">
-            <a href="{{ route('companyInfo.index') }}" class="btn btn-outline-secondary">
-                {{ __('adminlte::adminlte.history') }}
+            <a href="{{ route('companyInfo.index', ['isHistory' => true]) }}" class="btn btn-outline-secondary mr-2" target="_blank" title="{{ __('adminlte::adminlte.history') }}">">
+                <i class="fas fa-history"></i> {{ __('adminlte::adminlte.history') }}
             </a>
         </div>
 
@@ -144,7 +147,7 @@
                 label="{{ __('adminlte::adminlte.save_information') }}"
                 type="submit"
                 theme="success"
-                class="full-width-btn mt-3"
+                class="full-width-btn ="
                 icon="fas fa-save" />
         </form>
     </x-adminlte-card>

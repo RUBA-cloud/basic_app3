@@ -33,7 +33,7 @@
         :fields="$fields"                  {{-- same $fields array you already pass --}}
         model="\App\Models\CompanyInfoHistory"       {{-- any Eloquent model --}}
        detailsRoute='companyInfo.show' {{-- optional: blade partial for modal --}}
-        initial-route="{{ route('company_history') }}" {{-- will reload to here if called --}}
+        initial-route="{{ route('companyInfo.index',['isHistory'=>true]) }}" {{-- will reload to here if called --}}
         :search-in="['name_en','name_ar','about_us_en','about_us_ar','vision_en','vision_ar','mission_en','mission_ar']"
         :per-page="12"
     />            </div>

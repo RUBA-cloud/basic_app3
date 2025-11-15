@@ -1,133 +1,8 @@
 {{-- ONE root element only --}}
 <div class="card-body" wire:poll.10s>
-
-    {{-- Local styles for this component only --}}
-    <style>
-        .lw-list-card {
-            border-radius: 16px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 10px 25px rgba(15, 23, 42, .06);
-        }
-
-        /* Toolbar (search + stats) */
-        .lw-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: .75rem;
-            margin-bottom: 1rem;
-        }
-
-        .lw-search-group .form-control {
-            border-radius: 999px 0 0 999px;
-            border-right: 0;
-        }
-        .lw-search-group .btn-refresh {
-            border-radius: 0 999px 999px 0;
-        }
-
-        .lw-summary {
-            font-size: .875rem;
-            color: #6b7280;
-        }
-
-        /* Table shell */
-        .lw-table-wrapper {
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-        }
-
-        .lw-table {
-            margin-bottom: 0;
-        }
-
-        .lw-table thead th {
-            vertical-align: middle;
-            background: #f9fafb;
-            border-bottom-width: 1px;
-            font-size: .8rem;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: #6b7280;
-        }
-
-        .lw-table tbody tr:hover {
-            background: #f9fafb;
-        }
-
-        .lw-table td {
-            vertical-align: middle;
-        }
-
-        .img-thumb-40 {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: .5rem;
-            box-shadow: 0 0 0 1px rgba(15, 23, 42, .06);
-        }
-
-        .color-swatch-24 {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            display: inline-block;
-            border: 1px solid rgba(0,0,0,.08);
-            box-shadow: 0 0 0 1px rgba(15, 23, 42, .04);
-        }
-
-        /* Pills & badges */
-        .lw-pill {
-            border-radius: 999px;
-            padding: .15rem .7rem;
-            font-size: .7rem;
-            font-weight: 600;
-        }
-
-        /* Actions area */
-        .lw-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .4rem;
-            justify-content: flex-start;
-        }
-
-        .lw-action-btn {
-            min-width: 120px;
-            height: 36px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: .35rem .55rem;
-            border-radius: 999px;
-            font-size: .75rem;
-            font-weight: 500;
-            white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, .10);
-        }
-
-        .lw-action-btn i {
-            margin-inline-end: .25rem;
-        }
-
-        .lw-actions form {
-            margin: 0;
-        }
-
-        /* Responsive tweaks */
-        @media (max-width: 768px) {
-            .lw-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .lw-action-btn {
-                width: 100%;
-                justify-content: flex-start;
-            }
-        }
-    </style>
+    @php
+        $isRtl = app()->getLocale() === 'ar';
+    @endphp
 
     <x-adminlte-card class="lw-list-card">
 
@@ -147,7 +22,7 @@
             </div>
 
             @if(method_exists($rows, 'total'))
-                <div class="lw-summary">
+                <div class="lw-summary {{ $isRtl ? 'text-left' : 'text-right' }}">
                     {{ __('adminlte::adminlte.total') ?? 'Total' }}:
                     <strong>{{ $rows->total() }}</strong>
                 </div>
@@ -155,20 +30,19 @@
         </div>
 
         {{-- Table --}}
-        <div class="table-responsive-md lw-table-wrapper">
-            <table class="table table-bordered table-hover text-nowrap align-middle lw-table">
+        <div class="table-responsive-md lw-table-wrapper" >
+            <table class="table table-bordered table-hover text-nowrap align-middle lw-table {{ $isRtl ? 'text-right' : 'text-left' }}">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        @foreach ($fields as $field)
-                            <th>{{ $field['label'] ?? ucfirst(str_replace('_',' ', $field['key'] ?? '')) }}</th>
-                        @endforeach
-                        <th style="width:1%;white-space:nowrap;">
-                            {{ __('adminlte::adminlte.actions') ?: 'Actions' }}
-                        </th>
-                    </tr>
+        <th>#</th>
+        @foreach ($fields as $field)
+            <th>{{ $field['label'] ?? ucfirst(str_replace('_',' ', $field['key'] ?? '')) }}</th>
+        @endforeach
+        <th style="width:1%;white-space:nowrap;">
+            {{ __('adminlte::adminlte.actions') ?: 'Actions' }}
+        </th>
+    </tr>
                 </thead>
-
                 <tbody>
                 @php
                     $firstItem = method_exists($rows, 'firstItem') ? ($rows->firstItem() ?? 1) : 1;
@@ -245,7 +119,7 @@
                             <div class="lw-actions">
                                 {{-- Details --}}
                                 @if(!empty($detailsRoute))
-                                    <a class="btn btn-info btn-sm lw-action-btn"
+                                    <a class="btn btn-info btn-sm lw-action-btn"  style="background:gray;color:white"
                                        href="{{ route($detailsRoute, $row->id) }}">
                                         <i class="fas fa-eye"></i>
                                         {{ __('adminlte::adminlte.details') ?: 'Details' }}
@@ -261,17 +135,17 @@
 
                                 {{-- Edit --}}
                                 @if(!empty($editRoute))
-                                    <a class="btn btn-success btn-sm lw-action-btn"
+                                    <a class="btn btn-success btn-sm lw-action-btn" style="background:green;color:white"
                                        href="{{ route($editRoute, $row->id) }}">
                                         <i class="fas fa-edit"></i>
                                         {{ __('adminlte::adminlte.edit') ?: 'Edit' }}
                                     </a>
                                 @endif
 
-                                @php $isActive = data_get($row, 'is_active', true); @endphp
+                                @php $isActiveRow = data_get($row, 'is_active', true); @endphp
 
                                 {{-- Delete / Reactivate --}}
-                                @if($isActive)
+                                @if($isActiveRow)
                                     @if(!empty($deleteRoute))
                                         <form action="{{ route($deleteRoute, $row->id) }}"
                                               method="POST"
@@ -296,7 +170,7 @@
                                               method="POST"
                                               onsubmit="return confirm(@json(__('adminlte::adminlte.do_you_want_to_reactive') ?: 'Reactivate?'))">
                                             @csrf @method('PUT')
-                                            <button type="submit" class="btn btn-warning btn-sm lw-action-btn">
+                                            <button type="submit" class="btn btn-warning btn-sm lw-action-btn"  style="background:green;color:white">
                                                 <i class="fas fa-undo"></i>
                                                 {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
                                             </button>
@@ -325,7 +199,7 @@
                 @if (method_exists($rows, 'hasPages') && $rows->hasPages())
                     <tr>
                         <td colspan="{{ count($fields) + 2 }}">
-                            <div class="mt-2 d-flex justify-content-end">
+                            <div class="mt-2 d-flex {{ $isRtl ? 'justify-content-start' : 'justify-content-end' }}">
                                 {{ $rows->links('pagination::bootstrap-4') }}
                             </div>
                         </td>
@@ -341,6 +215,7 @@
     <script wire:ignore>
         window.addEventListener('show-details-modal', () => {
             const el = document.getElementById('detailsModal');
+            if (!el) return;
             const modal = bootstrap.Modal.getOrCreateInstance(el);
             modal.show();
         });

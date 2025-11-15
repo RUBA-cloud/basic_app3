@@ -10,7 +10,7 @@
            <x-action_buttons   label="{{__('adminlte::adminlte.offers')}}"
                 addRoute="offers.create"
                 historyRoute="offers.index"
-                historyParams="true"
+                historyParams="true" 
                 :showAdd="false"
             />
 

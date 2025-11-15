@@ -18,24 +18,29 @@ class CompanyBranchController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(bool $isHistory = false)
+    public function index()
     {
-        if ($isHistory) {
-            $branches = CompanyBranchesHistory::with('user')->paginate(5);
-            return view('company_branch.index', compact('branches'));
-        }
+
+
         $branches = CompanyBranch::with('user')->where('is_active',true)->paginate(5);
-        return view('company_branch.index', compact('branches'))->with('is_history', $isHistory);
+        return view('company_branch.index', compact('branches'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
+    public function create(){
+
         return view('company_branch.create');
     }
+public function history(){
 
+
+
+            $branches = CompanyBranchesHistory::with('user')->paginate(5);
+            return view('company_branch.history', compact('branches'));
+
+}
 
     public function searchHistory(Request $request)
     {
@@ -114,7 +119,7 @@ class CompanyBranchController extends Controller
 
     // 2) If not found there, fall back to the history table (or throw 404)
     if (! $branch) {
-        $branch = CompanyBranchesHistory::with('companyInfo')::findOrFail($id);
+        $branch = CompanyBranchesHistory::with('companyInfo')->find($id);
     }
 
     // 3) Render the view just once

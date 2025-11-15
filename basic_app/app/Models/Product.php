@@ -20,8 +20,11 @@ class Product extends Model
         'is_active',
         'user_id',
         'category_id',
+        'product_type', // Assuming you have a product_type field
         'type_id', // Foreign key to types table
-        'colors', // Assuming you have a colors field, can be JSON or text
+        'colors',
+        'main_image',
+        // Assuming you have a colors field, can be JSON or text
     ];
     protected $casts = [
         'is_active' => 'boolean',

@@ -4,7 +4,7 @@
 
 @section('content_header')
 <div class="d-flex align-items-center justify-content-between">
-  <h1 class="m-0">{{ __('Notifications') }}</h1>
+  <h1 class="m-0">{{ __('adminlte::adminlte.Notifications') }}</h1>
   <form action="{{ route('notifications.markAll') }}" method="POST" class="m-0">
     @csrf
     <button class="btn btn-outline-secondary btn-sm">{{ __('adminlte::adminlte.mark_all_as_read') }}</button>
@@ -59,7 +59,7 @@
           </div>
         </div>
       @empty
-        <div class="text-center text-muted py-4">{{ __('No notifications') }}</div>
+        <div class="text-center text-muted py-4">{{ __('adminlte::adminlte.Notifications') }}</div>
       @endforelse
     </div>
 

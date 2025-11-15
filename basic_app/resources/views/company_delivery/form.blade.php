@@ -62,13 +62,13 @@
         </label>
     </div>
 
-    <x-adminlte-button
-        label="{{ __('adminlte::adminlte.save_information') }}"
-        type="submit"
-        theme="success"
-        class="w-100"
-        icon="fas fa-save"
-    />
+      <x-adminlte-button
+                label="{{ __('adminlte::adminlte.save_information') }}"
+                type="submit"
+                theme="success"
+                class="w-100"
+                icon="fas fa-save"
+            />
 </form>
 
 @push('js')

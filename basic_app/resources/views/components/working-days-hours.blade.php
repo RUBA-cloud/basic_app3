@@ -55,7 +55,7 @@
                     class="form-check-input m-0"
                     type="checkbox"
                     name="working_days[]"
-                    value="{{ $key }}"
+                    value="{{ $label }}"
                     id="day_{{ $key }}"
                     {{ in_array($key, $workingDays, true) ? 'checked' : '' }}
                 >
@@ -118,73 +118,5 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
 @endif
 
-<script>
-(function () {
-    function initWorkingTimePickers() {
-        @if($isAr)
-        if (window.flatpickr?.l10ns?.ar) {
-            flatpickr.localize(flatpickr.l10ns.ar);
-        }
-        @endif
-
-        const baseOptions = {
-            enableTime: true,
-            noCalendar: true,      // وقت فقط
-            dateFormat: "H:i",
-            time_24hr: true,
-            minuteIncrement: 5,
-            allowInput: true,
-            static: true,          // ✅ خلي الـ picker ثابت تحت الـ input
-            onChange: syncHidden,
-            onClose: syncHidden,
-        };
-
-        function syncHidden(selectedDates, dateStr, instance) {
-            const hiddenId = instance.input.dataset.hiddenTarget;
-            if (!hiddenId) return;
-            const hidden = document.getElementById(hiddenId);
-            if (hidden && typeof dateStr === 'string') {
-                hidden.value = dateStr;
-            }
-        }
-
-        const fromInput = document.getElementById('branch_working_hours_from_visible');
-        const toInput   = document.getElementById('branch_working_hours_to_visible');
-
-        if (fromInput) {
-            fromInput.dataset.hiddenTarget = 'branch_working_hours_from';
-            const fpFrom = flatpickr(fromInput, {
-                ...baseOptions,
-                defaultDate: "{{ $workingHoursFrom }}",
-            });
-
-            const hiddenFrom = document.getElementById('branch_working_hours_from');
-            if (hiddenFrom && fpFrom.input.value) {
-                hiddenFrom.value = fpFrom.input.value;
-            }
-        }
-
-        if (toInput) {
-            toInput.dataset.hiddenTarget = 'branch_working_hours_to';
-            const fpTo = flatpickr(toInput, {
-                ...baseOptions,
-                defaultDate: "{{ $workingHoursTo }}",
-            });
-
-            const hiddenTo = document.getElementById('branch_working_hours_to');
-            if (hiddenTo && fpTo.input.value) {
-                hiddenTo.value = fpTo.input.value;
-            }
-        }
-    }
-
-    // نتأكد أنها تشتغل سواء DOM جاهز أو لا
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initWorkingTimePickers);
-    } else {
-        initWorkingTimePickers();
-    }
-})();
-</script>
 @endpush
 

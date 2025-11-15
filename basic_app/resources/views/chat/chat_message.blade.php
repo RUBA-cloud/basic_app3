@@ -1,20 +1,27 @@
+{{-- resources/views/admin/chat/index.blade.php (example path) --}}
 @extends('adminlte::page')
 
 @section('title', __('adminlte::adminlte.chat'))
 
+@php
+    $isRtl      = app()->isLocale('ar');
+    /** @var \App\Models\User $currentUser */
+    $currentUser = $currentUser ?? Auth::user();
+@endphp
+
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 chat-page {{ $isRtl ? 'rtl-mode' : 'ltr-mode' }}">
   <div class="chat-shell shadow-sm">
     <div class="chat-grid">
 
-      {{-- LEFT: USERS LIST --}}
+      {{-- LEFT / RIGHT: USERS LIST (position depends on RTL/LTR) --}}
       <aside class="users-pane">
         <div class="users-head">
-          <div class="d-flex align-items-center gap-2">
+          <div class="users-head-title d-flex align-items-center gap-2">
             <i class="fas fa-users text-primary"></i>
             <span class="fw-bold">{{ __('adminlte::adminlte.users') }}</span>
           </div>
-          <div class="d-flex gap-2 flex-grow-1">
+          <div class="users-head-actions d-flex gap-2 flex-grow-1">
             <input type="text" id="userSearch" class="form-control form-control-sm search"
                    placeholder="{{ __('adminlte::adminlte.search_users') }}">
             <a href="{{ route('chat.index') }}" class="btn btn-sm btn-light border">
@@ -25,9 +32,7 @@
 
         <div class="users-list" id="usersList">
           @php
-              $activeId     = request('user_id');
-              /** @var \App\Models\User $currentUser */
-              $currentUser  = $currentUser ?? Auth::user();
+              $activeId = request('user_id');
           @endphp
           @foreach ($users as $u)
             @php
@@ -59,26 +64,30 @@
         </div>
       </aside>
 
-      {{-- RIGHT: CONVERSATION --}}
+      {{-- CONVERSATION --}}
       <section class="conv-pane">
         <div class="conv-head">
           @if($activeId)
             @php $peer = $users->firstWhere('id', (int)$activeId); @endphp
-            <div class="user-avatar" style="width:36px;height:36px;">
-              @if($peer?->avatar_path)
-                <img src="{{ asset($peer->avatar_path) }}" alt="avatar">
-              @else
-                {{ mb_strtoupper(
-                    collect(explode(' ', trim($peer?->name ?? 'U')))
-                        ->take(2)
-                        ->map(fn($p)=>mb_substr($p,0,1))
-                        ->implode('')
-                ) }}
-              @endif
+            <div class="conv-head-main d-flex align-items-center gap-2">
+              <div class="user-avatar peer-avatar">
+                @if($peer?->avatar_path)
+                  <img src="{{ asset($peer->avatar_path) }}" alt="avatar">
+                @else
+                  {{ mb_strtoupper(
+                      collect(explode(' ', trim($peer?->name ?? 'U')))
+                          ->take(2)
+                          ->map(fn($p)=>mb_substr($p,0,1))
+                          ->implode('')
+                  ) }}
+                @endif
+              </div>
+              <div class="conv-title">{{ $peer?->name ?? __('adminlte::adminlte.conversation') }}</div>
             </div>
-            <div class="conv-title">{{ $peer?->name ?? __('adminlte::adminlte.conversation') }}</div>
           @else
-            <div class="conv-title">{{ __('adminlte::adminlte.conversation') }}</div>
+            <div class="conv-head-main">
+              <div class="conv-title">{{ __('adminlte::adminlte.conversation') }}</div>
+            </div>
           @endif
         </div>
 
@@ -135,13 +144,13 @@
           <form id="sendForm"
                 action="{{ route('chat.store') }}"
                 method="POST"
-                class="d-flex align-items-center gap-2"
+                class="conv-input-form d-flex align-items-center gap-2"
                 autocomplete="off">
             @csrf
             @if($activeId)
               <input type="hidden" name="receiver_id" value="{{ (int)$activeId }}">
             @else
-              <select name="receiver_id" class="form-select form-select-sm w-auto" required>
+              <select name="receiver_id" class="form-select form-select-sm conv-recipient" required>
                 <option value="">{{ __('adminlte::adminlte.choose_recipient') }}</option>
                 @foreach($users as $u)
                   @continue($currentUser->id == $u->id)
@@ -149,9 +158,9 @@
                 @endforeach
               </select>
             @endif
-            <input type="text" name="message" class="form-control flex-fill"
+            <input type="text" name="message" class="form-control flex-fill conv-message"
                    placeholder="{{ __('adminlte::adminlte.type_message') }}" required maxlength="2000">
-            <button type="submit" class="btn btn-primary px-3">
+            <button type="submit" class="btn btn-primary px-3 conv-send-btn">
               <i class="fas fa-paper-plane"></i>
             </button>
           </form>
@@ -163,131 +172,7 @@
 </div>
 @endsection
 
-@section('adminlte_css')
-<style>
-.chat-shell {
-  background: #fff;
-  border-radius: 1rem;
-  overflow: hidden;
-}
-.chat-grid {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  min-height: 75vh;
-}
-@media (max-width: 992px) { .chat-grid { grid-template-columns: 1fr; } }
 
-/* === USERS PANE === */
-.users-pane {
-  background: #f9fafb;
-  border-right: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-}
-.users-head {
-  padding: .75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-.users-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: .5rem;
-}
-.user-row {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .55rem .7rem;
-  border-radius: .5rem;
-  text-decoration: none;
-  color: inherit;
-  transition: background .15s, border-color .15s;
-}
-.user-row:hover { background: #eef2ff; }
-.user-row.active { background: #dbeafe; border: 1px solid #bfdbfe; }
-.user-avatar {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: #e0e7ff;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 600; color: #3730a3;
-  overflow: hidden;
-}
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-name { font-weight: 600; }
-.badge-unread {
-  background: #2563eb; color: #fff;
-  border-radius: 999px; font-size: .75rem;
-  padding: .15rem .5rem; display: none;
-}
-
-/* === CONVERSATION === */
-.conv-pane { display: flex; flex-direction: column; background: #fff; }
-.conv-head {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .8rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-.conv-title { font-weight: 600; font-size: 1.05rem; }
-.conv-body {
-  flex: 1;
-  background: #f9fafb;
-  padding: 1rem;
-  overflow-y: auto;
-}
-.conv-input {
-  background: #fff;
-  padding: .75rem 1rem;
-}
-.day-divider {
-  text-align: center;
-  color: #9ca3af;
-  font-size: .8rem;
-  margin: .8rem 0;
-}
-
-/* === MESSAGES === */
-.msg { display: flex; gap: .6rem; margin: .4rem 0; align-items: flex-end; }
-.msg.me { flex-direction: row-reverse; }
-.avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: #dbeafe;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 600; color: #1e3a8a;
-  overflow: hidden;
-}
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
-.bubble {
-  max-width: 70%;
-  padding: .6rem .8rem;
-  border-radius: 1rem;
-  font-size: .95rem;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.msg.me .bubble {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  border-bottom-right-radius: .3rem;
-}
-.msg.them .bubble {
-  border-bottom-left-radius: .3rem;
-}
-.meta {
-  font-size: .75rem;
-  opacity: .8;
-  margin-top: .2rem;
-  display: block;
-  text-align: right;
-}
-html[dir="rtl"] .msg.me { flex-direction: row; }
-</style>
-@endsection
 
 @section('adminlte_js')
 @parent
@@ -474,7 +359,6 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       Echo.private(channelName)
           .listen('.' + eventName, (payload) => {
-            // payload is { message: {...} } from broadcastWith()
             appendIncoming(payload);
           });
 

@@ -30,4 +30,8 @@ class size extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+    public function carts()
+    {
+        return $this->hasMany(Cart::class, 'size_id');
+    }
 }

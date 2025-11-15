@@ -22,7 +22,8 @@ use Illuminate\Validation\Rule;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
-
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 class AuthApiController extends Controller
 {
     protected Configuration $jwtConfig;
@@ -141,7 +142,7 @@ class AuthApiController extends Controller
         } catch (\Throwable $e) {}
 
         $now = new CarbonImmutable();
-        $expiry = $now->addHour();
+        $expiry = $now->addHours(24);
 
         $token = $this->jwtConfig->builder()
             ->issuedBy(config('app.url'))
@@ -155,14 +156,14 @@ class AuthApiController extends Controller
                 $this->jwtConfig->signer(),
                 $this->jwtConfig->signingKey()
             );
-
+$user->access_token = $token->toString();
         return response()->json([
             'data'         => $user,
-            'access_token' => $token->toString(),
             'token_type'   => 'Bearer',
             'expires_in'   => $expiry->diffInSeconds($now),
         ], 200);
     }
+
 
     /**
      * Update language/theme settings.
@@ -258,10 +259,76 @@ class AuthApiController extends Controller
 
         return response()->json(['message' => 'Verification email sent'], 200);
     }
+  public function refresh(Request $request)
+{
+    try {
+        // 1) نقرأ التوكن القديم من الهيدر
+        $oldTokenString = $request->bearerToken();
 
-    /**
-     * Resend forgot-password email (rate-limited sample).
-     */
+        if (!$oldTokenString) {
+            return response()->json([
+                'message' => 'Token not provided.',
+            ], 401);
+        }
+
+        // 2) نحاول نحلّل التوكن
+        try {
+            $parsedToken = $this->jwtConfig->parser()->parse($oldTokenString);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Invalid token format.',
+            ], 401);
+        }
+
+
+        // 3) نجيب user_id من claim sub (relatedTo اللي حطيتيه في login)
+        $userId = $parsedToken->claims()->get('sub', null);
+
+        if (!$userId) {
+            return response()->json([
+                'message' => 'Token has no subject.',
+            ], 401);
+        }
+
+        /** @var \App\Models\User|null $user */
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        // 4) نبني توكن جديد لنفس المستخدم
+        $now    = new CarbonImmutable();
+        $expiry = $now->addHour();
+
+        $newToken = $this->jwtConfig->builder()
+            ->issuedBy(config('app.url'))
+            ->permittedFor(config('app.url'))
+            ->issuedAt($now)
+            ->canOnlyBeUsedAfter($now)
+            ->expiresAt($expiry)
+            ->relatedTo((string) $user->id)
+            ->withClaim('email', $user->email)
+            ->getToken(
+                $this->jwtConfig->signer(),
+                $this->jwtConfig->signingKey()
+            );
+
+        return response()->json([
+            'access_token' => $newToken->toString(),
+            'token_type'   => 'bearer',
+            'expires_in'   => $expiry->diffInSeconds($now), // مثلاً ساعة
+        ], 200);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'message' => 'Token is invalid, expired, or cannot be refreshed.',
+        ], 401);
+    }
+}
+
     public function resendForgotPassword(Request $request)
     {
         $request->validate([

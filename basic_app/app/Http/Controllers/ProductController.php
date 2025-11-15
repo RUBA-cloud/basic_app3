@@ -88,6 +88,16 @@ if (array_key_exists('sizes', $validated) && $validated['sizes'] !== null)  {
 if (array_key_exists('additionals', $validated)&& $validated['additionals'] !== null) { // note: correct spelling
     $product->additionals()->sync($validated['additionals'] ?? []);
 }
+
+if($request->hasFile('main_image')){
+    $mainImageFile = $request->file('main_image');
+    $path = $mainImageFile->store('products', 'public');
+    $imageUrl = $request->getSchemeAndHttpHost() . '/storage/' . $path;
+    $product->main_image = $imageUrl;
+        $product->save();
+
+}
+
         if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $path = $imageFile->store('products', 'public');
@@ -116,7 +126,7 @@ if (array_key_exists('additionals', $validated)&& $validated['additionals'] !== 
     }
     public function show($id)
     {
-        $product = Product::with(['category', 'sizes', 'additionals', 'images', 'type'])->findOrFail($id);
+        $product = Product::with(['category', 'sizes', 'additionals', 'images', 'type','user'])->findOrFail($id);
         return view('Product.show', compact('product'));
     }
 
@@ -138,10 +148,17 @@ if (array_key_exists('additionals', $validated)&& $validated['additionals'] !== 
             $product->is_active = $request->has('is_active') ? 1 : 0;
            $product->colors = $validated['colors'] ?? [];
             $product->save();
-broadcast(new \App\Events\ProductEventUpdate($product));
             $product->sizes()->sync($validated['sizes'] ?? []);
             $product->additionals()->sync($validated['additional'] ?? []);
 
+if($request->hasFile('main_image')){
+    $mainImageFile = $request->file('main_image');
+    $path = $mainImageFile->store('products', 'public');
+    $imageUrl = $request->getSchemeAndHttpHost() . '/storage/' . $path;
+    $product->main_image = $imageUrl;
+        $product->save();
+
+}
 
 
             if ($request->hasFile('images')) {
@@ -151,6 +168,8 @@ broadcast(new \App\Events\ProductEventUpdate($product));
                     $product->images()->update(['image_path' => $imageUrl]);
                 }
             }
+
+broadcast(new \App\Events\ProductEventUpdate($product));
 
             DB::commit();
             return redirect()->route('product.index')->with('success', 'Product updated successfully!');

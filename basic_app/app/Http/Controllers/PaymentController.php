@@ -12,22 +12,25 @@ use Illuminate\Support\Facades\Schema;
 class PaymentController extends Controller
 {
     /** List payments */
-    public function index()
+    public function index($isHistory =false)
     {
+     if($isHistory)
+    {
+
+      $history = PaymentHistory::with('user')
+            ->orderByDesc('id')
+            ->paginate(20);
+
+        return view('payments.history', compact('history'));
+    }
+
         $payments = Payment::with('user')
             ->orderByDesc('id')
             ->paginate(5);
 
         return view('payments.index', compact('payments'));
     }
-     public function history()
-    {
-        $history = PaymentHistory::with('user')
-            ->orderByDesc('id')
-            ->paginate(20);
 
-        return view('payments.history', compact('history'));
-    }
 
 
     /** Show create form */

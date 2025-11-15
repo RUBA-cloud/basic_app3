@@ -1,127 +1,144 @@
-@php
-    // Determine layout direction (RTL for Arabic, Hebrew, Farsi, Urdu)
-    $dir = in_array(strtolower($locale ?? app()->getLocale()), ['ar','he','fa','ur']) ? 'rtl' : 'ltr';
-    $align = $dir === 'rtl' ? 'right' : 'left';
-    $reverse = $dir === 'rtl' ? 'rtl' : 'ltr';
+{{-- resources/views/auth/passwords/email.blade.php --}}
+@extends('adminlte::page')
 
-    // Define color palette (brand colors)
-    $brand = $colors ?? [
-        'main_color' => '#FF2D20',
-        'sub_color'  => '#1A202C',
-        'text_color' => '#22223B',
+@php
+    use App\Helpers\CustomSettings;
+
+    // Get app settings from CompanyInfo
+    $settings = CustomSettings::appSettings();
+
+    // Map to brand palette for this page
+    $brand = [
+        'main_color' => $settings['button_color'] ?? $settings['main_color'] ?? '#2563EB', // primary / button
+        'sub_color'  => $settings['sub_color']     ?? '#0F172A',                           // card header / accent
+        'bg_soft'    => $settings['card_color']    ?? '#F3F4F6',                           // page background
+        'text_color' => $settings['text_color']    ?? '#111827',                           // main text
     ];
+
+    // Optional: app name + logo from CompanyInfo
+    $appName = $settings['name_en'] ?? config('app.name', 'My App');
+    $logoUrl = $settings['image'] ? asset($settings['image']) : null;
 @endphp
 
-<!DOCTYPE html>
-<html lang="{{ $locale ?? app()->getLocale() }}" dir="{{ $dir }}">
-<head>
-  <meta charset="utf-8">
-  <meta name="color-scheme" content="light dark">
-  <meta name="supported-color-schemes" content="light dark">
-  <title>{{ __('adminlte::adminlte.verify_email_subject', ['app' => $appName]) }}</title>
+@section('title', 'Reset your password')
 
-  <style>
-    /* Email-safe button style */
-    .btn {
-      display:inline-block;
-      padding:12px 20px;
-      border-radius:8px;
-      text-decoration:none;
-      color:#fff;
-      background:{{ $brand['main_color'] }};
-      font-weight:700;
-    }
+@section('content')
+<div class="container py-5" style="background: {{ $brand['bg_soft'] }};">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
 
-    .muted {
-      color:#6B7280;
-      font-size:12px;
-    }
+            {{-- Success message when email is sent --}}
+            @if (session('status'))
+                <div class="alert alert-success shadow-sm mb-4">
+                    <i class="fas fa-check-circle me-1"></i>
+                    {{ session('status') }}
+                </div>
+            @endif
 
-    /* Dark mode adjustments */
-    @media (prefers-color-scheme: dark) {
-      body { background:#0b0d12!important; color:#e5e7eb!important; }
-      .card { background:#111827!important; border-color:#1f2937!important; }
-      .muted { color:#9CA3AF!important; }
-    }
-  </style>
-</head>
+            {{-- Validation errors --}}
+            @if ($errors->any())
+                <div class="alert alert-danger shadow-sm mb-4">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-<body style="margin:0;padding:0;background:#f6f7fb;
-             color:{{ $brand['text_color'] }};
-             direction:{{ $dir }};
-             text-align:{{ $align }}">
+            <div class="card shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+                {{-- Header --}}
+                <div class="card-header border-0 text-white"
+                     style="background: radial-gradient(circle at top left, {{ $brand['main_color'] }}, {{ $brand['sub_color'] }});">
+                    <div class="d-flex align-items-center">
+                        @if($logoUrl)
+                            <div class="me-3">
+                                <img src="{{ $logoUrl }}" alt="{{ $appName }}" style="height:40px; width:auto;">
+                            </div>
+                        @else
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 42px; height: 42px; background: rgba(15,23,42,.25);">
+                                <i class="fas fa-unlock-alt"></i>
+                            </div>
+                        @endif
 
-  <!-- Hidden preheader (shows as preview text in email inbox) -->
-  <div style="display:none;opacity:0;max-height:0;overflow:hidden;">
-    {{ $preheader ?? '' }}
-  </div>
+                        <div>
+                            <h5 class="mb-0">Forgot your password?</h5>
+                            <small class="text-white-50">We’ll send a reset link to your email.</small>
+                        </div>
+                    </div>
+                </div>
 
-  <!-- Outer wrapper -->
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f7fb;padding:24px 0;">
-    <tr>
-      <td align="center">
+                {{-- Body --}}
+                <div class="card-body" style="color: {{ $brand['text_color'] }};">
+                    <p class="mb-3" style="line-height: 1.6;">
+                        Enter the email address associated with your account, and we’ll send you a link
+                        to create a new password.
+                    </p>
 
-        <!-- Email card -->
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" class="card"
-               style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
+                    <form method="POST" action="{{ route('password.email') }}" autocomplete="off">
+                        @csrf
 
-          <!-- Header (brand/logo area) -->
-          <tr>
-            <td style="padding:20px;background:{{ $brand['sub_color'] }};">
-              <table width="100%">
-                <tr>
-                  <td style="text-align:{{ $align }};">
-                    @if(!empty($logoUrl))
-                      <img src="{{ $logoUrl }}" alt="{{ $appName }}" width="120" style="display:block">
-                    @else
-                      <h1 style="margin:0;color:#fff;font-size:20px">{{ $appName }}</h1>
-                    @endif
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold">
+                                Email address
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-envelope text-muted"></i>
+                                </span>
+                                <input id="email"
+                                       type="email"
+                                       name="email"
+                                       value="{{ old('email') }}"
+                                       required
+                                       autofocus
+                                       class="form-control @error('email') is-invalid @enderror"
+                                       placeholder="you@example.com">
+                            </div>
 
-          <!-- Body -->
-          <tr>
-            <td style="padding:28px 24px;">
-              <h2 style="margin:0 0 12px 0;font-size:22px;">
-                {{ __('adminlte::adminlte.verify_headline') }}
-              </h2>
+                            @error('email')
+                                <span class="invalid-feedback d-block" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
 
-              <p style="margin:0 0 14px 0;line-height:1.6">
-                {{ __('adminlte::adminlte.verify_intro', ['name' => $user->name ?? __('adminlte::adminlte.auth.user')]) }}
-              </p>
+                        <button type="submit"
+                                class="btn w-100 mt-2"
+                                style="
+                                    background: linear-gradient(135deg, {{ $brand['main_color'] }}, {{ $brand['sub_color'] }});
+                                    border-color: transparent;
+                                    color: #ffffff;
+                                    font-weight: 600;
+                                    border-radius: 999px;
+                                    padding: 0.6rem 1rem;">
+                            <i class="fas fa-paper-plane me-1"></i>
+                            Send password reset link
+                        </button>
+                    </form>
+                </div>
 
-              <p style="margin:0 0 24px 0;line-height:1.6">
-                {{ __('adminlte::adminlte.verify_cta_text') }}
-              </p>
+                {{-- Footer --}}
+                <div class="card-footer bg-white border-0 text-center small text-muted">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                        <span class="mb-2 mb-md-0">
+                            Remember your password?
+                        </span>
+                        <a href="{{ route('login') }}" class="text-decoration-none">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Back to login
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-              <p style="margin:0 0 24px 0;">
-                <a href="{{ $verificationUrl }}" class="btn">
-                  {{ __('adminlte::adminlte.verify_button') }}
-                </a>
-              </p>
-
-              <p style="margin:0 0 8px 0;line-height:1.6" class="muted">
-                {{ __('adminlte::adminlte.verify_alt', ['url' => $verificationUrl]) }}
-              </p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding:16px 24px;border-top:1px solid #e5e7eb;">
-              <p class="muted" style="margin:0;">
-                {{ __('adminlte::adminlte.email_footer_notice', ['app' => $appName]) }}
-              </p>
-            </td>
-          </tr>
-
-        </table>
-
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+            {{-- Tiny brand note --}}
+            <div class="text-center text-muted small mt-3">
+                If you didn’t request a password reset, you can safely ignore this page.
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

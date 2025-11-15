@@ -1,15 +1,29 @@
+{{-- resources/views/offers/_form.blade.php --}}
+@section('plugins.Select2', true)
+@section('plugins.TempusDominusBs4', true)
 
 @php
     $isAr = app()->getLocale() === 'ar';
+    /** @var \App\Models\Offer|null $offer */
     $offer = $offer ?? null;
-    $oldCategoryIds = collect(old('category_ids', $offer?->categories?->pluck('id')->all() ?? []))
-        ->map(fn($v)=>(int)$v);
 
-    // AdminLTE Date config
+    // Ensure we have an int-only collection of selected category ids
+    $oldCategoryIds = collect(old('category_ids', $offer?->categories?->pluck('id')->all() ?? []))
+        ->map(fn ($v) => (int) $v)
+        ->filter()
+        ->values();
+
+    // AdminLTE date config (Tempus Dominus)
     $config = ['format' => 'DD/MM/YYYY'];
 
     $pusher_key     = config('broadcasting.connections.pusher.key');
     $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
+
+    // Fallbacks for $action/$method if not injected
+    /** @var string $action */
+    $action = $action ?? url()->current();
+    /** @var string $method */
+    $method = strtoupper($method ?? ($offer?->exists ? 'PUT' : 'POST'));
 @endphp
 
 <form method="POST"
@@ -21,7 +35,7 @@
       data-pusher-key="{{ $pusher_key ?? '' }}"
       data-pusher-cluster="{{ $pusher_cluster ?? '' }}">
     @csrf
-    @unless (in_array(strtoupper($method), ['GET','POST']))
+    @unless (in_array($method, ['GET','POST']))
         @method($method)
     @endunless
 
@@ -55,14 +69,18 @@
 
             {{-- Description EN --}}
             <div class="form-group">
-                <label for="description_en">{{ __('adminlte::adminlte.descripation') }} (EN)</label>
-                <textarea id="description_en" name="description_en" class="form-control" required>{{ old('description_en', $offer->description_en ?? '') }}</textarea>
+                <label for="description_en">
+                    {{ __('adminlte::adminlte.descripation') }} (EN)
+                </label>
+                <textarea id="description_en" name="description_en" class="form-control" rows="3" required>{{ old('description_en', $offer->description_en ?? '') }}</textarea>
             </div>
 
             {{-- Description AR --}}
             <div class="form-group">
-                <label for="description_ar">{{ __('adminlte::adminlte.descripation') }} (AR)</label>
-                <textarea id="description_ar" name="description_ar" class="form-control" required>{{ old('description_ar', $offer->description_ar ?? '') }}</textarea>
+                <label for="description_ar">
+                    {{ __('adminlte::adminlte.descripation') }} (AR)
+                </label>
+                <textarea id="description_ar" name="description_ar" class="form-control" rows="3" required>{{ old('description_ar', $offer->description_ar ?? '') }}</textarea>
             </div>
 
             {{-- Categories (multi-select) --}}
@@ -71,7 +89,7 @@
                 <select id="category_ids" name="category_ids[]" class="form-control select2" multiple required style="width:100%;">
                     @foreach($categories as $category)
                         <option value="{{ $category->id }}"
-                            {{ $oldCategoryIds->contains($category->id) ? 'selected' : '' }}>
+                            {{ $oldCategoryIds->contains((int)$category->id) ? 'selected' : '' }}>
                             {{ $isAr ? ($category->name_ar ?? $category->name_en) : ($category->name_en ?? $category->name_ar) }}
                         </option>
                     @endforeach
@@ -98,7 +116,7 @@
                                        placeholder="{{ __('adminlte::adminlte.choose_date') }}"
                                        value="{{ old('start_date', $offer->start_date ?? '') }}">
                     <x-slot name="appendSlot">
-                        <x-adminlte-button theme="outline-primary" icon="fas fa-lg fa-calendar-alt" title="Set to Today"/>
+                        <x-adminlte-button theme="outline-primary" icon="fas fa-lg fa-calendar-alt" title="Set to Today" data-today="start_date"/>
                     </x-slot>
                 </x-adminlte-input-date>
             </div>
@@ -109,7 +127,7 @@
                                        placeholder="{{ __('adminlte::adminlte.choose_date') }}"
                                        value="{{ old('end_date', $offer->end_date ?? '') }}">
                     <x-slot name="appendSlot">
-                        <x-adminlte-button theme="outline-primary" icon="fas fa-lg fa-calendar-alt" title="Set to Today"/>
+                        <x-adminlte-button theme="outline-primary" icon="fas fa-lg fa-calendar-alt" title="Set to Today" data-today="end_date"/>
                     </x-slot>
                 </x-adminlte-input-date>
             </div>
@@ -142,7 +160,10 @@
 (function(){
   'use strict';
 
-  const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : s;
+  const esc = (s) => {
+    try { return (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/"/g,'\\"'); }
+    catch(_) { return String(s); }
+  };
 
   const setField = (name, value) => {
     if (value === undefined || value === null) return;
@@ -164,7 +185,7 @@
 
   const setMultiSelect = (selectorOrName, values = []) => {
     const el = document.querySelector(
-      selectorOrName.startsWith('#')
+      selectorOrName && selectorOrName.startsWith('#')
         ? selectorOrName
         : `[name="${esc(selectorOrName)}[]"]`
     );
@@ -222,6 +243,26 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Select2 if available
+    if (window.jQuery) {
+      jQuery('#category_ids').select2({ width: '100%', theme: 'bootstrap4', placeholder: '{{ __('adminlte::adminlte.select') }}' });
+      jQuery('#type_id').select2({ width: '100%', theme: 'bootstrap4', placeholder: '{{ __('adminlte::adminlte.select') }}' });
+    }
+
+    // “Set to Today” quick buttons (uses DD/MM/YYYY)
+    document.querySelectorAll('[data-today]').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        const id = btn.getAttribute('data-today');
+        if (!id) return;
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2,'0');
+        const mm = String(today.getMonth()+1).padStart(2,'0');
+        const yyyy = today.getFullYear();
+        setDate(id, `${dd}/${mm}/${yyyy}`);
+      });
+    });
+
     const form = document.getElementById('offer-form');
     if (!form) {
       console.warn('[offers] form not found');
@@ -244,14 +285,16 @@
     };
 
     window.__pageBroadcasts.push({
-      channel: 'offers',         // broadcastOn()
-      event:   'offer_updated',  // broadcastAs()
+      channel: form.dataset.channel || 'offers', // broadcastOn()
+      event:   events[0] || 'offer_updated',     // broadcastAs()
       handler: handler
     });
 
     if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
-      window.AppBroadcast.subscribe('offers', 'offer_updated', handler);
-      console.info('[offers] subscribed via AppBroadcast → offers / offer_updated');
+      (events || ['offer_updated']).forEach(evt => {
+        window.AppBroadcast.subscribe(form.dataset.channel || 'offers', evt, handler);
+      });
+      console.info('[offers] subscribed via AppBroadcast →', form.dataset.channel, events);
     } else {
       console.info('[offers] registered in __pageBroadcasts; layout will subscribe later.');
     }
@@ -262,5 +305,17 @@
 @endpush
 
 @section('css')
-    {{-- Tempus Dominus (Bootstrap 4) --}}
-    <li
+<style>
+  /* small cosmetic tweaks */
+  #offer-form .select2-container--bootstrap4 .select2-selection--single,
+  #offer-form .select2-container--bootstrap4 .select2-selection--multiple {
+    min-height: calc(2.25rem + 2px);
+  }
+  #offer-form .select2-container--bootstrap4 .select2-selection__rendered {
+    line-height: 2.25rem;
+  }
+  #offer-form .select2-container--bootstrap4 .select2-selection__arrow {
+    height: 2.25rem;
+  }
+</style>
+@endsection

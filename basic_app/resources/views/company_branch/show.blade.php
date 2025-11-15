@@ -12,11 +12,11 @@
             {{ __('adminlte::adminlte.branch_details') }}
         </h2>
 
-        <span id="branch-main-badge"
+        {{-- <span id="branch-main-badge"
               class="badge bg-purple text-white px-3 py-2 {{ $branch->is_main_branch ? '' : 'd-none' }}">
             <i class="fas fa-star me-1"></i>
             {{ __('adminlte::adminlte.main_branch') }}
-        </span>
+        </span> --}}
     </div>
 
     {{-- Card --}}

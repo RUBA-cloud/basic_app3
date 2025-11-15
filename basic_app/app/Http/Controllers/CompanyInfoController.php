@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class CompanyInfoController extends Controller
 {
@@ -22,8 +21,15 @@ class CompanyInfoController extends Controller
     /**
      * Show the current company information.
      */
-    public function index()
+    public function index($isHistory =false)
     {
+        if($isHistory){
+
+        $history = CompanyInfoHistory::with('user')
+            ->orderByDesc('created_at')
+            ->paginate(5);
+
+        return view('company_info.history', compact('history'));}
         $company = CompanyInfo::query()->first();
 
         return view('company_info.index', [
@@ -31,21 +37,7 @@ class CompanyInfoController extends Controller
         ]);
     }
 
-    /**
-     * Show the company info history (paginated).
-     */
-    public function history()
-    {
-        $history = CompanyInfoHistory::with('user')
-            ->orderByDesc('created_at')
-            ->paginate(5);
 
-        return view('company_info.history', compact('history'));
-    }
-
-    /**
-     * Search in history by several fields (paginated).
-     */
     public function searchHistory(Request $request)
     {
         $searchTerm = (string) $request->input('search', '');
@@ -54,6 +46,7 @@ class CompanyInfoController extends Controller
             ->when($searchTerm !== '', function ($q) use ($searchTerm) {
                 $q->where(function ($q2) use ($searchTerm) {
                     $like = '%' . $searchTerm . '%';
+
                     $q2->where('name_en', 'like', $like)
                         ->orWhere('name_ar', 'like', $like)
                         ->orWhere('address_en', 'like', $like)
@@ -78,7 +71,8 @@ class CompanyInfoController extends Controller
     {
         $entry = CompanyInfoHistory::with('user')->findOrFail($id);
 
-        return view('CompanyInfo.show', ['company' => $entry]);
+        // Make sure your blade is at: resources/views/company_info/show.blade.php
+        return view('company_info.show', ['company' => $entry]);
     }
 
     /**
@@ -97,14 +91,15 @@ class CompanyInfoController extends Controller
 
         $savedCompany = null;
 
-        DB::transaction(function () use ($savedCompany, $validated) {
+        DB::transaction(function () use (&$savedCompany, $validated) {
             $company = CompanyInfo::query()->first();
 
             if ($company) {
                 // Save current snapshot to history
                 $historyData = $company->toArray();
-                unset($historyData['id']); // avoid collisions
+                unset($historyData['id']);         // avoid collisions
                 $historyData['user_id'] = Auth::id();
+
                 CompanyInfoHistory::create($historyData);
 
                 // Update current record
@@ -114,27 +109,24 @@ class CompanyInfoController extends Controller
                 // Create new company
                 $savedCompany = CompanyInfo::create($validated);
 
-                // Also record initial snapshot in history (optional but useful)
+                // Also record initial snapshot in history
                 $historyData = $savedCompany->toArray();
                 unset($historyData['id']);
                 $historyData['user_id'] = Auth::id();
+
                 CompanyInfoHistory::create($historyData);
             }
-
-            // defer broadcasting until after commit
-            DB::afterCommit(function () use ($savedCompany) {
-                try {
-                    broadcast(new CompanyInfoEventSent($savedCompany));
-                                      //  dd(vars: $savedCompany);
-
-                } catch (\Throwable $e) {
-
-                    // Do not fail the request if broadcasting isn’t configured
-                    Log::warning('CompanyInfoEventSent broadcast failed: ' . $e->getMessage());
-                      return back()->with('success', 'Company information saved successfully.');
-  }
-            });
         });
+
+        // Broadcast AFTER the transaction succeeds
+        if ($savedCompany) {
+            try {
+                broadcast(new CompanyInfoEventSent($savedCompany));
+            } catch (\Throwable $e) {
+                // Do not fail the request if broadcasting isn’t configured
+                Log::warning('CompanyInfoEventSent broadcast failed: ' . $e->getMessage());
+            }
+        }
 
         return back()->with('success', 'Company information saved successfully.');
     }

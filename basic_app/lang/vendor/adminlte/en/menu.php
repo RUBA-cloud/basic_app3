@@ -38,5 +38,8 @@ return [
     'orders'            => 'Orders',
     'order_status'      => 'Order Status',
     'company_delivery'  => 'Delivery Companies',
+        'payment'=>'payment',
+'regions'=>'Regions',
+
 
 ];

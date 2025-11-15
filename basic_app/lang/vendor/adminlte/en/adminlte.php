@@ -103,6 +103,9 @@ return [
     'company_overview' => 'Company Overview',
     'details' => 'Details',
     'add' => 'Add',
+    'country'=>'Country',
+    'city'=>'City',
+    'unread'=>'unread',
 
     // Form
     'company_info_form' => 'Company Info Form',
@@ -133,7 +136,9 @@ return [
     'company_info_form_image_upload_dimensions_max_invalid' => 'Invalid logo dimensions. Please upload an image no larger than 1000x1000 pixels.',
     'browse' => 'Browse',
     'no_image' => 'No image uploaded',
-
+    'excepted_delivery_days'=>'excepted_delivery_days',
+    'newest_10_products'=>'newest 10 products',
+'description'=>'description',
     // About, mission, vision
     'about_us_en' => 'About Us (English)',
     'about_us_ar' => 'About Us (Arabic)',
@@ -141,6 +146,16 @@ return [
     'mission_ar' => 'Mission (Arabic)',
     'vision_en' => 'Vision (English)',
     'vision_ar' => 'Vision (Arabic)',
+ 'reset_subject'  => 'Reset your password',
+            'reset_preheader' => 'Reset your :app password.',
+            'greeting'       => 'Hi :name,',
+            'intro'          => 'We received a request to reset the password for your :app account.',
+            'action'         => 'To choose a new password, click the button below. For your security, this link will only be valid for :minutes minutes.',
+            'button'         => 'Reset password',
+            'link_text'      => 'If the button above doesn’t work, copy and paste this link into your browser:',
+            'ignore'         => 'If you did not request a password reset, you can safely ignore this email and your password will remain unchanged.',
+            'footer'         => 'You received this email because you have an account with :app. If this wasn’t you, you can ignore this message.',
+            'copyright'      => '© :year :app. All rights reserved.',
 
     // Actions (more)
     'save_information' => 'Save Information',
@@ -533,6 +548,9 @@ return [
 'country'=>'Country',
 'all'=>'All',
 'Unread'=>'Unread',
+'users'=>'users',
+'images'=>'Images',
+
     // Footer
     'email_footer_notice' => 'This email was sent by :app. Please do not reply to this message.',
 "payment_module"=>'Payment Module',

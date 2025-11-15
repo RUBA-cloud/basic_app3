@@ -1,162 +1,192 @@
 @php
-    $dir   = in_array(strtolower($locale ?? app()->getLocale()), ['ar','he','fa','ur']) ? 'rtl' : 'ltr';
-    $align = $dir === 'rtl' ? 'right' : 'left';
-    $brand = $colors ?? [
-        'main_color' => '#6C5CE7',  // primary (button, accents)
-        'sub_color'  => '#1A202C',  // header background
-        'text_color' => '#22223B',  // body text
+    use App\Helpers\CustomSettings;
+
+    // Fetch company settings from CompanyInfo
+    $settings = CustomSettings::appSettings();
+
+    // Brand colors from company info (with safe fallbacks)
+    $brand = [
+        // Primary accent / button color
+        'main_color' => $settings['button_color']
+            ?? $settings['main_color']
+            ?? '#2563EB',
+
+        // Header / top bar color
+        'sub_color'  => $settings['sub_color']
+            ?? '#111827',
+
+        // Main text color
+        'text_color' => $settings['text_color']
+            ?? '#1F2933',
+
+        // Card background
+        'card_color' => $settings['card_color']
+            ?? '#FFFFFF',
+
+        // Page background (slightly soft)
+        'bg_soft'    => $settings['text_filed_color']
+            ?? '#F6F7FB',
     ];
 
-    // sensible fallbacks
-    $appName     = $appName     ?? config('app.name', 'My App');
-    $logoUrl     = $logoUrl     ?? null;
-    $preheader   = $preheader   ?? __('adminlte::adminlte.reset_preheader', ['app' => $appName]);
-    $expiresIn   = $expiresIn   ?? 60; // minutes
-    $resetUrl    = $resetUrl    ?? '#';
+    // App name & logo from CompanyInfo, with fallbacks
+    $appName = $appName
+        ?? ($settings['name_en'] ?? config('app.name', 'My App'));
+
+    $logoUrl = $logoUrl
+        ?? (!empty($settings['image']) ? asset($settings['image']) : null);
+
+    $userName  = $user->name ?? 'User';
+    $preheader = $preheader ?? "Reset your {$appName} password.";
 @endphp
+
 <!DOCTYPE html>
-<html lang="{{ $locale ?? app()->getLocale() }}" dir="{{ $dir }}">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="utf-8">
-  <meta name="color-scheme" content="light dark">
-  <meta name="supported-color-schemes" content="light dark">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ __('adminlte::adminlte.reset_password_subject', ['app' => $appName]) }}</title>
+    <meta charset="utf-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <title>Reset your password - {{ $appName }}</title>
 
-  <style>
-    /* Layout helpers (email-safe) */
-    .container { width: 600px; max-width: 100%; }
-    .card {
-      background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; overflow:hidden;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-    }
-    .header-hero {
-      padding: 28px 24px;
-      /* subtle gradient header */
-      background: linear-gradient(135deg, {{ $brand['sub_color'] }} 0%, #0f172a 100%);
-      color:#fff;
-    }
-    .brand {
-      font-size: 18px; font-weight: 700; margin:0;
-    }
-    .body { padding: 28px 24px; color: {{ $brand['text_color'] }}; }
-    .headline { margin: 0 0 12px 0; font-size: 22px; }
-    .lead { margin: 0 0 16px 0; line-height: 1.6; }
-    .btn {
-      display:inline-block; padding:14px 22px; border-radius:10px;
-      text-decoration:none; color:#fff; background: {{ $brand['main_color'] }};
-      font-weight: 700;
-    }
-    .btn:hover { opacity: .95; }
-    .muted { color:#6B7280; font-size: 12px; line-height: 1.6; }
-    .divider { height: 1px; background: #e5e7eb; }
-    .footer { padding: 16px 24px; }
+    <style>
+        /* Email-safe button style */
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #ffffff !important;
+            background: {{ $brand['main_color'] }};
+            font-weight: 700;
+            font-size: 14px;
+        }
 
-    /* “lock” icon using safe inline styles (fallback to emoji if images blocked) */
-    .lock-wrap { display:inline-flex; align-items:center; gap:10px; }
-    .lock {
-      width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,.12);
-      display:inline-flex; align-items:center; justify-content:center;
-    }
+        .muted {
+            color: #6B7280;
+            font-size: 12px;
+        }
 
-    /* Dark mode */
-    @media (prefers-color-scheme: dark){
-      body { background:#0b0d12!important; color:#e5e7eb!important; }
-      .card { background:#0f172a!important; border-color:#1f2937!important; }
-      .divider { background: #1f2937!important; }
-      .muted { color:#9CA3AF!important; }
-    }
+        .card {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
 
-    /* Mobile tweaks */
-    @media (max-width: 480px) {
-      .body, .header-hero, .footer { padding: 22px 18px !important; }
-      .headline { font-size: 20px !important; }
-    }
-  </style>
+        h1, h2, p {
+            margin: 0;
+        }
+
+        /* Dark mode adjustments */
+        @media (prefers-color-scheme: dark) {
+            body { background: #0b0d12 !important; color: #e5e7eb !important; }
+            .card { background: #111827 !important; border-color: #1f2937 !important; }
+            .muted { color: #9CA3AF !important; }
+        }
+    </style>
 </head>
 
-<body style="margin:0;padding:0;background:#f6f7fb;color:{{ $brand['text_color'] }};direction:{{ $dir }};text-align:{{ $align }}">
-  <!-- Preheader: appears as preview text in inbox -->
-  <div style="display:none;opacity:0;max-height:0;overflow:hidden;">
-    {{ $preheader }}
-  </div>
+<body style="margin:0;padding:0;
+             background:{{ $brand['bg_soft'] }};
+             color:{{ $brand['text_color'] }};
+             direction:ltr;
+             text-align:left;">
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f7fb;padding:24px 12px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" class="container" cellspacing="0" cellpadding="0">
-          <tr>
-            <td>
+    <!-- Hidden preheader (shows as preview text in email inbox) -->
+    <div style="display:none;opacity:0;max-height:0;overflow:hidden;">
+        {{ $preheader }}
+    </div>
 
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" class="card">
-                <!-- Header -->
-                <tr>
-                  <td class="header-hero">
-                    <table width="100%" role="presentation">
-                      <tr>
-                        <td style="text-align:{{ $align }};">
-                          @if(!empty($logoUrl))
-                            <img src="{{ $logoUrl }}" alt="{{ $appName }}" width="120" style="display:block; border:0;">
-                          @else
-                            <h1 class="brand" style="color:#fff;">{{ $appName }}</h1>
-                          @endif
+    <!-- Outer wrapper -->
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+           style="background:{{ $brand['bg_soft'] }};padding:24px 0;">
+        <tr>
+            <td align="center">
+
+                <!-- Email card -->
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0"
+                       class="card"
+                       style="background:{{ $brand['card_color'] }};">
+                    <!-- Header (brand/logo area) -->
+                    <tr>
+                        <td style="padding:20px;background:{{ $brand['sub_color'] }};">
+                            <table width="100%" role="presentation">
+                                <tr>
+                                    <td style="text-align:left;">
+                                        @if(!empty($logoUrl))
+                                            <img src="{{ $logoUrl }}" alt="{{ $appName }}" width="120" style="display:block">
+                                        @else
+                                            <h1 style="margin:0;color:#ffffff;font-size:20px;">
+                                                {{ $appName }}
+                                            </h1>
+                                        @endif
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
-                        <td style="text-align:{{ $dir === 'rtl' ? 'left' : 'right' }};">
-                          <span class="lock-wrap" aria-hidden="true" style="color:#fff;">
-                            <span class="lock">🔒</span>
-                            <span style="opacity:.9;font-size:13px;">{{ __('adminlte::adminlte.security_notice') }}</span>
-                          </span>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:28px 24px;">
+                            <h2 style="margin:0 0 12px 0;font-size:22px;">
+                                Reset your password
+                            </h2>
+
+                            <p style="margin:0 0 10px 0;line-height:1.6;font-size:14px;">
+                                Hi {{ $userName }},
+                            </p>
+
+                            <p style="margin:0 0 14px 0;line-height:1.6;font-size:14px;">
+                                We received a request to reset the password for your {{ $appName }} account.
+                            </p>
+
+                            <p style="margin:0 0 14px 0;line-height:1.6;font-size:14px;">
+                                To choose a new password, click the button below. For your security,
+                                this link will only be valid for {{ $expiresIn ?? 60 }} minutes.
+                            </p>
+
+                            @if(!empty($resetUrl))
+                                <p style="margin:0 0 24px 0;text-align:center;">
+                                    <a href="{{ $resetUrl }}" class="btn" target="_blank" rel="noopener">
+                                        Reset password
+                                    </a>
+                                </p>
+                            @endif
+
+                            <p class="muted" style="margin:0 0 8px 0;line-height:1.6;">
+                                If the button above doesn’t work, copy and paste this link into your browser:
+                            </p>
+
+                            @if(!empty($resetUrl))
+                                <button class="muted" style="margin:0 0 8px 0;line-height:1.6;word-break:break-all;">
+                                    {{ $resetUrl }}
+                                </button>
+                            @endif
+
+                            <p class="muted" style="margin:8px 0 0 0;line-height:1.6;">
+                                If you did not request a password reset, you can safely ignore this email and
+                                your password will remain unchanged.
+                            </p>
                         </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
+                    </tr>
 
-                <!-- Body -->
-                <tr>
-                  <td class="body">
-                    <h2 class="headline">{{ __('adminlte::adminlte.reset_headline') }}</h2>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding:16px 24px;border-top:1px solid #e5e7eb;">
+                            <p class="muted" style="margin:0;">
+                                You received this email because you have an account with {{ $appName }}.
+                                If this wasn’t you, you can ignore this message.
+                            </p>
+                            <p class="muted" style="margin:4px 0 0 0;">
+                                &copy; {{ date('Y') }} {{ $appName }}. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
 
-                    <p class="lead">
-                      {{ __('adminlte::adminlte.reset_intro', ['name' => $user->name ?? __('adminlte::adminlte.auth.user')]) }}
-                    </p>
-
-                    <p class="lead">
-                      {{ __('adminlte::adminlte.reset_cta_text') }}
-                    </p>
-
-                    <p style="margin: 0 0 24px 0;">
-                      <a href="{{ $resetUrl }}" class="btn">{{ __('adminlte::adminlte.reset_button') }}</a>
-                    </p>
-
-                    <p class="muted" style="margin: 0 0 8px 0;">
-                      {{ __('adminlte::adminlte.reset_expiry_note', ['minutes' => $expiresIn]) }}
-                    </p>
-
-                    <p class="muted" style="margin:0;">
-                      {{ __('adminlte::adminlte.reset_alt', ['url' => $resetUrl]) }}
-                    </p>
-                  </td>
-                </tr>
-
-                <tr><td class="divider"></td></tr>
-
-                <!-- Footer -->
-                <tr>
-                  <td class="footer">
-                    <p class="muted" style="margin:0;">
-                      {{ __('adminlte::adminlte.email_footer_notice', ['app' => $appName]) }}
-                    </p>
-                  </td>
-                </tr>
-              </table>
+                </table>
+                <!-- /Email card -->
 
             </td>
-          </tr>
-        </table>
-
-      </td>
-    </tr>
-  </table>
+        </tr>
+    </table>
 </body>
 </html>

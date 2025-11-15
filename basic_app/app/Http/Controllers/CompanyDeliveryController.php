@@ -82,9 +82,9 @@ class CompanyDeliveryController extends Controller
     /**
      * Show.
      */
-    public function show(CompanyDelivery $companyDelivery)
+    public function show(CompanyDelivery $company_delivery)
     {
-        return view('company_delivery.show', compact('companyDelivery'));
+        return view('company_delivery.show', compact('company_delivery'));
     }
 
     /**

@@ -26,7 +26,7 @@ public function products()
 {
     // Eager-load the nested relations on Product
     return $this->hasMany(\App\Models\Product::class, 'category_id')
-        ->with(['images', 'sizes', 'additionals','category','type']);  // <- adjust names to your Product relations
+        ->with(['images', 'sizes', 'additionals','category','type']);// <- adjust names to your Product relations
 }
 
 

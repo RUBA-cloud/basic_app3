@@ -12,8 +12,7 @@
             <x-action_buttons
                 label="{{ __('adminlte::adminlte.company_branch') }}"
                 addRoute="companyBranch.create"
-                historyRoute="companyBranch.history"
-                :historyParams="['isHistory' => 'true']"
+
                 :showAdd="true"
             />
         </div>
@@ -51,6 +50,7 @@
             model="\App\Models\CompanyBranch"                   {{-- Eloquent model --}}
             details-route="companyBranch.show"                  {{-- route names --}}
             edit-route="companyBranch.edit"
+
             delete-route="companyBranch.destroy"
             reactive-route="companyBranch.reactivate"
             initial-route="{{ route('companyBranch.index') }}"
