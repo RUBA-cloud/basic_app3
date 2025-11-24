@@ -5,7 +5,6 @@
     @endphp
 
     <x-adminlte-card class="lw-list-card">
-
         {{-- Toolbar: search + small summary --}}
         <div class="lw-toolbar">
             <div class="lw-search-group input-group">
@@ -30,29 +29,39 @@
         </div>
 
         {{-- Table --}}
-        <div class="table-responsive-md lw-table-wrapper" >
-            <table class="table table-bordered table-hover text-nowrap align-middle lw-table {{ $isRtl ? 'text-right' : 'text-left' }}">
+        <div class="table-responsive-md lw-table-wrapper">
+            <table
+                dir="{{ $isRtl ? 'rtl' : 'ltr' }}"
+                class="table table-bordered table-hover text-nowrap align-middle lw-table {{ $isRtl ? 'text-right' : 'text-left' }}">
                 <thead>
-                    <tr>
-        <th>#</th>
-        @foreach ($fields as $field)
-            <th>{{ $field['label'] ?? ucfirst(str_replace('_',' ', $field['key'] ?? '')) }}</th>
-        @endforeach
-        <th style="width:1%;white-space:nowrap;">
-            {{ __('adminlte::adminlte.actions') ?: 'Actions' }}
-        </th>
-    </tr>
+                    <tr dir="{{ $isRtl ? 'rtl' : 'ltr' }}" style="align-content: center">
+                        <th style="width:60px;">#</th>
+                        @foreach ($fields as $field)
+                            <th>
+                                {{ $field['label'] ?? ucfirst(str_replace('_',' ', $field['key'] ?? '')) }}
+                            </th>
+                        @endforeach
+                        <th style="width:1%;white-space:nowrap;" class="{{ $isRtl ? 'text-left' : 'text-right' }}">
+                            {{ __('adminlte::adminlte.actions') ?: 'Actions' }}
+                        </th>
+                    </tr>
                 </thead>
                 <tbody>
                 @php
-                    $firstItem = method_exists($rows, 'firstItem') ? ($rows->firstItem() ?? 1) : 1;
+                    $firstItem      = method_exists($rows, 'firstItem') ? ($rows->firstItem() ?? 1) : 1;
                     $routeParamName = $routeParamName ?? 'id';
                 @endphp
 
                 @forelse ($rows as $row)
-                    <tr wire:key="row-{{ $row->id }}">
-                        <td>{{ $loop->iteration + ($firstItem - 1) }}</td>
+                    <tr wire:key="row-{{ $row->id }}" class="lw-row">
+                        {{-- Row index --}}
+                        <td>
+                            <span class="badge badge-light lw-pill">
+                                {{ $loop->iteration + ($firstItem - 1) }}
+                            </span>
+                        </td>
 
+                        {{-- Dynamic fields --}}
                         @foreach ($fields as $field)
                             @php
                                 $key  = $field['key'] ?? '';
@@ -115,11 +124,12 @@
                         @endforeach
 
                         {{-- Actions --}}
-                        <td>
+                        <td class="{{ $isRtl ? 'text-left' : 'text-right' }}">
                             <div class="lw-actions">
                                 {{-- Details --}}
                                 @if(!empty($detailsRoute))
-                                    <a class="btn btn-info btn-sm lw-action-btn"  style="background:gray;color:white"
+                                    <a class="btn btn-info btn-sm lw-action-btn"
+                                       style="background:gray;color:white"
                                        href="{{ route($detailsRoute, $row->id) }}">
                                         <i class="fas fa-eye"></i>
                                         {{ __('adminlte::adminlte.details') ?: 'Details' }}
@@ -135,7 +145,8 @@
 
                                 {{-- Edit --}}
                                 @if(!empty($editRoute))
-                                    <a class="btn btn-success btn-sm lw-action-btn" style="background:green;color:white"
+                                    <a class="btn btn-success btn-sm lw-action-btn"
+                                       style="background:green;color:white"
                                        href="{{ route($editRoute, $row->id) }}">
                                         <i class="fas fa-edit"></i>
                                         {{ __('adminlte::adminlte.edit') ?: 'Edit' }}
@@ -149,6 +160,7 @@
                                     @if(!empty($deleteRoute))
                                         <form action="{{ route($deleteRoute, $row->id) }}"
                                               method="POST"
+                                              class="d-inline"
                                               onsubmit="return confirm(@json(__('adminlte::adminlte.are_you_sure_youـwant_to_delete') ?: 'Delete?'))">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm lw-action-btn">
@@ -168,9 +180,10 @@
                                     @if(!empty($reactiveRoute))
                                         <form action="{{ route($reactiveRoute, $row->id) }}"
                                               method="POST"
+                                              class="d-inline"
                                               onsubmit="return confirm(@json(__('adminlte::adminlte.do_you_want_to_reactive') ?: 'Reactivate?'))">
                                             @csrf @method('PUT')
-                                            <button type="submit" class="btn btn-warning btn-sm lw-action-btn"  style="background:green;color:white">
+                                            <button type="submit" class="btn btn-warning btn-sm lw-action-btn" style="background:green;color:white">
                                                 <i class="fas fa-undo"></i>
                                                 {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
                                             </button>
@@ -208,7 +221,6 @@
                 </tbody>
             </table>
         </div>
-
     </x-adminlte-card>
 
     {{-- Lightweight script hooks --}}

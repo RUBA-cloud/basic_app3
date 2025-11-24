@@ -12,17 +12,22 @@ class CategoryController extends Controller
 {
     /**
      * GET /api/categories
-     * Paginated list of active categories with products.
+     * Paginated list of active categories that have at least one active product.
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = (int) ($request->query('per_page', 10));
+        $perPage = (int) $request->query('per_page', 10);
 
         try {
-            $categories = Category::with('products')
-                ->where('is_active', true)  ->whereHas('products', function ($q) {
-
-    })
+            $categories = Category::query()
+                ->with(['products' => function ($q) {
+                    // Only active products
+                    $q->where('is_active', true);
+                }])
+                ->where('is_active', true)
+                ->whereHas('products', function ($q) {
+                    $q->where('is_active', true);
+                })
                 ->paginate($perPage);
 
             return response()->json([
@@ -34,23 +39,29 @@ class CategoryController extends Controller
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Failed to retrieve categories.',
-                'error'   => app()->hasDebugModeEnabled() ? $e->getMessage() : null,
+                'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
 
     /**
      * GET /api/categories/{id}
-     * Single active category with products.
+     * Single active category with its active products.
      */
     public function show(int $id): JsonResponse
     {
         try {
-            $category = Category::with('products')
+            $category = Category::query()
+                ->with(['products' => function ($q) {
+                    $q->where('is_active', true);
+                }])
                 ->where('is_active', true)
+                ->whereHas('products', function ($q) {
+                    $q->where('is_active', true);
+                })
                 ->find($id);
 
-            if (!$category) {
+            if (! $category) {
                 return response()->json([
                     'status'  => 'not_found',
                     'message' => 'Category not found or inactive.',
@@ -62,54 +73,65 @@ class CategoryController extends Controller
                 'status'  => 'ok',
                 'message' => 'Category retrieved.',
                 'data'    => $category,
-            ], 200) ;
+            ], 200);
         } catch (Throwable $e) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Failed to retrieve category.',
-                'error'   => app()->hasDebugModeEnabled() ? $e->getMessage() : null,
+                'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
 
     /**
-     * Example search by optional filters (name, active).
-     * GET /api/categories/search?name=...&active=1
-     * 
-     * 
-     */
+     * SEARCH
+     * GET /api/categories/search
+     *
+     * Available query params:
+     * - name / q      : partial match on category name
+     * - active        : 1 / 0   (filter by is_active)
+     * - has_products  : 1 / 0   (filter only categories that have products)
+     * - per_page      : pagination size
 
-    public function addFaviorate()
-    {
-        //
-    }
-    public function search(Request $request): JsonResponse
-    {
-        try {
-            $query = Category::with('products');
+ * Search categories by name_en / name_ar with products
+ */
+public function search(Request $request): JsonResponse
+{
+    try {
+        // Search text from query string: ?q=...
+        $search  = $request["search"];
+        $perPage = (int) $request->query('per_page', 10);
 
-            if ($request->filled('active')) {
-                $query->where('is_active', (bool) $request->boolean('active'));
-            }
+        // Base query with products (only active products)
+        $query = Category::with(['products' => function ($q) {
+            $q->where('is_active', true);
+        }]);
 
-            if ($request->filled('name')) {
-                $query->where('name', 'like', '%'.$request->query('name').'%');
-            }
-
-            $perPage    = (int) ($request->query('per_page', 10));
-            $categories = $query->paginate($perPage);
-
-            return response()->json([
-                'status'  => 'ok',
-                'message' => 'Search results.',
-                'data'    => $categories,
-            ], 200);
-        } catch (Throwable $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Search failed.',
-                'error'   => app()->hasDebugModeEnabled() ? $e->getMessage() : null,
-            ], 500);
+        // Optional search on category name_en / name_ar
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name_en', 'LIKE', "%{$search}%")
+                  ->orWhere('name_ar', 'LIKE', "%{$search}%");
+            });
         }
+
+        $categories = $query->paginate($perPage);
+
+        return response()->json([
+            'status'  => 'ok',
+            'message' => 'Search results.',
+            'data'    => $categories,
+        ], 200);
+
+    } catch (Throwable $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Search failed.',
+            'error'   => config('app.debug') ? $e->getMessage() : null,
+        ], 500);
     }
+}
+
+
+
 }

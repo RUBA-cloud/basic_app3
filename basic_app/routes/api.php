@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\FilterApiController;
 use App\Http\Controllers\Api\FaviorateController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\OrderController;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthApiController::class, 'register']);
@@ -39,15 +40,26 @@ Route::middleware([JWTAuthMiddleware::class])->group(function () {
     });
     Route::get('categories',[CategoryController::class,'index']);
     Route::get('category/{id}',[CategoryController::class,'show']);
+  Route::post('category_search', [CategoryController::class, 'search']);
+
     Route::get('filter',[FilterApiController::class,'index']);
-        Route::post('filter',[FilterApiController::class,'filter']);
-        Route::get('faviorate_list', [FaviorateController::class, 'index']);
+    Route::post('filter',[FilterApiController::class,'filter']);
+    Route::get('faviorate_list', [FaviorateController::class, 'index']);
     Route::post('add-faviorate', [FaviorateController::class, 'addFaviorate']);
-    Route::post('remove-faviorate', [FaviorateController::class, 'removeFaviorate']);
+    Route::get('remove-faviorate/{id}', [FaviorateController::class, 'removeFaviorate']);
+    Route::get('remove-product-faviorate/{id}', [FaviorateController::class, 'removeProductFaviorate']);
+
+    Route::get('clear_all_faviorate', [FaviorateController::class, 'clearAllFaviorate']);
+    Route::post('search_faviorate', [FaviorateController::class, 'search']);
     Route::get('cart', [CartController::class, 'index']);
     Route::post('add-to-cart', [CartController::class, 'addToCart']);
     Route::post('update-cart-quantity', [CartController::class, 'updateQuantity']);
     Route::post('remove-from-cart', [CartController::class, 'removeFromCart']);
+    Route::post('remove-from-cart', [CartController::class, 'removeFromCart']);
+
+    Route::post('make_order',[OrderController::class,'store']);
+    Route::get('orders',[OrderController::class,'index']);
+
 
 });
  Broadcast::routes();

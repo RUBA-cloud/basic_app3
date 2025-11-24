@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('adminlte::auth.auth-page')
 @section('title', __('adminlite::register'))
 
 @section('content')

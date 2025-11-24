@@ -1,8 +1,14 @@
 {{-- resources/views/categories/_form.blade.php --}}
-{{-- expects: $action (string), $method ('POST'|'PUT'|'PATCH'), $branches (Collection), optional $category (model|null), optional $broadcast --}}
+{{-- expects: $action (string), $method ('POST'|'PUT'|'PATCH'),
+    $branches (Collection), optional $category (model|null), optional $broadcast --}}
+
 @section('plugins.Select2', true)
+
 @php
-    $category = $category ?? null;
+    /** @var \App\Models\Category|null $category */
+    $category  = $category ?? null;
+    $branches  = $branches ?? collect();   // safe default
+    $isAr      = app()->getLocale() === 'ar';
 
     // Broadcasting setup (for live updates)
     $broadcast = $broadcast ?? [
@@ -12,12 +18,10 @@
         'pusher_cluster' => config('broadcasting.connections.pusher.options.cluster', 'mt1'),
     ];
 
-    $isAr = app()->getLocale() === 'ar';
-
     // Build "old selected" branches: prefer old() → then category->branches
     $oldSelected = collect(
         old('branch_ids', $category?->branches?->pluck('id')->all() ?? [])
-    )->map(fn($v) => (int) $v)->values();
+    )->map(fn ($v) => (int) $v)->values();
 
     // Safe fallbacks
     /** @var string $action */
@@ -25,12 +29,14 @@
     /** @var string $method */
     $method = strtoupper($method ?? ($category?->exists ? 'PUT' : 'POST'));
 @endphp
+
 <form method="POST"
       action="{{ $action }}"
       enctype="multipart/form-data"
       id="category-form"
       data-channel="{{ $broadcast['channel'] }}"
       data-events='@json($broadcast['events'])'>
+
     @csrf
     @unless (in_array($method, ['GET', 'POST']))
         @method($method)
@@ -84,23 +90,29 @@
     @php
         $branchesError = $errors->has('branch_ids') || $errors->has('branch_ids.*');
     @endphp
+
     <div class="form-group mb-3">
         <label for="branch_ids" class="font-weight-bold mb-2 text-muted">
             {{ __('adminlte::adminlte.branches') }}
         </label>
+
         <select
             id="branch_ids"
             name="branch_ids[]"
-            class="form-control" {{ $branchesError ? 'is-invalid' : '' }}"
+            class="form-control custom-select2 {{ $branchesError ? 'is-invalid' : '' }}"
             multiple
             required
             style="width:100%;">
-            @foreach ($branches as $branch)
+            @forelse($branches as $branch)
                 <option value="{{ $branch->id }}"
-                    {{ $oldSelected->contains((int)$branch->id) ? 'selected' : '' }}>
+                        {{ $oldSelected->contains((int) $branch->id) ? 'selected' : '' }}>
                     {{ $isAr ? ($branch->name_ar ?? $branch->name_en) : ($branch->name_en ?? $branch->name_ar) }}
                 </option>
-            @endforeach
+            @empty
+                <option value="" disabled>
+                    {{ __('adminlte::adminlte.no_records') }}
+                </option>
+            @endforelse
         </select>
 
         @error('branch_ids')
@@ -115,8 +127,12 @@
     <div class="form-group mt-3">
         <input type="hidden" name="is_active" value="0">
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
-                   {{ old('is_active', (int)($category->is_active ?? 1)) ? 'checked' : '' }}>
+            <input class="form-check-input"
+                   type="checkbox"
+                   id="is_active"
+                   name="is_active"
+                   value="1"
+                   {{ old('is_active', (int) ($category->is_active ?? 1)) ? 'checked' : '' }}>
             <label class="form-check-label" for="is_active">
                 {{ __('adminlte::adminlte.is_active') }}
             </label>
@@ -144,47 +160,47 @@
      data-events='@json($broadcast['events'])'>
 </div>
 
-
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+    const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
 
-  // === Initialize Select2 on the correct element ===
-  $('#branch_ids').select2({
-    theme: 'bootstrap4',
-    width: '100%',
-    dir: isRtl ? 'rtl' : 'ltr',
-    placeholder: @json(__('adminlte::adminlte.select') . ' ' . __('adminlte::adminlte.branches')),
-    allowClear: true,
-  });
-
-  const anchor = document.getElementById('category-form-listener');
-  const form = document.getElementById('category-form');
-  if (!anchor || !form) return;
-
-  const channelName = anchor.dataset.channel || 'categories';
-  let events = [];
-  try { events = JSON.parse(anchor.dataset.events || '["category_updated"]'); }
-  catch (e) { events = ['category_updated']; }
-
-  if (typeof Echo !== 'undefined') {
-    const channel = Echo.private(channelName);
-
-    events.forEach(evt => {
-      channel.listen(`.${evt}`, (data) => {
-        // show toast only (don't reset selection)
-        if (window.toastr) {
-          toastr.info(@json(__('adminlte::adminlte.saved_successfully')));
-        }
-        console.info('[category-form] broadcast payload:', data);
-      });
-
-      console.info('[category-form] listening to', channelName, '/', evt);
+    $('#branch_ids').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        dir: isRtl ? 'rtl' : 'ltr',
+        placeholder: @json(__('adminlte::adminlte.select') . ' ' . __('adminlte::adminlte.branches')),
+        allowClear: true,
     });
-  } else {
-    console.warn('[category-form] Laravel Echo not found.');
-  }
+
+    const anchor = document.getElementById('category-form-listener');
+    const form   = document.getElementById('category-form');
+    if (!anchor || !form) return;
+
+    const channelName = anchor.dataset.channel || 'categories';
+    let events = [];
+    try {
+        events = JSON.parse(anchor.dataset.events || '["category_updated"]');
+    } catch (e) {
+        events = ['category_updated'];
+    }
+
+    if (typeof Echo !== 'undefined') {
+        const channel = Echo.private(channelName);
+
+        events.forEach(evt => {
+            channel.listen(`.${evt}`, (data) => {
+                if (window.toastr) {
+                    toastr.info(@json(__('adminlte::adminlte.saved_successfully')));
+                }
+                console.info('[category-form] broadcast payload:', data);
+            });
+
+            console.info('[category-form] listening to', channelName, '/', evt);
+        });
+    } else {
+        console.warn('[category-form] Laravel Echo not found.');
+    }
 });
 </script>
 @endpush

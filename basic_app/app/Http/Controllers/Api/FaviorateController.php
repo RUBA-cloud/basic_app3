@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\FaviorateRequest;
 use App\Models\FaviorateModel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FaviorateController extends Controller
@@ -13,109 +14,98 @@ class FaviorateController extends Controller
     /**
      * قائمة المفضلة للمستخدم الحالي
      */
-    public function index()
-{
-    // Basic lists (keep if you still need them)
-    $categories = Category::where('is_active', true)->orderBy('id')->get();
-    $types      = Type::where('is_active', true)->orderBy('id')->get();
-    $sizes      = Size::where('is_active', true)->orderBy('id')->get();
+    public function index(): JsonResponse
+    {
+        $userId = Auth::id();
 
-    // First active category that HAS active products
-    $firstCategory = Category::where('is_active', true)
-        ->whereHas('products', fn($q) => $q->where('is_active', true))
-        ->with(['products' => function ($q) {
-            // select only what we need; include BOTH 'color' & 'colors'
-            $q->where('is_active', true)
-              ->select('id', 'category_id', 'price', 'color', 'colors');
-        }])
-        ->orderBy('id', 'asc')
-        ->first();
-
-    $minPrice  = null;
-    $maxPrice  = null;
-    $colors    = [];
-    $products  = collect(); // will hold Product models collection
-
-    if ($firstCategory) {
-        $products = collect($firstCategory->products ?? []);
-
-        // ---- Prices
-        $prices = $products->pluck('price')
-            ->filter(fn($p) => $p !== null && is_numeric($p))
-            ->map(fn($p) => (float) $p);
-
-        if ($prices->isNotEmpty()) {
-            $minPrice = $prices->min();
-            $maxPrice = $prices->max();
+        if (!$userId) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
         }
 
-        // ---- Colors
-        // 1) Single color column (string)
-        $singleColors = $products->pluck('color')
-            ->filter()
-            ->map(fn($c) => is_string($c) ? trim(strtolower($c)) : $c);
+        // FIXED: where() usage
+        $favorites = FaviorateModel::with('product')
+            ->where('user_id', $userId)
+            ->get();
 
-        // 2) JSON/array colors column
-        $jsonColors = $products->pluck('colors')
-            ->flatMap(function ($val) {
-                if (is_array($val)) {
-                    return $val;
-                }
-                if (is_string($val)) {
-                    $decoded = json_decode($val, true);
-                    return is_array($decoded) ? $decoded : [];
-                }
-                return [];
-            })
-            ->filter()
-            ->map(fn($c) => is_string($c) ? trim(strtolower($c)) : $c);
-
-        $colors = $singleColors->merge($jsonColors)
-            ->unique()
-            ->values()
-            ->toArray();
+        return response()->json([
+            'message' => 'Favorites list retrieved successfully.',
+            'data'    => $favorites,
+        ], 200);
     }
 
-    // Make a lightweight products array for the response "data"
-    $productsArray = $products->map(function ($p) {
-        // normalize colors to array of strings
-        $multi = [];
-        if (is_array($p->colors)) {
-            $multi = $p->colors;
-        } elseif (is_string($p->colors)) {
-            $decoded = json_decode($p->colors, true);
-            $multi = is_array($decoded) ? $decoded : [];
+    /**
+     * بحث في المفضلة للمستخدم الحالي
+     * مثال: /api/favorites/search?search=iphone
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $userId = Auth::id();
+
+        if (!$userId) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
         }
-        return [
-            'id'          => $p->id,
-            'category_id' => $p->category_id,
-            'price'       => $p->price !== null ? (float) $p->price : null,
-            'color'       => $p->color,      // single value (if you store it)
-            'colors'      => array_values(array_unique(array_map('strtolower', array_filter($multi)))),
-        ];
-    })->values();
 
-    return response()->json([
+        $search = trim((string) $request->input('search', ''));
 
-        // ---- Filters + products live INSIDE 'data'
-        'data' => [
-            'category_id' => $firstCategory?->id,
-            'min_price'   => $minPrice,
-            'max_price'   => $maxPrice,
-            'colors'      => $colors,
-            'products'    => $productsArray,
-             'status'     => true,
-        'categories' => $categories,
-        'types'      => $types,
-        'sizes'      => $sizes,
+        // لو مافي كلمة بحث رجّع نفس نتيجة index
+        if ($search === '') {
+            $favorites = FaviorateModel::with('product')
+                ->where('user_id', $userId)
+                ->where('is_active', true)
+                ->get();
 
-        ]]);
+            return response()->json([
+                'message' => 'Favorites list retrieved successfully.',
+                'data'    => $favorites,
+            ], 200);
+        }
 
-}
+        // نفترض أن حقل اسم المنتج هو name_en / name_ar داخل علاقة product
+        $favorites = FaviorateModel::with('product')
+            ->where('user_id', $userId)
+            ->where('is_active', true)
+            ->whereHas('product', function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('name_en', 'like', "%{$search}%")
+                       ->orWhere('name_ar', 'like', "%{$search}%");
+                });
+            })
+            ->get();
+
+        return response()->json([
+            'message' => 'Favorites search retrieved successfully.',
+            'data'    => $favorites,
+        ], 200);
+    }
 
     /**
      * إضافة منتج إلى المفضلة
      */
+
+    public function clearAllFaviorate(){
+         $userId = Auth::id();
+
+        if (!$userId) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        // FIXED: where() usage
+        $favorites = FaviorateModel::with('product')
+            ->where('user_id', $userId)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Favorites list removed successfully.',
+            'data'    => $favorites,
+        ], 200);
+
+    }
     public function addFaviorate(FaviorateRequest $request): JsonResponse
     {
         $userId = Auth::id();
@@ -132,29 +122,32 @@ class FaviorateController extends Controller
         // Check if product is already in favorites
         $exists = FaviorateModel::where('user_id', $userId)
             ->where('product_id', $data['product_id'])
+            ->where('is_active', true) // لو عندك toggle للمفضلة
             ->exists();
 
         if ($exists) {
             return response()->json([
                 'message' => 'Product already added to favorites.',
-            ], 403);
+            ], 403); // أو 200 حسب ما تفضلين
         }
 
         // Add new favorite
-        $faviorate = FaviorateModel::create([
+        $favorite = FaviorateModel::create([
             'user_id'    => $userId,
             'product_id' => $data['product_id'],
+            // 'is_active'  => true, // لو عندك عمود is_active و default مش مفعّل
         ]);
 
         return response()->json([
             'message' => 'Product added to favorites successfully.',
-            'data'    => $faviorate->load('product'),
+            'data'    => $favorite->load('product'),
         ], 201);
     }
+
     /**
-     * حذف منتج من المفضلة
+     * حذف منتج من المفضلة باستخدام ID الخاص بالمفضلة
      */
-    public function removeFaviorate(FaviorateRequest $request): JsonResponse
+    public function removeFaviorate($id): JsonResponse
     {
         $userId = Auth::id();
 
@@ -164,22 +157,62 @@ class FaviorateController extends Controller
             ], 401);
         }
 
-        $data = $request->validated();
-
-        $faviorate = FaviorateModel::where('user_id', $userId)
-            ->where('product_id', $data['product_id'])
+        $favorite = FaviorateModel::where('user_id', $userId)
+            ->where('id', $id)
             ->first();
 
-        if (!$faviorate) {
+        if (!$favorite) {
             return response()->json([
                 'message' => 'Favorite not found.',
             ], 404);
         }
 
-        $faviorate->delete();
+        $favorite->delete();
 
         return response()->json([
             'message' => 'Favorite removed successfully.',
+        ], 200);
+    }
+
+    /**
+     * حذف منتج من المفضلة باستخدام product_id
+     */
+    public function removeProductFaviorate($id): JsonResponse
+    {
+        $userId = Auth::id();
+
+        if (!$userId) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Unauthenticated.',
+                'data'    => null,
+            ], 401);
+        }
+
+        // نجيب الفيفوريت + المنتج لو عندك علاقة product
+        $favorite = FaviorateModel::with('product')
+            ->where('user_id', $userId)
+            ->where('product_id', $id)
+            ->first();
+
+        if (!$favorite) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Favorite not found.',
+                'data'    => null,
+            ], 404);
+        }
+
+        // نأخذ نسخة من الداتا قبل الحذف
+        $deletedFavorite = $favorite->toArray();
+
+        // نحذف السجل
+        $favorite->delete();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Favorite removed successfully.',
+            'data'    => $deletedFavorite,
         ], 200);
     }
 }

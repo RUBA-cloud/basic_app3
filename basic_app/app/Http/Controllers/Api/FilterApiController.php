@@ -23,17 +23,17 @@ class FilterApiController extends Controller
         $categories = Category::query()
             ->where('is_active', true)
             ->orderBy('id')
-            ->get(['id', 'name_en', 'name_ar', 'is_active', 'image']);
+            ->get();
 
         $types = Type::query()
             ->where('is_active', true)
             ->orderBy('id')
-            ->get(['id', 'name_en', 'name_ar', 'is_active']);
+            ->get();
 
         $sizes = Size::query()
             ->where('is_active', true)
             ->orderBy('id')
-            ->get(['id', 'name_en', 'name_ar', 'is_active']);
+            ->get();
 
         // First active category that HAS active products
         $firstCategory = Category::query()
@@ -104,98 +104,24 @@ class FilterApiController extends Controller
             ],
         ]);
     }
+public function filter(FilterRequest $request)
+{
+    $categories = Category::searchCategory(
+        $request->input('category_id'),
+        $request->input('type_id'),
+        $request->input('color'),
+        $request->input('size_id'),
+        $request->input('price_form'),
+        $request->input('price_to')
 
-    /**
-     * POST /api/filters/products
-     * Filter products by multi category/type/size/color + search + price range.
-     * Returns: status, data (meta), products (items).
-     */
-    public function filter(FilterRequest $request)
-    {
-        $data  = $request->validated();
-        $query = Product::query()->where('is_active', true);
+    )->get(); // IMPORTANT: execute query
 
-        // 1) multiple categories
-        if (!empty($data['categories']) && is_array($data['categories'])) {
-            $query->whereIn('category_id', $data['categories']);
-        }
+    return response()->json([
+        'status' => true,
+        'data'   => [
+            'categories' => $categories,
+        ],
+    ]);
+}
 
-        // 2) multiple types
-        if (!empty($data['types']) && is_array($data['types'])) {
-            $query->whereIn('type_id', $data['types']);
-        }
-
-        // 3) multiple sizes
-        // If you have a pivot (product_size), replace with join/whereHas accordingly.
-        if (!empty($data['sizes']) && is_array($data['sizes'])) {
-            $query->whereIn('size_id', $data['sizes']);
-        }
-
-        // 4) multiple colors (supports 'color' (string) and 'colors' (json))
-        if (!empty($data['colors']) && is_array($data['colors'])) {
-            $colors = array_values(array_unique(array_map(
-                fn ($c) => is_string($c) ? trim(strtolower($c)) : $c,
-                $data['colors']
-            )));
-
-            $query->where(function ($q) use ($colors) {
-                foreach ($colors as $color) {
-                    // single color column
-                    $q->orWhere('color', $color);
-
-                    // JSON array column
-                    // requires MySQL 5.7+/MariaDB 10.2+ and JSON column type
-                    $q->orWhereJsonContains('colors', $color);
-                }
-            });
-        }
-
-        // 5) search by name/description (both EN/AR if present)
-        if (!empty($data['search'])) {
-            $search = $data['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('name_en', 'like', "%{$search}%")
-                  ->orWhere('name_ar', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        // 6) price range
-        if (!empty($data['price_from']) && is_numeric($data['price_from'])) {
-            $query->where('price', '>=', (float) $data['price_from']);
-        }
-        if (!empty($data['price_to']) && is_numeric($data['price_to'])) {
-            $query->where('price', '<=', (float) $data['price_to']);
-        }
-
-        // Eager loads — adjust relation names to your app
-        $perPage  = (int) ($data['per_page'] ?? 20);
-        $products = $query
-            ->with(['category:id,name_en,name_ar', 'type:id,name_en,name_ar', 'sizes']) // change if different
-            ->orderByDesc('id')
-            ->paginate($perPage)
-            ->appends($request->query()); // keep query string in pagination links
-
-        // Order: status, data, products
-        return response()->json([
-            'status'   => true,
-            'data'     => [
-                'count'        => $products->total(),
-                'current_page' => $products->currentPage(),
-                'per_page'     => $products->perPage(),
-                'last_page'    => $products->lastPage(),
-                'has_more'     => $products->hasMorePages(),
-                            'products' => $products->items(),
-
-            ],
-            // If you still want full paginator URLs, expose them separately:
-            'pagination' => [
-                'first_page_url' => $products->url(1),
-                'last_page_url'  => $products->url($products->lastPage()),
-                'next_page_url'  => $products->nextPageUrl(),
-                'prev_page_url'  => $products->previousPageUrl(),
-            ],
-        ]);
-    }
 }

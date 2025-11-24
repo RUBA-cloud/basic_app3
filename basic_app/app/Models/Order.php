@@ -18,6 +18,10 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'employee_id',
+        'address',
+        'building_number',
+        'street_name',
+        'lat','long',
         'status',
         'offer_id',
     ];

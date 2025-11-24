@@ -7,3 +7,4 @@
 <livewire:dashboard />
 @endsection
 
+

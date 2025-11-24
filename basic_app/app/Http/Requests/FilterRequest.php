@@ -19,29 +19,34 @@ class FilterRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-      public function rules(): array
+    public function rules(): array
     {
         return [
-            // arrays
-            'categories' => ['sometimes', 'array'],
-            'categories.*' => ['integer', 'exists:categories,id'],
 
-            'types' => ['sometimes', 'array'],
-            'types.*' => ['integer', 'exists:types,id'],
+            /*
+             |-----------------------------------------
+             | اختيارات مفردة (من الموبايل مثلاً)
+             |-----------------------------------------
+             */
+            'category_id' => ['sometimes', 'nullable', 'integer', 'exists:categories,id'],
+            'type_id'     => ['sometimes', 'nullable', 'integer', 'exists:type,id'],
+            'size_id'     => ['sometimes', 'nullable', 'integer', 'exists:sizes,id'],
+            'color'       => ['sometimes', 'nullable', 'string', 'max:100'],
 
-            'sizes' => ['sometimes', 'array'],
-            'sizes.*' => ['integer', 'exists:sizes,id'],
+            /*
+             |-----------------------------------------
+             | مصفوفات (لو حابة تدعم فلترة متعددة)
+             |-----------------------------------------
 
-            'colors' => ['sometimes', 'array'],
-            'colors.*' => ['string'],
+            'search' => ['sometimes', 'nullable', 'string', 'max:150'],
 
-            // search
-            'search' => ['sometimes', 'string', 'max:150'],
-
-            // optional price range
-            'price_from' => ['sometimes', 'numeric', 'min:0'],
-            'price_to'   => ['sometimes', 'numeric', 'min:0'],
+            /*
+             |-----------------------------------------
+             | نطاق السعر (اختياري)
+             |-----------------------------------------
+             */
+            'price_from' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'price_to'   => ['sometimes', 'nullable', 'numeric', 'min:0'],
         ];
     }
-
 }

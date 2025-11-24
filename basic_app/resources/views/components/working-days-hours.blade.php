@@ -57,8 +57,7 @@
                     name="working_days[]"
                     value="{{ $label }}"
                     id="day_{{ $key }}"
-                    {{ in_array($key, $workingDays, true) ? 'checked' : '' }}
-                >
+                    {{ in_array($key, $workingDays, true) ? 'checked' : '' }}>
                 <label class="form-check-label m-4" for="day_{{ $key }}">
                     {{ $label }}
                 </label>
