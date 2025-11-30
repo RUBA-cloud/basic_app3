@@ -3,7 +3,7 @@
 @section('title', __('adminlte::adminlte.payment'))
 
 @section('content')
-    @include('payment._form', [
+    @include('payments.form', [
         'payment' => $payment,
         'action'  => 'payment.update',
         'method'  => 'PUT',

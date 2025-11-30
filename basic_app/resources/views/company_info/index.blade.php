@@ -5,15 +5,9 @@
 @section('content')
 <div class="container-fluid py-4">
 
- <x-adminlte-card
-                     title="{{ __('adminlte::adminlte.company_info') }}"
-
-  icon="fas fa-building"                removable
-                collapsible
-                class="lw-list-card"
-            >
+ <x-adminlte-card   title="{{ __('adminlte::adminlte.company_info') }}"  icon="fas fa-building"   removable collapsible class="lw-list-card">
         <div class="d-flex flex-wrap justify-content-end align-items-center mt-4">
-            <a href="{{ route('companyInfo.index', ['isHistory' => true]) }}" class="btn btn-outline-secondary mr-2" target="_blank" title="{{ __('adminlte::adminlte.history') }}">">
+            <a href="{{ route('companyInfo.history', ['isHistory' => true]) }}" class="btn btn-outline-secondary mr-2" target="_blank" title="{{ __('adminlte::adminlte.history') }}">
                 <i class="fas fa-history"></i> {{ __('adminlte::adminlte.history') }}
             </a>
         </div>
@@ -123,7 +117,7 @@
                 ['name' => 'button_color',      'label' => __('adminlte::adminlte.button_color')],
                 ['name' => 'button_text_color', 'label' => __('adminlte::adminlte.button_text_color')],
                 ['name' => 'icon_color',        'label' => __('adminlte::adminlte.icon_color')],
-                ['name' => 'text_field_color',  'label' => __('adminlte::adminlte.text_field_color')],
+                ['name' => 'text_filed_color',  'label' => __('adminlte::adminlte.text_field_color')],
                 ['name' => 'card_color',        'label' => __('adminlte::adminlte.card_color')],
                 ['name' => 'label_color',       'label' => __('adminlte::adminlte.label_color')],
                 ['name' => 'hint_color',        'label' => __('adminlte::adminlte.hint_color')],
@@ -169,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const setColorsIfAny = (obj) => {
     [
       'main_color','sub_color','text_color','button_color',
-      'button_text_color','icon_color','text_field_color',
+      'button_text_color','icon_color','text_filed_color',
       'card_color','label_color','hint_color'
     ].forEach(n => setField(n, obj?.[n]));
   };
@@ -210,8 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[company_info] patched company form from payload', data);
   };
 
-  window.__pageBroadcasts = window.__pageBroadcasts || [];
-  window.__pageBroadcasts.push({
+  window.AppBroadcast = window.AppBroadcast || [];
+  window.AppBroadcast.push({
     channel: 'company_info',
     event:   'company_info_updated',
     handler: applyPayload
@@ -219,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
     window.AppBroadcast.subscribe('company_info', 'company_info_updated', applyPayload);
+
     console.info('[company_info] subscribed via AppBroadcast → company_info / company_info_updated');
   } else {
     console.info('[company_info] registered in __pageBroadcasts; layout will subscribe later.');

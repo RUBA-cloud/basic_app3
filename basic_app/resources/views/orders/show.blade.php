@@ -4,6 +4,8 @@
 @section('content')
 
 @php
+    use Illuminate\Support\Str;
+
     // Ensure relationships are available (controller can eager load them too)
     $items      = $order->items ?? collect();
     $offer      = $order->offer ?? null;
@@ -33,7 +35,7 @@
     $isTotalGift          = (bool) data_get($offer, 'is_total_gift', false);
     $isProductCountGift   = (bool) data_get($offer, 'is_product_count_gift', false);
 
-    // Common fields
+    // Common field
     $discProductRaw  = data_get($offer, 'discount_value_product');
     $discDeliveryRaw = data_get($offer, 'discount_value_delivery');
     $totalDiscount   = (float) data_get($offer, 'total_discount', 0);
@@ -130,27 +132,46 @@
         3 => __('adminlte::adminlte.completed') ?: 'Completed',
     ];
     $statusLabel = $order->status_label ?? ($statusLabelMap[$order->status] ?? 'Unknown');
+
 @endphp
 
 {{-- Header Card --}}
-<div class="card mb-3">
+<div class="card mb-3 shadow-sm border-0">
   <div class="card-body">
-    <h4 class="mb-1">#{{ $order->id }}</h4>
-    <div class="text-muted">
-        {{ __('adminlte::adminlte.status') ?: 'Status' }}:
+    <h4 class="mb-1">
+        {{ __('adminlte::adminlte.order') ?: 'Order' }} #{{ $order->id }}
+    </h4>
+    <div class="mb-2">
+        <span class="text-muted">{{ __('adminlte::adminlte.status') ?: 'Status' }}:</span>
         <span class="badge bg-secondary text-uppercase">{{ $statusLabel }}</span>
     </div>
-    <div>{{ __('adminlte::adminlte.user_name') ?: 'Customer' }}: {{ $order->user?->name }}</div>
-    <div>{{ __('adminlte::adminlte.employee') ?: 'Employee' }}: {{ $order->employee?->name ?? '-' }}</div>
-    <div>{{ __('adminlte::adminlte.offer_name') ?: 'Offer' }}: {{ $offer?->name_en ?? $offer?->name_ar ?? '-' }}</div>
-    <div class="mt-2">{{ $order->notes }}</div>
+    <div class="small text-muted">
+        <div>{{ __('adminlte::adminlte.user_name') ?: 'Customer' }}:
+            <strong>{{ $order->user?->name }}</strong>
+        </div>
+        <div>{{ __('adminlte::adminlte.employee') ?: 'Employee' }}:
+            <strong>{{ $order->employee?->name ?? '-' }}</strong>
+        </div>
+        <div>{{ __('adminlte::adminlte.offer_name') ?: 'Offer' }}:
+            <strong>{{ $offer?->name_en ?? $offer?->name_ar ?? '-' }}</strong>
+        </div>
+    </div>
+    @if($order->notes)
+        <hr class="my-2">
+        <div class="small">
+            <span class="text-muted">{{ __('adminlte::adminlte.notes') ?: 'Notes' }}:</span>
+            <span>{{ $order->notes }}</span>
+        </div>
+    @endif
   </div>
 </div>
 
 {{-- Offer Summary Card (shown if offer exists) --}}
 @if($offer)
-<div class="card mb-3">
-  <div class="card-header"><strong>{{ __('adminlte::adminlte.offer_details') ?: 'Offer Details' }}</strong></div>
+<div class="card mb-3 shadow-sm border-0">
+  <div class="card-header bg-light">
+    <strong>{{ __('adminlte::adminlte.offer_details') ?: 'Offer Details' }}</strong>
+  </div>
   <div class="card-body">
     <div class="row g-3">
       <div class="col-md-6">
@@ -184,16 +205,25 @@
 @endif
 
 {{-- Items Table --}}
-<div class="card">
-  <div class="card-header"><strong>{{ __('adminlte::adminlte.Modules') }}</strong></div>
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <strong>{{ __('adminlte::adminlte.order_items') ?: 'Order Items' }}</strong>
+      <span class="badge bg-info">
+          {{ $itemCount }} {{ __('adminlte::adminlte.items') ?: 'items' }}
+      </span>
+  </div>
+
   <div class="card-body p-0 table-responsive">
-    <table class="table mb-0">
-      <thead>
+    <table class="table mb-0 align-middle">
+      <thead class="thead-light">
         <tr>
-          <th>{{ __('adminlte::menu.product') ?: 'Product' }}</th>
+          <th style="min-width: 220px;">
+              {{ __('adminlte::menu.product') ?: 'Product' }}
+              <small class="text-muted d-block">EN / AR</small>
+          </th>
           <th>{{ __('adminlte::adminlte.color') ?: 'Color' }}</th>
           <th>{{ __('adminlte::adminlte.quantity') ?: 'Qty' }}</th>
-          @if($offer) <th>{{ __('adminlte.adminlte.offer_name') ?: 'Offer' }}</th> @endif
+          @if($offer) <th>{{ __('adminlte::adminlte.offer_name') ?: 'Offer' }}</th> @endif
           <th>{{ __('adminlte::adminlte.price') ?: 'Unit Price' }}</th>
           <th>{{ __('adminlte::adminlte.total_amount') ?: 'Line Total' }}</th>
           @if($isDiscount)
@@ -205,21 +235,67 @@
       <tbody>
       @forelse($items as $it)
         @php
+          $product  = $it->product;
+          $nameEn   = $product?->name_en ?? $product?->name ?? '';
+          $nameAr   = $product?->name_ar ?? '';
+          $sku      = $product?->sku ?? $it->product_id;
           $lineTotal = (float)$it->price * (int)$it->quantity;
           $afterDisc = $effectiveLineTotal($it);
         @endphp
         <tr>
-          <td>{{ $it->product?->name ?? $it->product_id }}</td>
-          <td>{{ $it->color }}</td>
+          {{-- PRODUCT CELL: EN + AR CUSTOM DESIGN --}}
+          <td>
+              <div class="d-flex flex-column">
+                  {{-- EN name --}}
+                  @if($nameEn)
+                      <div>
+                          <span class="badge badge-light border mr-1">
+                              {{ __('adminlte::adminlte.en') ?: 'EN' }}
+                          </span>
+                          <strong>{{ Str::limit($nameEn, 60) }}</strong>
+                      </div>
+                  @endif
+
+                  {{-- AR name --}}
+                  @if($nameAr)
+                      <div class="mt-1">
+                          <span class="badge badge-light border mr-1">
+                              {{ __('adminlte::adminlte.ar') ?: 'AR' }}
+                          </span>
+                          <strong>{{ Str::limit($nameAr, 60) }}</strong>
+                      </div>
+                  @endif
+
+                  {{-- Fallback if no names --}}
+                  @if(!$nameEn && !$nameAr)
+                      <span class="text-muted">
+                          {{ __('adminlte::adminlte.product_id') ?: 'Product ID' }}: {{ $sku }}
+                      </span>
+                  @else
+                      <span class="text-muted small mt-1">
+                          {{ __('adminlte::adminlte.product_id') ?: 'Product ID' }}: {{ $sku }}
+                      </span>
+                  @endif
+              </div>
+          </td>
+
+          <td>{{ $it->color ?: '-' }}</td>
           <td>{{ $it->quantity }}</td>
+
           @if($offer)
-            <td>{{ $offer->name_en ?? $offer->name_ar }}</td>
+            <td>
+                <span class="badge badge-info">
+                    {{ $offer->name_en ?? $offer->name_ar }}
+                </span>
+            </td>
           @endif
+
           <td>{{ number_format((float)$it->price, 2) }}</td>
           <td>{{ number_format($lineTotal, 2) }}</td>
+
           @if($isDiscount)
             <td>
-              {{ number_format($afterDisc, 2) }}
+              <span class="d-block">{{ number_format($afterDisc, 2) }}</span>
               @if($afterDisc < $lineTotal)
                   <small class="text-success d-block">
                       -{{ number_format($lineTotal - $afterDisc, 2) }}
@@ -227,6 +303,7 @@
               @endif
             </td>
           @endif
+
           <td>
             {{-- Delete button -> opens modal requesting a note --}}
             <button type="button" class="btn btn-sm btn-danger"
@@ -262,7 +339,9 @@
         </div>
       @empty
         <tr>
-            <td colspan="8" class="text-center text-muted">{{ __('adminlte::adminlte.no_data_found') ?: 'No data found' }}</td>
+            <td colspan="8" class="text-center text-muted">
+                {{ __('adminlte::adminlte.no_data_found') ?: 'No data found' }}
+            </td>
         </tr>
       @endforelse
       </tbody>
@@ -270,7 +349,7 @@
   </div>
 
   {{-- Totals footer (shown even if no offer) --}}
-  <div class="card-footer">
+  <div class="card-footer bg-light">
     <div class="row g-3">
       <div class="col-md-6"></div>
       <div class="col-md-6">
@@ -295,8 +374,12 @@
 
 {{-- Footer buttons --}}
 <div class="mt-3 d-flex">
-  <a class="btn btn-warning mr-2" href="{{ route('orders.edit',$order) }}">{{ __('adminlte::adminlte.edit') }}</a>
-  <a class="btn btn-secondary" href="{{ url()->previous() }}">{{ __('adminlte::adminlte.go_back') }}</a>
+  <a class="btn btn-warning mr-2" href="{{ route('orders.edit',$order) }}">
+      {{ __('adminlte::adminlte.edit') }}
+  </a>
+  <a class="btn btn-secondary" href="{{ url()->previous() }}">
+      {{ __('adminlte::adminlte.go_back') }}
+  </a>
 </div>
 
 @endsection

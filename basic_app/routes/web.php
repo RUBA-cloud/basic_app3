@@ -98,16 +98,23 @@ Route::middleware([SetLocale::class])->group(function () {
             ->name('companyInfo.')
             ->middleware('module:company_info_module')
             ->group(function () {
-                Route::get('/{isHistory?}', 'index')->name('index');
-                Route::get('/create',            'create')->middleware('perm:company_info_module,can_add')->name('create');
-                Route::post('/',                 'store')->middleware('perm:company_info_module,can_add')->name('store');
-                Route::get('/{companyInfo}',     'show')->name('show');
-                Route::get('/{companyInfo}/edit','edit')->middleware('perm:company_info_module,can_edit')->name('edit');
-                Route::put('/{companyInfo}',     'update')->middleware('perm:company_info_module,can_edit')->name('update');
-                Route::delete('/{companyInfo}',  'destroy')->middleware('perm:company_info_module,can_delete')->name('destroy');
 
-                Route::post('/search',  'searchHistory')->middleware('perm:company_info_module,can_view_history')->name('search');
-                Route::get('/history',  'history')->middleware('perm:company_info_module,can_view_history')->name('history');
+                // MAIN LIST
+                Route::get('/', 'index')->name('index');
+                Route::get('/{companyInfo}', 'show')->name('show');
+
+                // CREATE / STORE
+                Route::get('/create', 'create')
+                    ->middleware('perm:company_info_module,can_add')
+                    ->name('create');
+
+                Route::post('/', 'store')
+                    ->middleware('perm:company_info_module,can_add')
+                    ->name('store');
+                  Route::get('/history/{isHistory?}', 'history')->middleware('perm:company_info_module,can_view_history')->name('history');
+
+
+                // SHOW (separate, no conflict with /history)
             });
 
         /* ==============================
@@ -118,20 +125,46 @@ Route::middleware([SetLocale::class])->group(function () {
             ->name('companyBranch.')
             ->middleware('module:company_branch_module')
             ->group(function () {
-                Route::get('/create',       'create')->name('create');
-                Route::post('/',            'store')->name('store');
-                Route::get('/{companyBranch}',      'show')->name('show');
-                Route::get('/{companyBranch}/edit', 'edit')->middleware('perm:company_branch_module,can_edit')->name('edit');
-                Route::put('/{companyBranch}',      'update')->middleware('perm:company_branch_module,can_edit')->name('update');
-                Route::delete('/{companyBranch}',   'destroy')->middleware('perm:company_branch_module,can_delete')->name('destroy');
 
-                Route::put('/reactive/{id}',        'reactivate')->middleware('perm:company_branch_module,can_edit')->name('reactivate');
-                Route::post('/search',              'search')->middleware('perm:company_branch_module,can_view_history')->name('search');
-                Route::post('/history/search',      'searchHistory')->middleware('perm:company_branch_module,can_view_history')->name('history.search');
-                Route::get('/history', 'history')->middleware('perm:company_branch_module,can_view_history')->name('history');
+                // MAIN LIST
+                Route::get('/', 'index')->name('index');
 
-                Route::get('/{isHistory?}', 'index')->name('index');
-   });
+                // CREATE / STORE
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+
+                // SHOW / EDIT / UPDATE / DELETE
+                Route::get('/{companyBranch}', 'show')->name('show');
+                Route::get('/{companyBranch}/edit', 'edit')
+                    ->middleware('perm:company_branch_module,can_edit')
+                    ->name('edit');
+
+                Route::put('/{companyBranch}', 'update')
+                    ->middleware('perm:company_branch_module,can_edit')
+                    ->name('update');
+
+                Route::delete('/{companyBranch}', 'destroy')
+                    ->middleware('perm:company_branch_module,can_delete')
+                    ->name('destroy');
+
+                // OTHER ACTIONS
+                Route::put('/reactive/{id}', 'reactivate')
+                    ->middleware('perm:company_branch_module,can_edit')
+                    ->name('reactivate');
+
+                Route::post('/search', 'search')
+                    ->middleware('perm:company_branch_module,can_view_history')
+                    ->name('search');
+
+                Route::post('/history/search', 'searchHistory')
+                    ->middleware('perm:company_branch_module,can_view_history')
+                    ->name('history.search');
+
+                // HISTORY PAGE (separate)
+                Route::get('/history', 'history')
+                    ->middleware('perm:company_branch_module,can_view_history')
+                    ->name('history');
+            });
 
         /* ==============================
          * Categories (company_category_module)

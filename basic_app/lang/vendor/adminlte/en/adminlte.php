@@ -4,7 +4,11 @@ return [
     'view_history' => 'View History',
     'choose_file' => 'Choose File',
     'dash_board' => 'Dashboard',
-
+    'live_snapshot'=>'Live SnapShot',
+'company_social_media'=>'company social media',
+'instagram'=>'instagram',
+'facebook'=>'facebook' ,
+'twitter'=>'twitter',
     // Company fields
     'company_name_en' => 'Company Name (English)',
     'company_name_en_placeholder' => 'Enter the company name in English',
@@ -18,6 +22,9 @@ return [
     'company_address_ar' => 'Address (Arabic)',
     'company_location' => 'Location',
     'company_location_placeholder' => 'Enter the company location',
+    'dashboard'=>'DashBoard',
+    'color'=>'color',
+    'refresh_off'=>'refresh Off',
 
     // Company Details
     'company_info_details' => 'Company Info Details',
@@ -147,8 +154,8 @@ return [
     'vision_en' => 'Vision (English)',
     'vision_ar' => 'Vision (Arabic)',
  'reset_subject'  => 'Reset your password',
-            'reset_preheader' => 'Reset your :app password.',
-            'greeting'       => 'Hi :name,',
+'reset_preheader' => 'Reset your :app password.',
+'greeting'       => 'Hi :name,',
             'intro'          => 'We received a request to reset the password for your :app account.',
             'action'         => 'To choose a new password, click the button below. For your security, this link will only be valid for :minutes minutes.',
             'button'         => 'Reset password',
@@ -567,6 +574,62 @@ return [
         'mark_all_as_read' => 'Mark all as Read',
         'view_all'=>'View All',
         'search_user'=>"search_user",
+        // ----- Order module -----
+    'order_module'   => 'Orders Module',
+    'order'          => 'Order',
+    'status'         => 'Status',
+
+    'pending'        => 'Pending',
+    'accepted'       => 'Accepted',
+    'rejected'       => 'Rejected',
+    'completed'      => 'Completed',
+
+    'user_name'      => 'Customer',
+    'employee'       => 'Employee',
+    'offer_name'     => 'Offer',
+    'offer'          => 'Offer',
+    'notes'          => 'Notes',
+
+    'offer_details'  => 'Offer Details',
+    'no_data_found'  => 'No data found',
+
+    'sub_total'      => 'Subtotal',
+    'subtotal'       => 'Subtotal',
+    'discount'       => 'Discount',
+    'total_amount'   => 'Total Amount',
+    'order_items'    => 'Order Items',
+    'items'          => 'items',
+
+    'color'          => 'Color',
+    'quantity'       => 'Quantity',
+    'price'          => 'Price',
+    'actions'        => 'Actions',
+
+    'effective_total' => 'After Discount',
+
+    'en'            => 'EN',
+    'ar'            => 'AR',
+    'product_id'    => 'Product ID',
+
+    'delete'        => 'Delete',
+    'cancel'        => 'Cancel',
+    'go_back'       => 'Go Back',
+    'edit'          => 'Edit',
+
+    'please_add_reason_cancel' => 'Please enter the reason for cancellation',
+
+    // ----- Offer types & fields -----
+    'is_discount'                    => 'Per-product discount',
+    'discount_value_product'         => 'Product discount value',
+    'discount_value_delivery'        => 'Delivery discount value',
+
+    'is_total_discount'              => 'Total discount',
+    'is_total_gift'                  => 'Total gift',
+    'is_product_count_gift'          => 'Gift based on product count',
+
+    'products_count_to_get_gift_offer' => 'Number of items required to get the gift',
+    'total_gift'                       => 'Gift amount',
+
 
 'auth' => [
         'user' => 'User',

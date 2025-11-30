@@ -48,6 +48,7 @@
 {{-- Working Days --}}
 <div class="mb-3">
     <label class="form-label fw-bold">{{ __('adminlte::adminlte.working_days') }}</label>
+{{ $branch }}
     <div class="d-flex flex-wrap gap-2">
         @foreach ($daysOfWeek as $key => $label)
             <div class="form-check d-inline-flex align-items-center me-3 mb-2 @if($isAr) ms-3 me-0 @endif" style="gap:.5rem;">

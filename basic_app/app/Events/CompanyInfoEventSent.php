@@ -3,6 +3,9 @@
 namespace App\Events;
 
 use Illuminate\Broadcasting\PrivateChannel;
+
+use Illuminate\Broadcasting\Channel; // 👈 change this
+
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -38,7 +41,7 @@ class CompanyInfoEventSent implements ShouldBroadcastNow
     public function broadcastOn()
     {
         // Public channel "company_info"
-        return new PrivateChannel('company_info');
+        return new Channel('company_info');
     }
 
     /**

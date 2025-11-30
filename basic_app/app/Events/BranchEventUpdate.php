@@ -13,33 +13,48 @@ class BranchEventUpdate implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /** @var array */
+    /**
+     * Flat branch payload.
+     *
+     * @var array
+     */
     public array $branch;
 
-    // If you want to force the connection regardless of .env:
+    // If you want to force pusher:
     // public string $connection = 'pusher';
 
     public function __construct(CompanyBranch $branch)
     {
-        // Prepare a clean payload
+        // Make sure relations you need are loaded:
+        $branch->loadMissing('companyInfo');
+
         $this->branch = $branch->toArray();
     }
 
-    // Public channel (no auth)
+    /**
+     * Public channel – must match JS subscription.
+     */
     public function broadcastOn(): Channel
     {
-        // MUST match the client subscription name
         return new Channel('company_branch');
     }
 
-    // Client listens for this name
+    /**
+     * Event name – must match JS events.
+     */
     public function broadcastAs(): string
     {
         return 'company_branch_updated';
     }
 
+    /**
+     * Data sent to the frontend.
+     * !!! JS expects payload.branch !!!
+     */
     public function broadcastWith(): array
     {
-        return ['company' => $this->branch];
+        return [
+            'branch' => $this->branch,
+        ];
     }
 }

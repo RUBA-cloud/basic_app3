@@ -99,10 +99,11 @@
         <select
             id="branch_ids"
             name="branch_ids[]"
-            class="form-control custom-select2 {{ $branchesError ? 'is-invalid' : '' }}"
+            class="form-control select2 custom-select2 {{ $branchesError ? 'is-invalid' : '' }}"
             multiple
             required
-            style="width:100%;">
+            data-placeholder="{{ __('adminlte::adminlte.select') . ' ' . __('adminlte::adminlte.branches') }}"
+            style="width: 100%;">
             @forelse($branches as $branch)
                 <option value="{{ $branch->id }}"
                         {{ $oldSelected->contains((int) $branch->id) ? 'selected' : '' }}>
@@ -160,47 +161,182 @@
      data-events='@json($broadcast['events'])'>
 </div>
 
+@push('css')
+<style>
+    /* Base selection */
+    .select2-container--bootstrap4 .select2-selection {
+        min-height: 38px;
+        border-radius: .35rem;
+        border-color: #ced4da;
+        display: flex;
+        align-items: center;
+        padding: 2px 6px;
+    }
+
+    /* Focus state */
+    .select2-container--bootstrap4.select2-container--focus .select2-selection {
+        box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.25);
+        border-color: #28a745;
+    }
+
+    /* Placeholder text */
+    .select2-container--bootstrap4 .select2-selection__placeholder {
+        color: #6c757d;
+        opacity: 0.9;
+    }
+
+    /* Multiple selected tags (chips) */
+    .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+        background-color: #e9f7ef;
+        border: 1px solid #28a74533;
+        color: #155724;
+        border-radius: 20px;
+        padding: 2px 10px;
+        margin-top: 3px;
+        margin-bottom: 3px;
+        font-size: 0.85rem;
+    }
+
+    .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove {
+        color: #155724;
+        margin-right: 4px;
+        margin-left: 2px;
+    }
+
+    /* Error state match .is-invalid on original select */
+    select.is-invalid + .select2-container--bootstrap4 .select2-selection {
+        border-color: #e3342f !important;
+        box-shadow: 0 0 0 0.1rem rgba(227, 52, 47, .25);
+    }
+
+    /* RTL tweaks */
+    [dir="rtl"] .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+        direction: rtl;
+    }
+
+    [dir="rtl"] .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove {
+        margin-left: 4px;
+        margin-right: 2px;
+    }
+</style>
+@endpush
+
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
 
-    $('#branch_ids').select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        dir: isRtl ? 'rtl' : 'ltr',
-        placeholder: @json(__('adminlte::adminlte.select') . ' ' . __('adminlte::adminlte.branches')),
-        allowClear: true,
-    });
+    // ====== Select2 INIT ======
+    const $branchSelect = $('#branch_ids');
 
-    const anchor = document.getElementById('category-form-listener');
+    if ($branchSelect.length) {
+        $branchSelect.select2({
+            theme: 'bootstrap4',
+            width: 'resolve', // respects style="width: 100%"
+            dir: isRtl ? 'rtl' : 'ltr',
+            placeholder: $branchSelect.data('placeholder') || '',
+            allowClear: true,
+        });
+    }
+
+    // ====== BROADCAST LIKE companyInfo ======
     const form   = document.getElementById('category-form');
-    if (!anchor || !form) return;
+    const anchor = document.getElementById('category-form-listener');
+
+    if (!form || !anchor) {
+        console.warn('[category-form] form or listener anchor not found');
+        return;
+    }
 
     const channelName = anchor.dataset.channel || 'categories';
-    let events = [];
+
+    let events;
     try {
         events = JSON.parse(anchor.dataset.events || '["category_updated"]');
-    } catch (e) {
+    } catch (_) {
+        events = ['category_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
         events = ['category_updated'];
     }
 
-    if (typeof Echo !== 'undefined') {
-        const channel = Echo.private(channelName);
-
-        events.forEach(evt => {
-            channel.listen(`.${evt}`, (data) => {
-                if (window.toastr) {
-                    toastr.info(@json(__('adminlte::adminlte.saved_successfully')));
-                }
-                console.info('[category-form] broadcast payload:', data);
-            });
-
-            console.info('[category-form] listening to', channelName, '/', evt);
-        });
-    } else {
-        console.warn('[category-form] Laravel Echo not found.');
+    function setField(name, value) {
+        if (value === undefined || value === null) return;
+        const el = form.querySelector('[name="'+name+'"]');
+        if (!el) return;
+        el.value = value;
+        el.dispatchEvent(new Event('input',  { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
     }
+
+    function applyCategoryPayload(payload) {
+        // Accept { category: {...} } or direct {...}
+        const c = payload?.category ?? payload ?? {};
+
+        console.log('[category-form] applying broadcast payload:', c);
+
+        // Basic fields
+        if (c.name_en !== undefined) setField('name_en', c.name_en);
+        if (c.name_ar !== undefined) setField('name_ar', c.name_ar);
+
+        // is_active
+        if (c.is_active !== undefined) {
+            const cb = form.querySelector('#is_active');
+            if (cb) {
+                const on = Number(c.is_active) === 1;
+                cb.checked = on;
+            }
+        }
+
+        // Image preview
+        if (c.image_url || c.image) {
+            const src = c.image_url || c.image;
+            const img = document.querySelector('#image-preview, [data-role="image-preview"]');
+            if (img && src) {
+                img.src = src;
+            }
+        }
+
+        // Branches (supports branch_ids array OR branches objects)
+        if (c.branch_ids || c.branches) {
+            let ids = [];
+
+            if (Array.isArray(c.branch_ids)) {
+                ids = c.branch_ids.map(v => String(v));
+            } else if (Array.isArray(c.branches)) {
+                ids = c.branches.map(b => String(b.id));
+            }
+
+            if ($branchSelect && ids.length) {
+                $branchSelect.val(ids).trigger('change');
+            }
+        }
+
+        if (window.toastr) {
+            toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+        }
+    }
+
+    // Register with global AppBroadcast (same pattern as companyInfo)
+    window.AppBroadcast = window.AppBroadcast || [];
+
+    events.forEach(function (ev) {
+        const entry = {
+            channel: channelName,
+            event:   ev,
+            handler: applyCategoryPayload,
+        };
+
+        // If manager object: use subscribe()
+        if (typeof window.AppBroadcast.subscribe === 'function') {
+            window.AppBroadcast.subscribe(channelName, ev, applyCategoryPayload);
+            console.info('[category-form] listening via AppBroadcast →', channelName, '/', ev);
+        } else {
+            // Pre-manager phase: push to array, layout's JS will boot them
+            window.AppBroadcast.push(entry);
+            console.info('[category-form] registered broadcast entry →', channelName, '/', ev);
+        }
+    });
 });
 </script>
 @endpush

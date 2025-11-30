@@ -48,7 +48,7 @@
                 </thead>
                 <tbody>
                 @php
-                    $firstItem      = method_exists($rows, 'firstItem') ? ($rows->firstItem() ?? 1) : 1;
+                    $firstItem   = method_exists($rows, 'firstItem') ? ($rows->firstItem() ?? 1) : 1;
                     $routeParamName = $routeParamName ?? 'id';
                 @endphp
 
@@ -84,7 +84,7 @@
 
                                     @case('image')
                                         @if ($data)
-                                            <img class="img-thumb-40"
+                                            <img class="img-thumb-40" width="50" height="50"
                                                  src="{{ \Illuminate\Support\Str::startsWith($data, ['http://','https://'])
                                                         ? $data
                                                         : asset('storage/'.ltrim((string)$data,'/')) }}"

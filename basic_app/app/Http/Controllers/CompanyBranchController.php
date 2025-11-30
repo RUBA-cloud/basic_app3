@@ -81,32 +81,51 @@ public function history(){
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CompanyBranchRequest $request)
-    {
-        if ($request->validated()) {
-            $validated = $request->validated();
+  public function store(CompanyBranchRequest $request)
+{
+    if ($request->validated()) {
+        $validated = $request->validated();
 
-            $company = CompanyInfo::first();
-            if ($company) {
+        $company = CompanyInfo::first();
+        if ($company) {
 
-
-                if ($request->hasFile('image')) {
-                    $imagePath = $request->file('image')->store('branch_images', 'public');
-                    $validated['image'] = request()->getSchemeAndHttpHost() . '/storage/' . $imagePath;
-                }
-
-                $CompanyBranch=CompanyBranch::create($validated);
-                $CompanyBranch->user_id = auth()->id();
-                $CompanyBranch->company_id = $company->id; // Associate with the main company
-                $CompanyBranch->save();
-                return redirect()->route('companyBranch.index')->with('success', 'Company branch created successfully.');
+            // Image upload
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('branch_images', 'public');
+                $validated['image'] = $request->getSchemeAndHttpHost() . '/storage/' . $imagePath;
             }
 
-            return redirect()->back()->withErrors(['error' => 'Company information not found.']);
+            // ✅ Fix working_days (array → string)
+            if ($request->has('working_days') && is_array($request->working_days)) {
+                $validated['working_days'] = implode(',', $request->working_days);
+            }
+
+            // ✅ If location is array (e.g. ['lat' => .., 'lng' => ..]) → store as JSON
+            if ($request->has('location') && is_array($request->location)) {
+                $validated['location'] = json_encode($request->location);
+            }
+
+            $branch = CompanyBranch::create($validated);
+            $branch->user_id = auth()->id();
+            $branch->company_id = $company->id;
+            $branch->save();
+
+            return redirect()
+                ->route('companyBranch.index')
+                ->with('success', 'Company branch created successfully.');
         }
 
-        return redirect()->back()->withErrors($request->errors())->withInput();
+        return redirect()
+            ->back()
+            ->withErrors(['error' => 'Company information not found.']);
     }
+
+    return redirect()
+        ->back()
+        ->withErrors($request->errors())
+        ->withInput();
+}
+
 
     /**
      * Display the specified resource.
@@ -177,8 +196,7 @@ public function history(){
             }
             $historyData["company_info_id"] =$branch->company_id;
             if (!empty($data['working_days']) && is_array($data['working_days'])) {
-    $validated['working_days'] = implode(',', $data['working_days']);
-}
+                $validated['working_days'] = implode(',', $data['working_days']);}
             CompanyBranchesHistory::create($historyData);
 
             $branch->update($validated);

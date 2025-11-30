@@ -48,7 +48,7 @@ class CompanyInfo extends Model
 
     // Cast attributes as needed (example: date formats)
     protected $casts = [
-        'created_at' => 'datetime',
+        'created_at' => 'datetime'
     ];
 
     // Accessor for logo image to get the full URL
@@ -124,6 +124,10 @@ class CompanyInfo extends Model
     public function getVisionArAttribute($value)
     {
         return $value ?? '';
+    }
+     public function getCreatedAtHumanAttribute()
+    {
+        return $this->created_at ? $this->created_at->diffForHumans() : null;
     }
 
     // Event listeners to broadcast changes when updated

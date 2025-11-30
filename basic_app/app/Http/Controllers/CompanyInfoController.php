@@ -30,12 +30,19 @@ class CompanyInfoController extends Controller
             ->paginate(5);
 
         return view('company_info.history', compact('history'));}
-        $company = CompanyInfo::query()->first();
 
+        $company = CompanyInfo::query()->first();
         return view('company_info.index', [
             'company' => $company,
         ]);
     }
+ public function history(){
+
+        $history = CompanyInfoHistory::with('user')
+            ->orderByDesc('created_at')
+            ->paginate(5);
+                    return view('company_info.history', compact('history'));}
+
 
 
     public function searchHistory(Request $request)
@@ -67,9 +74,9 @@ class CompanyInfoController extends Controller
     /**
      * Show a specific history entry.
      */
-    public function show($id)
+    public function show($companyInfo)
     {
-        $entry = CompanyInfoHistory::with('user')->findOrFail($id);
+        $entry = CompanyInfoHistory::with('user')->findOrFail($companyInfo);
 
         // Make sure your blade is at: resources/views/company_info/show.blade.php
         return view('company_info.show', ['company' => $entry]);
@@ -117,13 +124,14 @@ class CompanyInfoController extends Controller
                 CompanyInfoHistory::create($historyData);
             }
         });
-
         // Broadcast AFTER the transaction succeeds
         if ($savedCompany) {
+    // or:
             try {
                 broadcast(new CompanyInfoEventSent($savedCompany));
-            } catch (\Throwable $e) {
-                // Do not fail the request if broadcasting isn’t configured
+
+
+   } catch (\Throwable $e) {
                 Log::warning('CompanyInfoEventSent broadcast failed: ' . $e->getMessage());
             }
         }

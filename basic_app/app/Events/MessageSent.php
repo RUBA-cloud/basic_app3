@@ -3,8 +3,8 @@
 namespace App\Events;
 
 use App\Models\ChatMessage;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow; // ✅ use ShouldBroadcastNow for instant push
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow; // instant push
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Queue\SerializesModels;
@@ -22,7 +22,6 @@ class MessageSent implements ShouldBroadcastNow
             'sender:id,name,avatar_path',
             'receiver:id,name,avatar_path',
         ]);
-
     }
 
     /**
@@ -31,8 +30,8 @@ class MessageSent implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('chat.user.' . $this->message->receiver_id),
-            new PrivateChannel('chat.user.' . $this->message->sender_id),
+            new Channel ('chat.user.' . $this->message->receiver_id),
+            new Channel('chat.user.' . $this->message->sender_id),
         ];
     }
 
@@ -72,6 +71,6 @@ class MessageSent implements ShouldBroadcastNow
         ];
     }
 
-    // Optional queue if you prefer async (remove Now above if used)
+    // Optional if you want async:
     // public string $broadcastQueue = 'broadcasts';
 }

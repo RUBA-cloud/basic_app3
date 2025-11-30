@@ -12,11 +12,12 @@
             {{ __('adminlte::adminlte.branch_details') }}
         </h2>
 
-        {{-- <span id="branch-main-badge"
+        {{-- Main branch badge (can be toggled by broadcast) --}}
+        <span id="branch-main-badge"
               class="badge bg-purple text-white px-3 py-2 {{ $branch->is_main_branch ? '' : 'd-none' }}">
             <i class="fas fa-star me-1"></i>
             {{ __('adminlte::adminlte.main_branch') }}
-        </span> --}}
+        </span>
     </div>
 
     {{-- Card --}}
@@ -157,7 +158,7 @@
                            class="btn btn-primary px-4 py-2">
                             <i class="fas fa-edit me-2"></i> {{ __('adminlte::adminlte.edit') }}
                         </a>
-                        <a href="{{route('companyBranch.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
+                        <a href="{{ route('companyBranch.index') }}" class="btn btn-outline-secondary ms-2 px-4 py-2">
                             <i class="fas fa-arrow-left me-2"></i> {{ __('adminlte::adminlte.go_back') }}
                         </a>
                     </div>
@@ -168,7 +169,7 @@
     </x-adminlte-card>
 </div>
 
-{{-- Listener anchor (like additional show) --}}
+{{-- Listener anchor --}}
 <div id="branch-listener"
      data-channel="company_branch"
      data-events='["company_branch_updated","CompanyBranchUpdated"]'
@@ -186,17 +187,41 @@
         return String(v);
     }
 
+    function getBranchFromPayload(payload) {
+        if (!payload) return {};
+
+        if (payload.branch) {
+            return payload.branch;
+        }
+        if (payload.data && payload.data.branch) {
+            return payload.data.branch;
+        }
+
+        // Also accept { company: {...} } if you ever send that
+        if (payload.company) {
+            return payload.company;
+        }
+        if (payload.data && payload.data.company) {
+            return payload.data.company;
+        }
+
+        return payload;
+    }
+
     function updateDomFromPayload(payload) {
         if (!payload) return;
 
-        const b = payload.branch ?? payload ?? {};
+        const b = getBranchFromPayload(payload) || {};
 
-        // Ensure we're updating the correct branch
         const anchor = document.getElementById('branch-listener');
-        const currentId = anchor ? anchor.dataset.branchId : null;
+        if (!anchor) return;
+
+        const currentId = anchor.dataset.branchId;
         if (currentId && b.id && String(b.id) !== String(currentId)) {
-            return; // another branch, ignore
+            return; // other branch
         }
+
+        console.log('[branch show] applying payload', b);
 
         // Names
         const nameEnEl = document.getElementById('branch-name-en');
@@ -220,8 +245,7 @@
         const mainBadge = document.getElementById('branch-main-badge');
         if (mainBadge && b.is_main_branch !== undefined && b.is_main_branch !== null) {
             const isMain = Number(b.is_main_branch) === 1;
-            if (isMain) mainBadge.classList.remove('d-none');
-            else mainBadge.classList.add('d-none');
+            isMain ? mainBadge.classList.remove('d-none') : mainBadge.classList.add('d-none');
         }
 
         // Contact info
@@ -273,11 +297,7 @@
         if (timeEl) {
             const from = norm(b.working_hours_from || (b.working_hours?.from ?? ''));
             const to   = norm(b.working_hours_to   || (b.working_hours?.to   ?? ''));
-            if (from || to) {
-                timeEl.textContent = (from || '-') + ' - ' + (to || '-');
-            } else {
-                timeEl.textContent = '-';
-            }
+            timeEl.textContent = (from || '-') + ' - ' + (to || '-');
         }
 
         // Company info
@@ -294,44 +314,65 @@
             if (newSrc) imgEl.src = newSrc;
         }
 
-        // Toast
         if (window.toastr) {
             toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
         }
-
-        console.log('[branch show] updated from broadcast payload', b);
     }
 
-    // Expose globally if needed
     window.updateBranchShow = updateDomFromPayload;
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function attachSubscriptions() {
         const anchor = document.getElementById('branch-listener');
         if (!anchor) {
             console.warn('[branch show] listener anchor not found');
             return;
         }
 
-        // Register with global broadcasting (same style as additional/category/company_branch form)
-        window.__pageBroadcasts = window.__pageBroadcasts || [];
+        const channelName = anchor.dataset.channel || 'company_branch';
+
+        let events = ['company_branch_updated'];
+        const rawEvents = anchor.dataset.events;
+        if (rawEvents) {
+            try {
+                const parsed = JSON.parse(rawEvents);
+                if (Array.isArray(parsed) && parsed.length) {
+                    events = parsed;
+                }
+            } catch (e) {
+                console.warn('[branch show] failed to parse data-events, using default', e);
+            }
+        }
 
         const handler = function (e) {
-            updateDomFromPayload(e && (e.branch ?? e));
+            console.log('[branch show] received event', e);
+            updateDomFromPayload(e);
         };
 
-        window.__pageBroadcasts.push({
-            channel: 'company_branch',          // broadcastOn()
-            event:   'company_branch_updated',  // broadcastAs()
-            handler: handler
-        });
-
         if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
-            window.AppBroadcast.subscribe('company_branch', 'company_branch_updated', handler);
-            console.info('[branch show] subscribed via AppBroadcast → company_branch / company_branch_updated');
-        } else {
-            console.info('[branch show] registered in __pageBroadcasts; layout will subscribe later.');
+            events.forEach(function (ev) {
+                window.AppBroadcast.subscribe(channelName, ev, handler);
+                console.info('[branch show] listening via AppBroadcast →', channelName, '/', ev);
+            });
+            return;
         }
-    });
+
+        if (window.pusher) {
+            const ch = window.pusher.subscribe(channelName);
+            events.forEach(function (ev) {
+                ch.bind(ev, handler);
+                console.info('[branch show] listening via window.pusher →', channelName, '/', ev);
+            });
+            return;
+        }
+
+        console.warn('[branch show] No AppBroadcast or window.pusher found – cannot subscribe to Pusher.');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', attachSubscriptions);
+    } else {
+        attachSubscriptions();
+    }
 })();
 </script>
 @endpush

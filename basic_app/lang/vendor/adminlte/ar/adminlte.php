@@ -560,7 +560,9 @@ return [
 'payment'=>'طريقة الدفع',
 'excepted_delivery_days'=>'excepted_delivery_days',
 'newest_10_products'=>' اخر ١٠ منتجات',
-'dashboard'=>'لوحة ',
+'dashboard'=>' لوحة القيادة',
+ 'live_snapshot'=>'نسخة من الملعومات',
+
     // الملاحظات والنص البديل
     'reset_expiry_note' => 'سينتهي مفعول هذا الرابط خلال :minutes دقيقة حفاظًا على أمانك.',
     'reset_alt' => 'إذا لم يعمل الزر، انسخ الرابط التالي والصقه في المتصفح: :url',
@@ -569,6 +571,64 @@ return [
     'search_users'     => 'ابحث عن المستخدمين',
     'type_message'     => 'اكتب رسالة',
     'choose_recipient' => 'اختر المستلم',
+     'order_module'   => 'وحدة الطلبات',
+    'order'          => 'الطلب',
+    'status'         => 'الحالة',
+
+    'pending'        => 'قيد الانتظار',
+    'accepted'       => 'مقبول',
+    'rejected'       => 'مرفوض',
+    'completed'      => 'مكتمل',
+
+    'user_name'      => 'اسم المستخدم',
+    'employee'       => 'الموظف',
+    'offer_name'     => 'اسم العرض',
+    'offer'          => 'العرض',
+    'notes'          => 'ملاحظات',
+
+    'offer_details'  => 'تفاصيل العرض',
+    'no_data_found'  => 'لا توجد بيانات',
+
+    'sub_total'      => 'المجموع الفرعي',
+    'subtotal'       => 'المجموع الفرعي',
+    'discount'       => 'الخصم',
+    'total_amount'   => 'الإجمالي الكلي',
+    'order_items'    => 'عناصر الطلب',
+    'items'          => 'عناصر',
+
+    'color'          => 'اللون',
+    'quantity'       => 'الكمية',
+    'price'          => 'السعر',
+    'actions'        => 'العمليات',
+
+    'effective_total' => 'الإجمالي بعد الخصم',
+
+    'en'            => 'إنجليزي',
+    'ar'            => 'عربي',
+    'product_id'    => 'رقم المنتج',
+
+    'delete'        => 'حذف',
+    'cancel'        => 'إلغاء',
+    'go_back'       => 'رجوع',
+    'edit'          => 'تعديل',
+'refresh_off'=>'التحديث غير تلقائي',
+    'please_add_reason_cancel' => 'يرجى إدخال سبب الإلغاء',
+'company_social_media'=>'التواصل الاجتماعي',
+'instagram'=>'انستغرام',
+'facebook'=>'فيس بوك',
+'twitter'=>'تويتر',
+
+    // ----- أنواع العروض وحقولها -----
+    'is_discount'                    => 'خصم على كل منتج',
+    'discount_value_product'         => 'قيمة خصم المنتج',
+    'discount_value_delivery'        => 'قيمة خصم التوصيل',
+
+    'is_total_discount'              => 'خصم على إجمالي الطلب',
+    'is_total_gift'                  => 'هدية على إجمالي الطلب',
+    'is_product_count_gift'          => 'هدية عند عدد معين من المنتجات',
+
+    'products_count_to_get_gift_offer' => 'عدد المنتجات المطلوب للحصول على الهدية',
+    'total_gift'                       => 'قيمة الهدية',
     // تذييل الرسالة
     'email_footer_notice' => 'تم إرسال هذه الرسالة من :app. يُرجى عدم الرد عليها.',
    'notifications'=>'الاشعارات',
