@@ -11,37 +11,71 @@ class ModulesController extends Controller
     /**
      * Display a listing of the modules.
      */
-
-         public function index(Request $request)
+    public function index(Request $request)
     {
-        $q      = $request->string('q')->toString();
-        $status = $request->string('status')->toString();
-        $sort   = $request->string('sort')->toString();
+        $q      = $request->input('q');       // نص البحث
+        $status = $request->input('status');  // active / inactive / null
+        $sort   = $request->input('sort');    // oldest / enabled_desc / enabled_asc / null
 
         $modules = Module::query()
             ->with('user')
+
+            // بحث بالاسم أو id
             ->when($q, function ($query) use ($q) {
-                $query->whereHas('user', fn($u) => $u->where('name', 'like', "%{$q}%"))
-                      ->orWhere('id', $q);
+                $query->where(function ($sub) use ($q) {
+                    $sub->whereHas('user', function ($u) use ($q) {
+                            $u->where('name', 'like', "%{$q}%");
+                        })
+                        ->orWhere('id', $q);
+                });
             })
-            ->when($status === 'active', fn($q2) => $q2->where('is_active', true))
-            ->when($status === 'inactive', fn($q2) => $q2->where('is_active', false))
-            ->when(in_array($sort, ['oldest','enabled_desc','enabled_asc']), function($q2) use ($sort) {
+
+            // فلترة بالحالة
+            ->when($status === 'active', function ($q2) {
+                $q2->where('is_active', true);
+            })
+            ->when($status === 'inactive', function ($q2) {
+                $q2->where('is_active', false);
+            })
+
+            // الترتيب
+            ->when(in_array($sort, ['oldest', 'enabled_desc', 'enabled_asc']), function ($q2) use ($sort) {
                 if ($sort === 'oldest') {
                     $q2->orderBy('created_at', 'asc');
                 } else {
-                    // count how many boolean fields are enabled
+                    // عدد الفيلدات المفعّلة (قيمة = 1)
                     $columns = [
-                        'company_dashboard_module','company_info_module','company_branch_module',
-                        'company_category_module','company_type_module','company_size_module',
-                        'company_offers_type_module','company_offers_module','product_module',
-                        'employee_module','order_module','order_status_module','regions_module','company_delivery_module',
-                        'additional_module'
+                        'company_dashboard_module',
+                        'company_info_module',
+                        'company_branch_module',
+                        'company_category_module',
+                        'company_type_module',
+                        'company_size_module',
+                        'company_offers_type_module',
+                        'company_offers_module',
+                        'product_module',
+                        'employee_module',
+                        'order_module',
+                        'order_status_module',
+                        'regions_module',        // تأكدي من اسم العمود هنا
+                        'company_delivery_module',
+                        'additional_module',
                     ];
-                    $sumExpr = implode(' + ', array_map(fn($c) => "($c = 1)", $columns));
-                    $q2->orderByRaw("($sumExpr) " . ($sort === 'enabled_desc' ? 'DESC' : 'ASC'));
+
+                    $sumExpr = implode(' + ', array_map(
+                        fn ($c) => "($c = 1)",
+                        $columns
+                    ));
+
+                    // مثال: ( (col1 = 1) + (col2 = 1) + ... ) DESC
+                    $direction = $sort === 'enabled_desc' ? 'DESC' : 'ASC';
+                    $q2->orderByRaw("($sumExpr) {$direction}");
                 }
-            }, default: fn($q2) => $q2->latest())
+            }, function ($q2) {
+                // default sort
+                $q2->latest();
+            })
+
             ->paginate(9);
 
         return view('modules.index', compact('modules'));
@@ -61,7 +95,7 @@ class ModulesController extends Controller
     public function store(ModuleRequest $request)
     {
         $data = $request->validated();
-        $data['user_id'] = auth()->id(); // optional: assign to logged in user
+        $data['user_id'] = auth()->id();
 
         Module::create($data);
 
@@ -70,9 +104,10 @@ class ModulesController extends Controller
             ->with('success', 'Module created successfully!');
     }
 
-    /**
-     * Display the specified module.
-     */
+    public function show(Module $module)
+    {
+        return view('modules.show', compact('module'));
+    }
 
     /**
      * Show the form for editing the specified module.
@@ -81,15 +116,11 @@ class ModulesController extends Controller
     {
         return view('modules.edit', compact('module'));
     }
-    public function show(Module $module)
-    {
-        return view('modules.show', compact('module'));
-    }
 
     /**
      * Update the specified module in storage.
      */
-    public function update (ModuleRequest $request, Module $module)
+    public function update(ModuleRequest $request, Module $module)
     {
         $data = $request->validated();
         $module->update($data);
@@ -104,7 +135,6 @@ class ModulesController extends Controller
      */
     public function destroy(Module $module)
     {
-
         $module->delete();
 
         return redirect()

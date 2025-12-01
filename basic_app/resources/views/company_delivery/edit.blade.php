@@ -27,7 +27,7 @@
         @endif
  @include('company_delivery.form', [
             'action'     => route('company_delivery.update',$companyDelivery->id),
-            'method'     => 'pu',
+            'method'     => 'put',
             'delivery' => $companyDelivery,
         ])
 

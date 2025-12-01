@@ -1,21 +1,19 @@
 @extends('adminlte::page')
 
-@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.offers'))
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.offer'))
 
 @section('content_header')
-    <h1>{{ __('adminlte::adminlte.offers') }}</h1>
+    <h1>{{ __('adminlte::adminlte.edit') }} {{ __('adminlte::adminlte.offer') }}</h1>
 @stop
 
 @section('content')
-@php
-    $isAr = app()->getLocale() === 'ar';
-    // Build selected categories safely from old input or relation
-    $selectedCategoryIds = collect(old('category_ids', $offer->categories?->pluck('id')->all() ?? []));
-@endphp
-@include('Offer.form', [
-            'action'     => route('offers.update', $offer),
-            'method'     => 'PUT',
-            'offer'      => $offer,
-            'isAr'       => $isAr,
-            'selectedCategoryIds' => $selectedCategoryIds,
-        ])
+    <div style="min-height: 100vh; display: flex; width: 100%;">
+        <div style="width: 100%;">
+            @include('Offer.form', [
+                'action' => route('offers.update', $offer->id), // تمرير id للروت
+                'method' => 'PUT',                              // خليها كبيرة عشان الpartial يتصرف
+                'offer'  => $offer,
+            ])
+        </div>
+    </div>
+@stop

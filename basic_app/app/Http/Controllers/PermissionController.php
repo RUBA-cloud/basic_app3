@@ -135,7 +135,7 @@ public function edit(Permission $permission)
         $table = Module::where('is_active', true)->latest()->first();
 
         $data = $request->validate([
-            'module_id'        => ['required', Rule::exists($table, 'id')],
+
             'name_en'          => ['required', 'string', 'max:255'],
             'name_ar'          => ['required', 'string', 'max:255'],
             'can_edit'         => ['nullable'],

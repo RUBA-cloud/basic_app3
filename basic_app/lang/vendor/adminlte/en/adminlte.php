@@ -9,6 +9,7 @@ return [
 'instagram'=>'instagram',
 'facebook'=>'facebook' ,
 'twitter'=>'twitter',
+'payment'=>'payment',
     // Company fields
     'company_name_en' => 'Company Name (English)',
     'company_name_en_placeholder' => 'Enter the company name in English',

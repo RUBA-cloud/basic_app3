@@ -411,10 +411,9 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{company_delivery}/edit','edit')->middleware('perm:company_delivery_module,can_edit')->name('edit');
                 Route::put('/{company_delivery}', 'update')->middleware('perm:company_delivery_module,can_edit')->name('update');
                 Route::delete('/{company_delivery}','destroy')->middleware('perm:company_delivery_module,can_delete')->name('destroy');
-
                 Route::post('/search',            'search')->middleware('perm:company_delivery_module,can_view_history')->name('search');
-                Route::post('/restore',           'restore')->middleware('perm:company_delivery_module,can_edit')->name('restore');
-                Route::get('/history',            'history')->middleware('perm:company_delivery_module,can_view_history')->name('history');
+                Route::post('/restore',           'restore')->middleware('perm:company_delivery_module,can_edit')->name('reactivate');
+                Route::get('/history/{isHistory?}', 'history')->middleware('perm:company_info_module,can_view_history')->name('history');
             });
 
         /* ==============================
@@ -432,7 +431,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{order_status}/edit','edit')->middleware('perm:order_status_module,can_edit')->name('edit');
                 Route::put('/{order_status}', 'update')->middleware('perm:order_status_module,can_edit')->name('update');
                 Route::delete('/{order_status}','destroy')->middleware('perm:order_status_module,can_delete')->name('destroy');
-
                 Route::get('/history',        'history')->middleware('perm:order_status_module,can_view_history')->name('history');
                 Route::post('/search',        'search')->middleware('perm:order_status_module,can_view_history')->name('search');
                 Route::post('/restore',       'restore')->middleware('perm:order_status_module,can_edit')->name('restore');

@@ -12,7 +12,7 @@
             <x-action_buttons
             label="{{__('adminlte::adminlte.companyDelviery')}}"
                 addRoute="company_delivery.create"
-                historyRoute="compnay_delivery.index"
+historyRoute="company_delivery.index"
                 :showAdd="false"
             />
 
@@ -33,7 +33,7 @@
         detailsRoute="company_delivery.show"   {{-- optional: blade partial for modal --}}
         edit-route="company_delivery.edit"        {{-- route names (optional) --}}
         delete-route="company_delivery.destroy"   {{-- when set, delete uses form+route --}}
-        reactive-route="comapny_delivery.reactivate"
+        reactive-route="company_delivery.reactivate"
         initial-route="{{ route('company_delivery.index') }}" {{-- will reload to here if called --}}
         :search-in="['name_en','name_ar']"
         :per-page="12"
