@@ -16,7 +16,7 @@ class ProfileController extends Controller
         // Keep the app locale in sync for the view
         app()->setLocale($user->locale ?? config('app.locale'));
 
-        return view('profile', compact('user'));
+        return view('profile',compact('user'));
     }
 
     public function update(Request $request)
