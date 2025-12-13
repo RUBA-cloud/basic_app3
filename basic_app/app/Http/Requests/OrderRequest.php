@@ -34,7 +34,7 @@ class OrderRequest extends FormRequest
         'building_number'               => ['required', 'string', 'max:50'],
         'lat'                           => ['required', 'numeric', 'between:-90,90'],
         'long'                          => ['required', 'numeric', 'between:-180,180'],
-        'total_price'                   => ['nullable', 'numeric'],
+        'total_price'                   => ['required', 'numeric'],
     ];
 }
 

@@ -3,7 +3,7 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 class NotificationEvent implements ShouldBroadcastNow
@@ -15,7 +15,7 @@ class NotificationEvent implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
-        return [ new PrivateChannel('notifications.user.' . $this->receiverId) ];
+        return [ new Channel('notifications.user.' . $this->receiverId) ];
     }
 
     public function broadcastAs(): string

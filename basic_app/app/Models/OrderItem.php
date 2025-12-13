@@ -25,6 +25,20 @@ class OrderItem extends Model
         'price'       => 'decimal:2',
         'total_price' => 'decimal:2',
     ];
+     protected $appends = [
+    'created_at_human',
+    'updated_at_human',
+];
+
+public function getCreatedAtHumanAttribute(): ?string
+{
+    return $this->created_at?->diffForHumans();
+}
+
+public function getUpdatedAtHumanAttribute(): ?string
+{
+    return $this->updated_at?->diffForHumans();
+}
 
     /* =========================
        العلاقات

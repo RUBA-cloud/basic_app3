@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+    use Illuminate\Support\Carbon;
 
 class Order extends Model
 {
@@ -24,11 +25,32 @@ class Order extends Model
         'lat','long',
         'status',
         'offer_id',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
         'status' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+    protected $appends = [
+    'created_at_human',
+    'updated_at_human',
+];
+
+public function getCreatedAtHumanAttribute(): ?string
+{
+    return $this->created_at?->diffForHumans();
+}
+
+public function getUpdatedAtHumanAttribute(): ?string
+{
+    return $this->updated_at?->diffForHumans();
+}
+
+
+
 
     /**
      * Status codes (match your table/UI):
@@ -80,6 +102,7 @@ class Order extends Model
             ->withPivot(['id', 'color', 'quantity', 'price', 'total_price'])
             ->withTimestamps();
     }
+
 
     /* =========================
        Accessors / Computed

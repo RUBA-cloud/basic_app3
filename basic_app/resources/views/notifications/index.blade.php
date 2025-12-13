@@ -1,6 +1,10 @@
 @extends('adminlte::page')
 
 @section('title', __('Notifications'))
+@php
+    $pusher_key     = config('broadcasting.connections.pusher.key'); // kept if needed elsewhere
+    $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
+@endphp
 
 @section('content_header')
 <div class="d-flex align-items-center justify-content-between">
@@ -78,72 +82,98 @@
 @stop
 
 @push('js')
+@once
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
-  const list = document.getElementById('notifList');
-  if (!list) return;
+  const userId = @json(auth()->id());
+  if (!userId) return;
 
-  const esc  = s => String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-  const fmt  = dt => {
-    try { const d=new Date(dt); const pad=n=>String(n).padStart(2,'0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    } catch { return ''; }
+  const channelName = `notifications.user.${userId}`;
+  const eventName   = 'notification.created';
+
+  const escapeHtml = (s) => String(s || '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
+
+  const refreshBell = (payload) => {
+    const OPEN_LABEL = @json(__('adminlte::adminlte.open'));
+    const list = document.getElementById('notifList');
+    if (!list) return;
+
+    // If payload provided (some broadcasters pass the notification payload), build and prepend an item
+    if (payload && (payload.notification || payload.data)) {
+      const n = payload.notification || payload.data;
+      const item = document.createElement('div');
+      item.className = 'list-group-item d-flex align-items-start ' + (n.read_at ? '' : 'bg-light');
+      item.style.margin = '6px';
+      item.style.borderRadius = '10px';
+      item.style.boxShadow = '0 2px 4px rgba(0,0,0,.08)';
+
+      const icon = escapeHtml(n.icon || 'fas fa-bell');
+      const title = escapeHtml(n.title || '');
+      const created = escapeHtml(n.created_at || (new Date()).toISOString().slice(0,16).replace('T',' '));
+      const body = n.body ? `<div class="text-muted">${escapeHtml(n.body)}</div>` : '';
+      const linkBtn = n.link ? `<a href="${escapeHtml(n.link)}" class="btn btn-sm btn-primary" style="margin: 5px">${OPEN_LABEL}</a>` : '';
+
+      item.innerHTML = `
+            <i class="${icon} me-3 mt-1"></i>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between">
+                    <strong>${title}</strong>
+                    <small class="text-muted">${created}</small>
+                </div>
+                ${body}
+                <div class="mt-2 d-flex flex-wrap gap-2">
+                    ${linkBtn}
+                </div>
+            </div>
+      `;
+
+      list.insertBefore(item, list.firstChild);
+      return;
+    }
+
+    // Fallback: reload notification list from current page (AJAX). If that fails, reload the page.
+    fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(res => res.text())
+      .then(html => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const newList = tmp.querySelector('#notifList');
+        if (newList) {
+          list.innerHTML = newList.innerHTML;
+        } else {
+          // if server didn't return fragment, reload whole page
+          window.location.reload();
+        }
+      })
+      .catch(err => {
+        console.warn('[notifications] refresh failed, reloading page', err);
+        window.location.reload();
+      });
   };
 
-  function makeItem(n) {
-    const wrap = document.createElement('div');
-    wrap.className = 'list-group-item d-flex align-items-start bg-light';
-    Object.assign(wrap.style,{margin:'6px',borderRadius:'10px',boxShadow:'0 2px 4px rgba(0,0,0,.08)'});
-
-    wrap.innerHTML = `
-      <i class="${esc(n.icon || 'fas fa-bell')} me-3 mt-1"></i>
-      <div class="flex-grow-1">
-        <div class="d-flex justify-content-between">
-          <strong>${esc(n.title || '{{ __("Notification") }}')}</strong>
-          <small class="text-muted">${fmt(n.created_at)}</small>
-        </div>
-        ${n.body ? `<div class="text-muted">${esc(n.body)}</div>` : ''}
-        <div class="mt-2 d-flex flex-wrap gap-2">
-          ${n.link ? `<a href="${esc(n.link)}" class="btn btn-sm btn-primary">{{ __('Open') }}</a>` : ''}
-        </div>
-      </div>
-    `;
-    return wrap;
-  }
-
-  function appendNotification(payload) {
-    if (!payload) return;
-    const n = payload.notification ?? payload ?? {};
-    const el = makeItem(n);
-    list.insertBefore(el, list.firstChild);
-    if (window.toastr) toastr.info(n.title || '{{ __("New Notification") }}');
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const anchor = document.getElementById('notifications-listener');
-    if (!anchor) return;
-
-    window.__pageBroadcasts = window.__pageBroadcasts || [];
-
-    const handler = function (e) {
-      appendNotification(e && (e.notification ?? e));
-    };
-
-    window.__pageBroadcasts.push({
-      channel: 'notifications',         // broadcastOn()
-      event:   'notification.created',  // broadcastAs()
-      handler: handler
-    });
-
-    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
-      window.AppBroadcast.subscribe('notifications', 'notification.created', handler);
-      console.info('[notifications] listening via AppBroadcast → notifications / notification.created');
-    } else {
-      console.info('[notifications] registered in __pageBroadcasts; layout will subscribe later.');
+  // Register in-page broadcast hooks (if your app uses them)
+  window.__pageBroadcasts = window.__pageBroadcasts || [];
+  window.__pageBroadcasts.push({
+    channel: channelName,
+    event: eventName,
+    handler: function (payload) {
+      console.log('[notifications] received', payload);
+      refreshBell(payload);
     }
   });
-})();
+
+  // If your global AppBroadcast helper exists, subscribe too
+  if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+    window.AppBroadcast.subscribe(channelName, eventName, function(payload){
+      console.log('[notifications] received', payload);
+      refreshBell(payload);
+    });
+  }
+});
 </script>
+@endonce
 @endpush

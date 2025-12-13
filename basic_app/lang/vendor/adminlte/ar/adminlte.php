@@ -619,7 +619,7 @@ return [
 'twitter'=>'تويتر',
 'payment'=>'الدفع',
 
-    // ----- أنواع العروض وحقولها -----
+    // ----- أنواع العروض وحقولها -----aa
     'is_discount'                    => 'خصم على كل منتج',
     'discount_value_product'         => 'قيمة خصم المنتج',
     'discount_value_delivery'        => 'قيمة خصم التوصيل',

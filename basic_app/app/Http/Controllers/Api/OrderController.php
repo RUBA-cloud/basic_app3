@@ -84,7 +84,7 @@ class OrderController extends Controller
                     'lat'             => $data['lat'],
                     'long'            => $data['long'],
                     // you can ignore client total_price and calculate yourself
-                    'total_price'     => $data['total_price'] ?? 0,
+                    'total_price'     => $data['total_price'],
                 ]);
 
                 $orderTotal = 0;
@@ -121,8 +121,8 @@ class OrderController extends Controller
                 }
 
                 // 3) Override total_price with server-calculated value
-                $order->update(['total_price' => $orderTotal]);
-
+                $order->total_price = $orderTotal;
+                $order->save();
                 // 4) Clear user's cart inside the same transaction
                 Cart::where('user_id', $userId)->delete();
 
