@@ -541,7 +541,9 @@ return [
     'verify_button' => 'تأكيد البريد الإلكتروني',
     'verify_alt' => 'إذا لم يعمل الزر، انسخ الرابط التالي والصقه في المتصفح: :url',
     'email_footer_notice' => 'تم إرسال هذه الرسالة من :app. يرجى عدم الرد عليها.',
-
+'order_status'=>'حالة الطلب',
+'optional'=>'خيار',
+'choose_status'=>'اختيار حالة',
     // العناوين والنص المسبق
     'reset_password_subject' => 'إعادة تعيين كلمة المرور في :app',
     'reset_preheader' => 'استخدم الرابط الآمن أدناه لإعادة تعيين كلمة مرور :app.',
@@ -613,11 +615,22 @@ return [
     'edit'          => 'تعديل',
 'refresh_off'=>'التحديث غير تلقائي',
     'please_add_reason_cancel' => 'يرجى إدخال سبب الإلغاء',
+    'total_offer_amount'=>'مجموع العرض ',
 'company_social_media'=>'التواصل الاجتماعي',
 'instagram'=>'انستغرام',
 'facebook'=>'فيس بوك',
 'twitter'=>'تويتر',
 'payment'=>'الدفع',
+ 'offers_type' => 'نوع العرض',
+    'is_discount' => 'خصم',
+    'is_total_gift' => 'هدية إجمالية',
+    'is_product_count_gift' => 'اشترِ عدد واحصل على هدية',
+    'is_total_offer' => 'خصم على إجمالي الطلب',
+    'discount_value_product' => 'قيمة خصم المنتج',
+    'discount_value_delivery' => 'قيمة خصم التوصيل',
+    'total_amount' => 'المبلغ الإجمالي',
+    'products_count_to_get_gift_offer' => 'عدد المنتجات للحصول على الهدية',
+    'toffersTypeal_gift' => 'إجمالي الهدايا',
 
     // ----- أنواع العروض وحقولها -----aa
     'is_discount'                    => 'خصم على كل منتج',

@@ -9,4 +9,5 @@ return [
     'verify_alt'           => 'If the button doesn’t work, copy and paste this link into your browser: :url',
     'email_footer_notice'  => 'This email was sent by :app to confirm your account. Please do not reply.',
     'user'                 => 'User',
+    'order_status_module'=>' Order Status Module',
 ];

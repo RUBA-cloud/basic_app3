@@ -12,7 +12,7 @@ class OrderStatusHistory extends Model
     use HasFactory;
     use Notifiable;
     //
-    protected $table = 'order-status-history';
+    protected $table = 'order_status_history';
      // Ensure the table name is correct
     protected $fillable = [
         'name_en',   // Foreign key to products table

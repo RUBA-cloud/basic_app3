@@ -10,6 +10,7 @@ return [
 'facebook'=>'facebook' ,
 'twitter'=>'twitter',
 'payment'=>'payment',
+'order_status'=>'Order Status',
     // Company fields
     'company_name_en' => 'Company Name (English)',
     'company_name_en_placeholder' => 'Enter the company name in English',
@@ -114,8 +115,20 @@ return [
     'country'=>'Country',
     'city'=>'City',
     'unread'=>'unread',
-
+'order_status'=>'Order Status',
+'optional'=>'optional',
+'choose_status'=>'Choose Status',
     // Form
+      'offers_type' => 'Offer Type',
+    'is_discount' => 'Discount',
+    'is_total_gift' => 'Total Gift',
+    'is_product_count_gift' => 'Buy X Get Gift',
+    'is_total_offer' => 'Total Order Discount',
+    'discount_value_product' => 'Product Discount Value',
+    'discount_value_delivery' => 'Delivery Discount Value',
+    'total_amount' => 'Total Amount',
+    'products_count_to_get_gift_offer' => 'Products Count to Get Gift',
+    'toffersTypeal_gift' => 'Total Gifts',
     'company_info_form' => 'Company Info Form',
     'company_info_form_description' => 'Please fill out the form below to update your company information.',
     'company_info_form_success' => 'Company information saved successfully.',
@@ -147,6 +160,7 @@ return [
     'excepted_delivery_days'=>'excepted_delivery_days',
     'newest_10_products'=>'newest 10 products',
 'description'=>'description',
+'total_offer_amount'=> 'Total Offer Amount',
     // About, mission, vision
     'about_us_en' => 'About Us (English)',
     'about_us_ar' => 'About Us (Arabic)',
@@ -558,9 +572,7 @@ return [
 'Unread'=>'Unread',
 'users'=>'users',
 'images'=>'Images',
-
-    // Footer
-    'email_footer_notice' => 'This email was sent by :app. Please do not reply to this message.',
+'email_footer_notice' => 'This email was sent by :app. Please do not reply to this message.',
 "payment_module"=>'Payment Module',
 "company_delivery_module"=>"Company Delivery Module",
 "region_module"=>"Region Module",

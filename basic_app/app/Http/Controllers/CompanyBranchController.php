@@ -136,7 +136,7 @@ public function history(){
     // 1) Try the main table
     $branch = CompanyBranch::with('companyInfo')->find($id);
 
-    // 2) If not found there, fall back to the history table (or throw 404)
+    // 2) f not found there, fall back to the history table (or throw 404)
     if (! $branch) {
         $branch = CompanyBranchesHistory::with('companyInfo')->find($id);
     }
@@ -167,6 +167,8 @@ public function history(){
         $historyData = $branchHistory->toArray();
         unset($historyData['id']);
         $historyData['is_active'] =true;
+                    $historyData["company_id"] =$branchHistory->company_id;
+
         // Create back into active branches
         CompanyBranch::create($historyData);
 
@@ -222,6 +224,7 @@ public function history(){
 
         if (!empty($branch['image']))
                 $historyData['image'] = $branch['image'];
+
         CompanyBranchesHistory::create($historyData);
 
         $branch->delete();

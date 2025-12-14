@@ -9,10 +9,10 @@
 
 @section('content')
 <div class="container-fluid py-3">
-    @include('offers_type._form', [
-        'action'     => route('offers_type.update', $offersType->id),
+    @include('offerType.form', [
+        'action'     => route('offers_type.update', $offerType->id),
         'method'     => 'PUT',
-        'offersType' => $offersType,
+        'offersType' => $offerType,
     ])
 </div>
 @stop

@@ -14,22 +14,21 @@ class OrderStatusController extends Controller
     /** List order statuses */
     public function index()
     {
-        $order_statuses = OrderStatus::with('user')
+        $orderStatuses = OrderStatus::with('user')
             ->orderByDesc('id')
             ->paginate(5);
 
-        return view('order_status.index', compact('order_statuses'));
+        return view('order_status.index', compact('orderStatuses'));
     }
 
     /** History list (all order statuses) */
     public function history()
     {
-        $history = OrderStatusHistory::with('user')
+        $orderStatuses = OrderStatusHistory::with('user')
             ->orderByDesc('id')
-            ->paginate(20);
+            ->paginate(5);
 
-        // Use a single, consistent variable name in the view
-        return view('order_status.history', compact('history'));
+            return view('order_status.history',$orderStatuses);
     }
 
     /** Show create form */
@@ -46,7 +45,7 @@ class OrderStatusController extends Controller
             ? filter_var($request->input('active'), FILTER_VALIDATE_BOOLEAN)
             : null;
 
-        $order_statuses = OrderStatus::query()
+        $orderStatuses = OrderStatus::query()
             ->when($q !== '', function ($qbuilder) use ($q) {
                 $qbuilder->where(function ($w) use ($q) {
                     $w->where('name_en', 'like', "%{$q}%")
@@ -59,13 +58,13 @@ class OrderStatusController extends Controller
             ->paginate(15)
             ->appends($request->query());
 
-        return view('order_status.index', compact('order_statuses', 'q', 'activeFilter'));
+        return view('order_status.index', compact('orderStatuses', 'q', 'activeFilter'));
     }
 
     /** Store */
     public function store(OrderStatusRequest $request)
     {
-        $data = $this->validatePayload($request);
+        $data = $request->validated();
         $data['user_id']   = $data['user_id']   ?? Auth::id();
         $data['is_active'] = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : true;
 
@@ -79,27 +78,27 @@ class OrderStatusController extends Controller
     }
 
     /** Show */
-    public function show(OrderStatus $order_status)
+    public function show(OrderStatus $orderStatus)
     {
-        return view('order_status.show', compact('order_status'));
+        return view('order_status.show', compact('orderStatus'));
     }
 
     /** Edit form */
-    public function edit(OrderStatus $order_status)
+    public function edit(OrderStatus $orderStatus)
     {
-        return view('order_status.edit', compact('order_status'));
+        return view('order_status.edit', compact('orderStatus'));
     }
 
     /** Update (log old/new) */
-    public function update(OrderSatausRequest $request, OrderStatus $order_status)
+    public function update(OrderStatusRequest $request, OrderStatus $orderStatus)
     {
-        $data = $this->validated($request);
+        $data = $$request->validated();
 
-        DB::transaction(function () use ($order_status, $data) {
-            $this->writeHistory($order_status, 'updated_before', $order_status->toArray());
-            $order_status->update($data);
-            broadcast(new \App\Events\OrderStatusEventUpdate($order_status))->toOthers();
-            $this->writeHistory($order_status, 'updated_after', $order_status->fresh()->toArray());
+        DB::transaction(function () use ($orderStatus, $data) {
+            $this->writeHistory($orderStatus, 'updated_before', $orderStatus->toArray());
+            $orderStatus->update($data);
+            broadcast(new \App\Events\OrderStatusEventUpdate($orderStatus))->toOthers();
+            $this->writeHistory($orderStatus, 'updated_after', $orderStatus->fresh()->toArray());
         });
 
         return redirect()->route('order_status.index')
@@ -107,11 +106,11 @@ class OrderStatusController extends Controller
     }
 
     /** "Delete": archive + deactivate (soft) */
-    public function destroy(OrderStatus $order_status)
+    public function destroy(OrderStatus $orderStatus)
     {
-        DB::transaction(function () use ($order_status) {
-            $this->writeHistory($order_status, 'deleted', $order_status->toArray());
-            $order_status->update(['is_active' => false]);
+        DB::transaction(function () use ($orderStatus) {
+            $this->writeHistory($orderStatus, 'deleted', $orderStatus->toArray());
+            $orderStatus->update(['is_active' => false]);
         });
 
         return redirect()->route('order_status.index')
@@ -126,8 +125,8 @@ class OrderStatusController extends Controller
 
             // Prefer FK if present
             $status = null;
-            if (Schema::hasColumn($historyTable, 'order_status_id') && !empty($history->order_status_id)) {
-                $status = OrderStatus::find($history->order_status_id);
+            if (Schema::hasColumn($historyTable, 'orderStatus_id') && !empty($history->orderStatus_id)) {
+                $status = OrderStatus::find($history->orderStatus_id);
             }
 
             // Fallback if no FK
@@ -170,8 +169,8 @@ class OrderStatusController extends Controller
             'user_id'   => $snapshot['user_id']   ?? $status->user_id,
         ];
 
-        if (Schema::hasColumn($historyTable, 'order_status_id')) {
-            $payload['order_status_id'] = $status->id;
+        if (Schema::hasColumn($historyTable, 'orderStatus_id')) {
+            $payload['orderStatus_id'] = $status->id;
         }
         if (Schema::hasColumn($historyTable, 'action')) {
             $payload['action'] = $action;

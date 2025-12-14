@@ -18,9 +18,7 @@ class OfferTypeController extends Controller
             $offerTypes = OffersTypeHistory::with('user')->paginate(5);
             return view('OfferType.history', compact('offerTypes'));
         }
-
         $offerTypes = OffersType::with('user')->paginate(5);
-
         return view('OfferType.index', compact('offerTypes'));
     }
 
@@ -53,7 +51,7 @@ class OfferTypeController extends Controller
         $offerType = OffersType::find($id);
 
         if (!$offerType) {
-            $offerType = OffersTypeHsitory::findOrFail($id);
+            $offerType = OffersTypeHistory::findOrFail($id);
         }
 
         return view('OfferType.show', compact('offerType'));

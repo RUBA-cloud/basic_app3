@@ -11,7 +11,7 @@
     optional $products   (Collection) -> id, name
 --}}
 
-@php($ot = $offersType ?? null)
+@php($offersType = $offersType ?? null)
 @php
     $pusher_key     = config('broadcasting.connections.pusher.key');
     $pusher_cluster = config('broadcasting.connections.pusher.options.cluster', 'mt1');
@@ -47,54 +47,54 @@
             <div class="mb-3">
                 <label for="name_en" class="form-label">{{ __('adminlte::adminlte.name_en') }}</label>
                 <input type="text" name="name_en" id="name_en" class="form-control"
-                       value="{{ old('name_en', $ot->name_en ?? '') }}" required>
+                       value="{{ old('name_en', $offersType->name_en ?? '') }}" required>
             </div>
 
             <div class="mb-3">
                 <label for="name_ar" class="form-label">{{ __('adminlte::adminlte.name_ar') }}</label>
                 <input type="text" name="name_ar" id="name_ar" class="form-control"
-                       value="{{ old('name_ar', $ot->name_ar ?? '') }}" required>
+                       value="{{ old('name_ar', $offersType->name_ar ?? '') }}" required>
             </div>
 
             {{-- descriptions --}}
             <div class="mb-3">
                 <label for="description_en" class="form-label">{{ __('adminlte::adminlte.descripation') }} (EN)</label>
-                <textarea name="description_en" id="description_en" class="form-control">{{ old('description_en', $ot->description_en ?? '') }}</textarea>
+                <textarea name="description_en" id="description_en" class="form-control">{{ old('description_en', $offersType->description_en ?? '') }}</textarea>
             </div>
 
             <div class="mb-3">
                 <label for="description_ar" class="form-label">{{ __('adminlte::adminlte.descripation') }} (AR)</label>
-                <textarea name="description_ar" id="description_ar" class="form-control" dir="rtl">{{ old('description_ar', $ot->description_ar ?? '') }}</textarea>
+                <textarea name="description_ar" id="description_ar" class="form-control" dir="rtl">{{ old('description_ar', $offersType->description_ar ?? '') }}</textarea>
             </div>
 
             {{-- MODE FLAGS (pick one) --}}
             <div class="form-check mb-2">
                 <input type="checkbox" name="is_discount" id="is_discount" class="form-check-input" value="1"
-                       {{ old('is_discount', (int)($ot->is_discount ?? 0)) ? 'checked' : '' }}>
+                       {{ old('is_discount', (int)($offersType->is_discount ?? 0)) ? 'checked' : '' }}>
                 <label for="is_discount" class="form-check-label">{{ __('adminlte::adminlte.is_discount') }}</label>
             </div>
 
             <div class="form-check mb-2">
-                <input type="checkbox" name="is_total_gift" id="is_total_gift" class="form-check-input" value="1"
-                       {{ old('is_total_gift', (int)($ot->is_total_gift ?? 0)) ? 'checked' : '' }}>
-                <label for="is_total_gift" class="form-check-label">{{ __('adminlte::adminlte.is_total_gift') }}</label>
+                <input type="checkbox" name="is_toffersTypeal_gift" id="is_toffersTypeal_gift" class="form-check-input" value="1"
+                       {{ old('is_toffersTypeal_gift', (int)($offersType->is_toffersTypeal_gift ?? 0)) ? 'checked' : '' }}>
+                <label for="is_toffersTypeal_gift" class="form-check-label">{{ __('adminlte::adminlte.is_total_gift') }}</label>
             </div>
 
             <div class="form-check mb-2">
                 <input type="checkbox" name="is_product_count_gift" id="is_product_count_gift" class="form-check-input" value="1"
-                       {{ old('is_product_count_gift', (int)($ot->is_product_count_gift ?? 0)) ? 'checked' : '' }}>
+                       {{ old('is_product_count_gift', (int)($offersType->is_product_count_gift ?? 0)) ? 'checked' : '' }}>
                 <label for="is_product_count_gift" class="form-check-label">{{ __('adminlte::adminlte.is_product_count_gift') }}</label>
             </div>
 
             <div class="form-check mb-2">
-                <input type="checkbox" name="is_total_discount" id="is_total_discount" class="form-check-input" value="1"
-                       {{ old('is_total_discount', (int)($ot->is_total_discount ?? 0)) ? 'checked' : '' }}>
-                <label for="is_total_discount" class="form-check-label">{{ __('adminlte::adminlte.is_total_discount') }}</label>
+                <input type="checkbox" name="is_toffersTypeal_discount" id="is_toffersTypeal_discount" class="form-check-input" value="1"
+                       {{ old('is_toffersTypeal_discount', (int)($offersType->is_toffersTypeal_discount ?? 0)) ? 'checked' : '' }}>
+                <label for="is_toffersTypeal_discount" class="form-check-label">{{ __('adminlte::adminlte.is_total_offer') }}</label>
             </div>
 
             <div class="form-check mb-3">
                 <input type="checkbox" name="is_active" id="is_active" class="form-check-input" value="1"
-                       {{ old('is_active', (int)($ot->is_active ?? 1)) ? 'checked' : '' }}>
+                       {{ old('is_active', (int)($offersType->is_active ?? 1)) ? 'checked' : '' }}>
                 <label for="is_active" class="form-check-label">{{ __('adminlte::adminlte.is_active') }}</label>
             </div>
 
@@ -103,25 +103,25 @@
                 <div class="mb-3">
                     <label for="discount_value_product" class="form-label">{{ __('adminlte::adminlte.discount_value_product') }}</label>
                     <input type="number" step="0.01" name="discount_value_product" id="discount_value_product" class="form-control"
-                           value="{{ old('discount_value_product', $ot->discount_value_product ?? '') }}">
+                           value="{{ old('discount_value_product', $offersType->discount_value_product ?? '') }}">
                 </div>
                 <div class="mb-3">
                     <label for="discount_value_delivery" class="form-label">{{ __('adminlte::adminlte.discount_value_delivery') }}</label>
                     <input type="number" step="0.01" name="discount_value_delivery" id="discount_value_delivery" class="form-control"
-                           value="{{ old('discount_value_delivery', $ot->discount_value_delivery ?? '') }}">
+                           value="{{ old('discount_value_delivery', $offersType->discount_value_delivery ?? '') }}">
                 </div>
             </div>
 
-            {{-- TOTAL DISCOUNT FIELD (show when is_total_discount) --}}
-            <div id="total_discount_field" style="display: none;">
+            {{-- ToffersTypeAL DISCOUNT FIELD (show when is_toffersTypeal_discount) --}}
+            <div id="toffersTypeal_discount_field" style="display: none;">
                 <div class="mb-3">
-                    <label for="total_discount" class="form-label">{{ __('adminlte::adminlte.total_amount') }}</label>
-                    <input type="number" step="0.01" name="total_discount" id="total_discount" class="form-control"
-                           value="{{ old('total_discount', $ot->total_discount ?? '') }}">
+                    <label for="total_amount" class="form-label">{{ __('adminlte::adminlte.total_amount') }}</label>
+                    <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control"
+                           value="{{ old('total_offer_amount', $offersType->total_amount ?? '') }}">
                 </div>
             </div>
 
-            {{-- GIFT FIELDS (show when is_total_gift || is_product_count_gift) --}}
+            {{-- GIFT FIELDS (show when is_toffersTypeal_gift || is_product_count_gift) --}}
             <div id="gift_fields" style="display: none;">
                 {{-- select category --}}
                 <div class="mb-3">
@@ -131,7 +131,7 @@
                         @if(!empty($categories))
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}"
-                                    {{ (string)old('gift_category_id', $ot->gift_category_id ?? '') === (string)$cat->id ? 'selected' : '' }}>
+                                    {{ (string)old('gift_category_id', $offersType->gift_category_id ?? '') === (string)$cat->id ? 'selected' : '' }}>
                                     {{ $cat->name_ar ?? $cat->name_en ?? $cat->name ?? 'Category #'.$cat->id }}
                                 </option>
                             @endforeach
@@ -147,7 +147,7 @@
                         @if(!empty($products))
                             @foreach($products as $p)
                                 <option value="{{ $p->id }}"
-                                    {{ (string)old('gift_product_id', $ot->gift_product_id ?? '') === (string)$p->id ? 'selected' : '' }}>
+                                    {{ (string)old('gift_product_id', $offersType->gift_product_id ?? '') === (string)$p->id ? 'selected' : '' }}>
                                     {{ $p->name ?? ('Product #'.$p->id) }}
                                 </option>
                             @endforeach
@@ -159,19 +159,19 @@
                 <div class="mb-3">
                     <label for="products_count_to_get_gift_offer" class="form-label">{{ __('adminlte::adminlte.products_count_to_get_gift_offer') }}</label>
                     <input type="number" name="products_count_to_get_gift_offer" id="products_count_to_get_gift_offer" class="form-control"
-                           value="{{ old('products_count_to_get_gift_offer', $ot->products_count_to_get_gift_offer ?? '') }}">
+                           value="{{ old('products_count_to_get_gift_offer', $offersType->products_count_to_get_gift_offer ?? '') }}">
                 </div>
 
-                {{-- how many gifts / total gift --}}
+                {{-- how many gifts / toffersTypeal gift --}}
                 <div class="mb-3">
-                    <label for="total_gift" class="form-label">{{ __('adminlte::adminlte.total_gift') }}</label>
-                    <input type="number" name="total_gift" id="total_gift" class="form-control"
-                           value="{{ old('total_gift', $ot->total_gift ?? '') }}">
+                    <label for="toffersTypeal_gift" class="form-label">{{ __('adminlte::adminlte.toffersTypeal_gift') }}</label>
+                    <input type="number" name="toffersTypeal_gift" id="toffersTypeal_gift" class="form-control"
+                           value="{{ old('toffersTypeal_gift', $offersType->toffersTypeal_gift ?? '') }}">
                 </div>
             </div>
 
             <x-adminlte-button
-                :label="isset($ot) ? __('adminlte::adminlte.update_information') : __('adminlte::adminlte.save_information')"
+                :label="isset($offersType) ? __('adminlte::adminlte.update_information') : __('adminlte::adminlte.save_information')"
                 type="submit"
                 theme="success"
                 class="w-100"
@@ -192,30 +192,30 @@
 
   function toggleFields() {
     const isDiscount       = get('#is_discount');
-    const isTotalGift      = get('#is_total_gift');
+    const isToffersTypealGift      = get('#is_toffersTypeal_gift');
     const isProductGift    = get('#is_product_count_gift');
-    const isTotalDiscount  = get('#is_total_discount');
+    const isToffersTypealDiscount  = get('#is_toffersTypeal_discount');
 
     const discountBox      = get('#discount_fields');
     const giftBox          = get('#gift_fields');
-    const totalDiscountBox = get('#total_discount_field');
+    const toffersTypealDiscountBox = get('#toffersTypeal_discount_field');
 
     if (discountBox)      discountBox.style.display = 'none';
     if (giftBox)          giftBox.style.display = 'none';
-    if (totalDiscountBox) totalDiscountBox.style.display = 'none';
+    if (toffersTypealDiscountBox) toffersTypealDiscountBox.style.display = 'none';
 
     if (isDiscount && isDiscount.checked) {
       if (discountBox) discountBox.style.display = 'block';
       return;
     }
 
-    if ((isTotalGift && isTotalGift.checked) || (isProductGift && isProductGift.checked)) {
+    if ((isToffersTypealGift && isToffersTypealGift.checked) || (isProductGift && isProductGift.checked)) {
       if (giftBox) giftBox.style.display = 'block';
       return;
     }
 
-    if (isTotalDiscount && isTotalDiscount.checked) {
-      if (totalDiscountBox) totalDiscountBox.style.display = 'block';
+    if (isToffersTypealDiscount && isToffersTypealDiscount.checked) {
+      if (toffersTypealDiscountBox) toffersTypealDiscountBox.style.display = 'block';
       return;
     }
   }
@@ -223,9 +223,9 @@
   function toggleCheckboxes() {
     const modes = [
       get('#is_discount'),
-      get('#is_total_gift'),
+      get('#is_toffersTypeal_gift'),
       get('#is_product_count_gift'),
-      get('#is_total_discount'),
+      get('#is_toffersTypeal_discount'),
     ].filter(Boolean);
 
     modes.forEach(cb => cb.disabled = false);
@@ -264,17 +264,17 @@
     setField('description_ar', o.description_ar);
 
     setCheck('is_discount', o.is_discount);
-    setCheck('is_total_gift', o.is_total_gift);
-    setCheck('is_total_discount', o.is_total_discount);
+    setCheck('is_toffersTypeal_gift', o.is_toffersTypeal_gift);
+    setCheck('is_toffersTypeal_discount', o.is_toffersTypeal_discount);
     setCheck('is_product_count_gift', o.is_product_count_gift);
     setCheck('is_active', o.is_active);
 
     setField('discount_value_product', o.discount_value_product);
     setField('discount_value_delivery', o.discount_value_delivery);
-    setField('total_discount', o.total_discount);
+    setField('toffersTypeal_discount', o.toffersTypeal_discount);
 
     setField('products_count_to_get_gift_offer', o.products_count_to_get_gift_offer);
-    setField('total_gift', o.total_gift);
+    setField('toffersTypeal_gift', o.toffersTypeal_gift);
     setField('gift_category_id', o.gift_category_id);
     setField('gift_product_id', o.gift_product_id);
 
@@ -294,15 +294,15 @@
     setField('description_en', '');
     setField('description_ar', '');
     setCheck('is_discount', 0);
-    setCheck('is_total_gift', 0);
-    setCheck('is_total_discount', 0);
+    setCheck('is_toffersTypeal_gift', 0);
+    setCheck('is_toffersTypeal_discount', 0);
     setCheck('is_product_count_gift', 0);
     setCheck('is_active', 1);
     setField('discount_value_product', '');
     setField('discount_value_delivery', '');
-    setField('total_discount', '');
+    setField('toffersTypeal_discount', '');
     setField('products_count_to_get_gift_offer', '');
-    setField('total_gift', '');
+    setField('toffersTypeal_gift', '');
     setField('gift_category_id', '');
     setField('gift_product_id', '');
     toggleFields();
@@ -313,13 +313,13 @@
     toggleFields();
     toggleCheckboxes();
 
-    ['#is_discount','#is_total_gift','#is_product_count_gift','#is_total_discount']
+    ['#is_discount','#is_toffersTypeal_gift','#is_product_count_gift','#is_toffersTypeal_discount']
       .forEach(sel => {
         const el = get(sel);
         if (el) {
           el.addEventListener('change', function(){
             if (this.checked) {
-              ['#is_discount','#is_total_gift','#is_product_count_gift','#is_total_discount']
+              ['#is_discount','#is_toffersTypeal_gift','#is_product_count_gift','#is_toffersTypeal_discount']
                 .forEach(s2 => {
                   const el2 = get(s2);
                   if (el2 && el2 !== this) {
@@ -335,7 +335,7 @@
 
     const form = document.getElementById('offers-type-form');
     if (!form) {
-      console.warn('[offers_type] form not found');
+      console.warn('[offers_type] form noffersType found');
       return;
     }
 

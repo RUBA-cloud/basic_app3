@@ -155,13 +155,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('/search', 'search')
                     ->middleware('perm:company_branch_module,can_view_history')
                     ->name('search');
-
                 Route::post('/history/search', 'searchHistory')
                     ->middleware('perm:company_branch_module,can_view_history')
                     ->name('history.search');
 
                 // HISTORY PAGE (separate)
-                Route::get('/history', 'history')
+                Route::get('/history/{isHistory?}', 'history')
                     ->middleware('perm:company_branch_module,can_view_history')
                     ->name('history');
             });
@@ -247,7 +246,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{offers_type}/edit','edit')->middleware('perm:company_offers_type_module,can_edit')->name('edit');
                 Route::put('/{offers_type}', 'update')->middleware('perm:company_offers_type_module,can_edit')->name('update');
                 Route::delete('/{offers_type}','destroy')->middleware('perm:company_offers_type_module,can_delete')->name('destroy');
-
                 Route::get('/history/{isHistory?}', 'index')->middleware('perm:company_offers_type_module,can_view_history')->name('history');
                 Route::put('/reactive/{id}',        'reactivate')->middleware('perm:company_offers_type_module,can_edit')->name('reactivate');
                 Route::post('/search',              'search')->middleware('perm:company_offers_type_module,can_view_history')->name('search');
@@ -270,7 +268,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::put('/{offer}',    'update')->middleware('perm:company_offers_module,can_edit')->name('update');
                 Route::delete('/{offer}', 'destroy')->middleware('perm:company_offers_module,can_delete')->name('destroy');
 
-                Route::get('/history/{isHistory?}', 'index')->middleware('perm:company_offers_module,can_view_history')->name('history');
+                Route::get('/history/{isHistory?}', '')->middleware('perm:company_offers_module,can_view_history')->name('history');
                 Route::put('/reactive/{id}',        'reactivate')->middleware('perm:company_offers_module,can_edit')->name('reactivate');
                 Route::post('/search',              'search')->middleware('perm:company_offers_module,can_view_history')->name('search');
                 Route::post('/search_history',      'searchHistory')->middleware('perm:company_offers_module,can_view_history')->name('search_history');
@@ -291,7 +289,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{additional}/edit','edit')->middleware('perm:additional_module,can_edit')->name('edit');
                 Route::put('/{additional}',  'update')->middleware('perm:additional_module,can_edit')->name('update');
                 Route::delete('/{additional}','destroy')->middleware('perm:additional_module,can_delete')->name('destroy');
-
                 Route::get('/history/{isHistory?}', 'index')->middleware('perm:additional_module,can_view_history')->name('history');
                 Route::put('/reactive/{id}',        'reactivate')->middleware('perm:additional_module,can_edit')->name('reactivate');
                 Route::post('/search',              'search')->middleware('perm:additional_module,can_view_history')->name('search');
@@ -313,7 +310,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{product}/edit','edit')->middleware('perm:product_module,can_edit')->name('edit');
                 Route::put('/{product}',     'update')->middleware('perm:product_module,can_edit')->name('update');
                 Route::delete('/{product}',  'destroy')->middleware('perm:product_module,can_delete')->name('destroy');
-
                 Route::get('/history/{isHistory?}', 'index')->middleware('perm:product_module,can_view_history')->name('history');
                 Route::put('/reactive/{id}',        'reactivate')->middleware('perm:product_module,can_edit')->name('reactivate');
                 Route::post('/search',              'search')->middleware('perm:product_module,can_view_history')->name('search');
@@ -335,7 +331,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{employee}/edit','edit')->middleware('perm:employee_module,can_edit')->name('edit');
                 Route::put('/{employee}',   'update')->middleware('perm:employee_module,can_edit')->name('update');
                 Route::delete('/{employee}','destroy')->middleware('perm:employee_module,can_delete')->name('destroy');
-
                 Route::get('/history',      'history')->middleware('perm:employee_module,can_view_history')->name('history');
                 Route::put('/history/{history}/reactivate', 'reactivate')->middleware('perm:employee_module,can_edit')->name('reactivate');
             });
@@ -370,7 +365,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{region}/edit', 'edit')->middleware('perm:region_module,can_edit')->name('edit');
                 Route::put('/{region}',      'update')->middleware('perm:region_module,can_edit')->name('update');
                 Route::delete('/{region}',   'destroy')->middleware('perm:region_module,can_delete')->name('destroy');
-
                 Route::put('/reactive/{id}', 'reactivate')->middleware('perm:region_module,can_edit')->name('reactivate');
                 Route::get('/history/{isHistory?}', 'index')->middleware('perm:region_module,can_view_history')->name('history');
                 Route::post('/search',          'search')->middleware('perm:region_module,can_view_history')->name('search');
@@ -431,7 +425,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{order_status}/edit','edit')->middleware('perm:order_status_module,can_edit')->name('edit');
                 Route::put('/{order_status}', 'update')->middleware('perm:order_status_module,can_edit')->name('update');
                 Route::delete('/{order_status}','destroy')->middleware('perm:order_status_module,can_delete')->name('destroy');
-                Route::get('/history',        'history')->middleware('perm:order_status_module,can_view_history')->name('history');
+                Route::get('/history/{isHistory?}',        'history')->middleware('perm:order_status_module,can_view_history')->name('history');
                 Route::post('/search',        'search')->middleware('perm:order_status_module,can_view_history')->name('search');
                 Route::post('/restore',       'restore')->middleware('perm:order_status_module,can_edit')->name('restore');
             });
@@ -451,7 +445,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::get('/{module}/edit','edit')->name('edit')->middleware('perm:company_dashboard_module,can_edit');
                 Route::put('/{module}',     'update')->name('update')->middleware('perm:company_dashboard_module,can_edit');
                 Route::delete('/{module}',  'destroy')->name('destroy')->middleware('perm:company_dashboard_module,can_delete');
-
                 Route::post('/search',      'index')->name('search')->middleware('perm:company_dashboard_module,can_view_history');
             });
 

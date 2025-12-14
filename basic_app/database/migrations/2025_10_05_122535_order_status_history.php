@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order-status_history', function (Blueprint $table) {
+        Schema::create('order_status_history', function (Blueprint $table) {
             //
 
             $table->string('name_en');

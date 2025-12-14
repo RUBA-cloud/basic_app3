@@ -3,7 +3,7 @@
 </div>
 @extends('adminlte::page')
 
-@section('title', ' ' . __('adminlte::adminlte.orderStatus'))
+@section('title', ' ' . __('adminlte::adminlte.order_status'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
@@ -13,7 +13,7 @@
         <div class="card-table" style="padding: 24px">
             {{-- Action Buttons --}}
             <x-action_buttons
-            label="{{__('adminlte::adminlte.orderStatus')}}"
+            label="{{__('adminlte::adminlte.order_status')}}"
                 addRoute="order_status.create"
                 historyRoute="order_status.history"
                 :showAdd="false"

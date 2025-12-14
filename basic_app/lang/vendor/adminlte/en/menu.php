@@ -40,6 +40,7 @@ return [
     'company_delivery'  => 'Delivery Companies',
         'payment'=>'payment',
 'regions'=>'Regions',
+    'order_status_module'=>' Order Status Module',
 
 
 ];

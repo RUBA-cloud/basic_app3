@@ -1,55 +1,95 @@
 <?php
-// app/Http/Controllers/OrderController.php
+
 namespace App\Http\Controllers;
 
-use App\Models\{Order, OrderItem, OrderHistory, User};
+use App\Models\Order;
+use App\Models\OrderHistory;
+use App\Models\OrderStatus; // ✅ مهم
+use App\Models\User;
 use App\Notifications\OrderStatusChanged;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-  use App\Services\Notifier;
+
 class OrderController extends Controller
 {
+    private function getOrderStatuses()
+    {
+        // ✅ صح
+        return OrderStatus::where('is_active', 1)
+            ->orderBy('id')
+            ->get();
+    }
+
     public function index(Request $r)
     {
+        $orderStatus = $this->getOrderStatuses();
+
         $q = Order::query()
-            ->with(['user','employee','offer'])
-            ->when($r->filled('status'), fn($qq) => $qq->where('status', $r->integer('status')))
+            ->with(['user', 'employee', 'offer'])
+            ->when($r->filled('status'), function ($qq) use ($r) {
+                // إذا status عندك integer
+                $qq->where('status', (int) $r->input('status'));
+            })
             ->latest();
 
         return view('orders.index', [
-            'orders' => $q->paginate(15)->withQueryString(),
+            'orders'      => $q->paginate(15)->withQueryString(),
+            'orderStatus' => $orderStatus, // ✅ تمرير صحيح
         ]);
     }
 
     public function show(Order $order)
     {
-        $order->load(['user','employee','items.product','offer']);
-        return view('orders.show', compact('order'));
+        $orderStatus = $this->getOrderStatuses();
+
+        $order->load(['user', 'employee', 'items.product', 'offer']);
+
+        return view('orders.show', [
+            'order'       => $order,
+            'orderStatus' => $orderStatus, // ✅
+        ]);
     }
 
     public function edit(Order $order)
     {
+        $orderStatus = $this->getOrderStatuses();
+
         $order->load(['items.product']);
-        $employees = User::get(['id','name']);
-        return view('orders.edit', compact('order','employees'));
+        $employees = User::select('id', 'name')->get();
+        return view('orders.edit', [
+            'order'       => $order,
+            'employees'   => $employees,
+            'orderStatus' => $orderStatus, // ✅
+        ]);
     }
 
     public function update(Request $r, Order $order)
     {
-        $employee = null;
+        // ✅ جلب الحالات لو بتحتاجيها بالـ view عند error
+        $orderStatus = $this->getOrderStatuses();
 
-$user=$order->user_id;
-
-        // Validate main fields; status transitions handled below
         $data = $r->validate([
-            'notes'        => ['nullable','string','max:2000'],
-            'status'       => ['required', Rule::in([Order::STATUS_PENDING, Order::STATUS_ACCEPTED, Order::STATUS_REJECTED, Order::STATUS_COMPLETED])],
-            'employee_id'  => ['nullable','exists:users,id'],
+            'notes'       => ['nullable', 'string', 'max:2000'],
+            'status'      => ['required', 'integer'], // لو عندك statuses ديناميكية من جدول
+            'employee_id' => ['nullable', 'exists:users,id'],
         ]);
 
-        // If accepting, require permissioned employee
-        if ((int)$data['status'] === Order::STATUS_ACCEPTED) {
+        // ✅ إذا status عندك من جدول order_status بدل constants
+        $validStatusIds = $orderStatus->pluck('id')->all();
+        if (!in_array((int)$data['status'], $validStatusIds, true)) {
+            return back()
+                ->withErrors(['status' => 'Invalid status'])
+                ->withInput();
+        }
+
+        // ✅ مثال: لو عندك قبول مرتبط بحالة معينة (عدّلي حسب نظامك)
+        // لو لسه تستخدم constants عندك، رجّعي Rule::in([...]) بدل validation أعلاه
+        // وخلّي check الموظف كما هو.
+
+        // لو عندك شرط الموظف عندما تكون الحالة "Accepted"
+        // عدّلي هذا لو عندك accepted_status_id في جدول statuses
+        $acceptedStatusId = $orderStatus->firstWhere('name_en', 'Accepted')?->id; // أو id ثابت
+        if ($acceptedStatusId && (int)$data['status'] === (int)$acceptedStatusId) {
             if (empty($data['employee_id'])) {
                 return back()->withErrors(['employee_id' => 'Employee is required when accepting an order.'])->withInput();
             }
@@ -57,63 +97,39 @@ $user=$order->user_id;
             if (!$employee) {
                 return back()->withErrors(['employee_id' => 'Selected user is not permitted to handle orders.'])->withInput();
             }
-            // Optional: also require the current user to be allowed to accept
-           // Gate::authorize('orders.accept');
         }
 
-        // Save (Observer will snapshot old state automatically)
         $order->fill([
-            'notes'       => $data['notes'] ?? $order->notes,
-            'status'      => $data['status'],
-            'employee_id' => $data['status'] == Order::STATUS_ACCEPTED ? $data['employee_id'] : $order->employee_id,
+            'notes'  => $data['notes'] ?? $order->notes,
+            'status' => (int) $data['status'],
+            'employee_id' => $data['employee_id'] ?? $order->employee_id,
         ])->save();
 
-        // Recalc total if needed (example)
-        $order->load('items');
-       // $order->total_price = $order->items->sum('total_price');
-        $order->save();
-
-        // Send FCM to customer
+        // Send notify to customer
         $title = "Order #{$order->id}";
-        $body  = match ($order->status) {
-            Order::STATUS_ACCEPTED  => 'Your order was accepted ✅',
-            Order::STATUS_REJECTED  => 'Sorry, your order was rejected ❌',
-            Order::STATUS_COMPLETED => 'Your order is completed 🎉',
-            default                 => 'Your order status changed',
-        };
+        $body  = 'Your order status changed';
 
+        $order->load('user');
+        if ($order->user) {
+            $order->user->notify(new OrderStatusChanged($title, $body));
+        }
 
-// send to a specific user
-Notifier::toUser($employee, "Order Updated", "Order #55 is shipped", [
-    'icon' => 'fas fa-box',
-    'link' => route('orders.show', 55),
-    'type' => 'order',
-]);
-Notifier::toUser($user, "Order Updated", "Order #55 is shipped", [
-    'icon' => 'fas fa-box',
-    'link' => route('orders.show', 55),
-    'type' => 'order',
-]);
-
-
-
-
-        $order->user->notify(new OrderStatusChanged($title, $body));
-
-        return redirect()->route('orders.show', $order)->with('success', 'Order updated & customer notified.');
+        return redirect()
+            ->route('orders.show', $order)
+            ->with('success', 'Order updated & customer notified.');
     }
 
     public function destroy(Order $order)
     {
-        // Observer will snapshot previous state
         $order->delete();
         return redirect()->route('orders.index')->with('success', 'Order deleted.');
     }
 
     public function history()
     {
-        $history = OrderHistory::with('items.product','actor','offer')
-            ->latest()->paginate(20);
+        $history = OrderHistory::with('items.product', 'actor', 'offer')
+            ->latest()
+            ->paginate(20);
 
         return view('orders.history', compact('history'));
     }

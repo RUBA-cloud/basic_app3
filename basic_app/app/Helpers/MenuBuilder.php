@@ -75,6 +75,12 @@ class MenuBuilder
                 'url'        => '/employees',
                 'icon'       => 'fas fa-fw fa-users',
             ],
+             [
+                'feature'    => 'order_status_module',
+                'text'       => 'order_status_module',
+                'url'        => '/order_status',
+                'icon'       => 'fas fa-fw fa-users',
+            ],
             [
                 'feature'    => 'order_module',
                 'text'       => 'orders',

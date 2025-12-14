@@ -6,7 +6,7 @@
     <div class="card" style="padding: 24px; width: 100%;">
 
         <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
-            {{ __('adminlte::adminlte.update') }} {{ __('adminlte::adminlte.order_status') }}
+            {{ __('adminlte::adminlte.create') }} {{ __('adminlte::adminlte.order_status') }}
         </h2>
 
         {{-- Errors --}}
@@ -20,9 +20,9 @@
             </div>
         @endif
  @include('order_status.form', [
-            'action'     => route('order_status.store'),
-            'method'     => 'POST',
-            'order_status' => null,
+            'action'     => route('order_status.update',$orderStatus->id),
+            'method'     => 'PUT',
+            'orderStatus' => $orderStatus,
         ])
     </div>
 </div>
