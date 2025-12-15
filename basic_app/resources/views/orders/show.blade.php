@@ -9,6 +9,8 @@
     --soft-border: rgba(0,0,0,.07);
     --soft-shadow: 0 18px 40px rgba(0,0,0,.10);
     --muted: rgba(0,0,0,.55);
+    --danger-soft: rgba(220,53,69,.08);
+    --danger-border: rgba(220,53,69,.20);
   }
 
   .order-wrap{max-width:1100px;margin:0 auto}
@@ -103,9 +105,36 @@
   .btn-warning.btn-round{box-shadow:0 10px 22px rgba(255,193,7,.18)}
   .btn-secondary.btn-round{box-shadow:0 10px 22px rgba(108,117,125,.14)}
 
-  .modal-content{border-radius:18px;border:1px solid var(--soft-border)}
-  .modal-header{border-bottom:1px solid var(--soft-border)}
-  .modal-footer{border-top:1px solid var(--soft-border)}
+  /* ===== Custom Delete Modal ===== */
+  .modal-content{border-radius:18px;border:1px solid var(--soft-border); overflow:hidden}
+  .modal-header{border-bottom:1px solid var(--soft-border); background:linear-gradient(135deg,var(--danger-soft),rgba(0,0,0,0))}
+  .modal-footer{border-top:1px solid var(--soft-border); background:rgba(0,0,0,.02)}
+  .delete-hero{
+    border:1px solid var(--danger-border);
+    background:linear-gradient(135deg,var(--danger-soft),rgba(255,255,255,.65));
+    border-radius:16px;
+    padding:12px 12px;
+  }
+  .delete-hero .title{font-weight:900;font-size:1.05rem;margin:0;display:flex;align-items:center;gap:10px}
+  .delete-hero .sub{margin:6px 0 0;color:var(--muted);font-weight:700;font-size:.9rem}
+  .danger-chip{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 10px;border-radius:999px;
+    background:rgba(220,53,69,.08);
+    border:1px solid rgba(220,53,69,.22);
+    color:rgba(150,20,35,.95);
+    font-weight:900;
+  }
+  .soft-field{
+    border-radius:14px!important;
+    border:1px solid rgba(0,0,0,.10)!important;
+    box-shadow:none!important;
+    padding:.7rem .9rem;
+  }
+  .soft-field:focus{
+    border-color:rgba(0,0,0,.22)!important;
+    box-shadow:0 0 0 .18rem rgba(0,0,0,.06)!important
+  }
 </style>
 @endsection
 
@@ -349,6 +378,7 @@
               <th style="width:140px;">{{ __('adminlte::adminlte.actions') ?: 'Actions' }}</th>
             </tr>
           </thead>
+
           <tbody>
           @forelse($items as $it)
             @php
@@ -358,6 +388,7 @@
               $sku      = $product?->sku ?? $it->product_id;
               $lineTotal = (float)$it->price * (int)$it->quantity;
               $afterDisc = $effectiveLineTotal($it);
+              $displayName = $nameEn ?: ($nameAr ?: ('#'.$it->id));
             @endphp
 
             <tr>
@@ -407,39 +438,17 @@
               @endif
 
               <td>
-                <button type="button" class="btn btn-sm btn-danger btn-round"
-                        data-toggle="modal" data-target="#deleteItemModal-{{ $it->id }}">
+                {{-- ✅ Custom delete dialog trigger --}}
+                <button type="button"
+                        class="btn btn-sm btn-danger btn-round js-delete-item"
+                        data-toggle="modal"
+                        data-target="#deleteItemModal"
+                        data-action="{{ route('orders.items.destroy', [$order, $it]) }}"
+                        data-name="{{ $displayName }}">
                   <i class="fas fa-trash mr-1"></i> {{ __('adminlte::adminlte.delete') }}
                 </button>
               </td>
             </tr>
-
-            {{-- Modal per item to require a note --}}
-            <div class="modal fade" id="deleteItemModal-{{ $it->id }}" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog">
-                <form method="POST" action="{{ route('orders.items.destroy', [$order, $it]) }}" class="modal-content">
-                  @csrf
-                  @method('DELETE')
-                  <div class="modal-header">
-                    <h5 class="modal-title" style="font-weight:900;">{{ __('adminlte::adminlte.delete') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <div class="modal-body">
-                    <p class="text-muted" style="font-weight:700;">
-                      {{ __('adminlte::adminlte.please_add_reason_cancel') }}
-                    </p>
-                    <textarea name="note" class="form-control" rows="3" required
-                              placeholder="{{ __('adminlte::adminlte.please_add_reason_cancel') }}"></textarea>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-round" data-dismiss="modal">{{ __('adminlte::adminlte.cancel') }}</button>
-                    <button type="submit" class="btn btn-danger btn-round">{{ __('adminlte::adminlte.delete') }}</button>
-                  </div>
-                </form>
-              </div>
-            </div>
 
           @empty
             <tr>
@@ -478,4 +487,99 @@
   </div>
 
 </div>
+
+{{-- ✅ ONE Custom Delete Modal --}}
+<div class="modal fade" id="deleteItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST" id="deleteItemForm" action="#" class="modal-content">
+      @csrf
+      @method('DELETE')
+
+      <div class="modal-header">
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <div>
+            <div class="danger-chip">
+              <i class="fas fa-exclamation-triangle"></i>
+              {{ __('adminlte::adminlte.delete') }}
+            </div>
+          </div>
+          <button type="button" class="close" data-disiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="delete-hero">
+          <p class="title mb-0">
+            <i class="fas fa-trash"></i>
+            {{ __('adminlte::adminlte.confirm_to_delete_product') ?? 'Confirm Delete' }}
+          </p>
+          <p class="sub">
+            {{ __('adminlte::adminlte.confirm_to_delete_product') ?? 'You are about to delete:' }}
+            <strong id="deleteItemName"></strong>
+          </p>
+        </div>
+
+        <div class="mt-3">
+          <label style="font-weight:900;">
+            {{ __('adminlte::adminlte.please_add_reason_cancel') ?? 'Reason' }}
+          </label>
+          <textarea name="note" id="deleteNote" class="form-control soft-field" rows="3" required
+                    placeholder="{{ __('adminlte::adminlte.please_add_reason_cancel') }}"></textarea>
+          <small class="text-muted d-block mt-2" style="font-weight:700;">
+            {{ __('adminlte::adminlte.required') ?? 'Required' }}
+          </small>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-round" data-dismiss="modal">
+          {{ __('adminlte::adminlte.cancel') }}
+        </button>
+        <button type="submit" class="btn btn-danger btn-round" id="deleteSubmitBtn">
+          <i class="fas fa-trash mr-1"></i> {{ __('adminlte::adminlte.delete') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 @endsection
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('deleteItemForm');
+  const nameEl = document.getElementById('deleteItemName');
+  const noteEl = document.getElementById('deleteNote');
+  const submitBtn = document.getElementById('deleteSubmitBtn');
+
+  // When modal opens (Bootstrap 4)
+  $('#deleteItemModal').on('show.bs.modal', function (event) {
+    const btn = event.relatedTarget;
+    const action = btn.getAttribute('data-action');
+    const name = btn.getAttribute('data-name') || '';
+
+    form.setAttribute('action', action);
+    nameEl.textContent = name;
+
+    if (noteEl) noteEl.value = '';
+    if (submitBtn) submitBtn.disabled = false;
+  });
+
+  // Focus textarea after modal shown
+  $('#deleteItemModal').on('shown.bs.modal', function () {
+    if (noteEl) noteEl.focus();
+  });
+
+  // Small UX: disable button on submit to prevent double click
+  form.addEventListener('submit', function () {
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> {{ __("adminlte::adminlte.please_wait") ?? "Please wait" }}';
+    }
+  });
+});
+</script>
+@endpush

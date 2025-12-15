@@ -135,6 +135,8 @@ return [
     'delivered'=>'Delivered',
     'summary'=>'Summary',
     'totals'=>'Totals',
+    'confirm_to_delete_product'=>'Confirm to delete Product?',
+    'required'=>'required',
     'quick_overview'=>'Quick overview',
     'edit_order' => 'Edit Order',
   'edit' => 'Edit',
