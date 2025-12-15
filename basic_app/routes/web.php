@@ -420,7 +420,7 @@ Route::middleware([SetLocale::class])->group(function () {
             ->group(function () {
                 Route::get('/',               'index')->name('index');
                 Route::get('/create',         'create')->middleware('perm:order_status_module,can_add')->name('create');
-                Route::post('/',              'store')->middleware('perm:order_status_module,can_add')->name('store');
+                Route::post('/', 'store')->middleware('perm:order_status_module,can_add')->name('store');
                 Route::get('/{order_status}', 'show')->name('show');
                 Route::get('/{order_status}/edit','edit')->middleware('perm:order_status_module,can_edit')->name('edit');
                 Route::put('/{order_status}', 'update')->middleware('perm:order_status_module,can_edit')->name('update');

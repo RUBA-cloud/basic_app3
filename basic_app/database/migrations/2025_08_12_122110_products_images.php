@@ -17,7 +17,8 @@ return new class extends Migration
     $table->string('image_path'); // or just 'image' if you prefer
     $table->timestamps();
     $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-});}
+});
+}
 
     /**
      * Reverse the migrations.

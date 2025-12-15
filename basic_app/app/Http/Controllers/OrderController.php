@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderHistory;
 use App\Models\OrderStatus; // ✅ مهم
 use App\Models\User;
+use App\Models\Region;
 use App\Notifications\OrderStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -52,15 +53,36 @@ class OrderController extends Controller
 
     public function edit(Order $order)
     {
-        $orderStatus = $this->getOrderStatuses();
+       $orderStatus = $this->getOrderStatuses();
 
-        $order->load(['items.product']);
-        $employees = User::select('id', 'name')->get();
-        return view('orders.edit', [
-            'order'       => $order,
-            'employees'   => $employees,
-            'orderStatus' => $orderStatus, // ✅
-        ]);
+// return unique country+city pairs so each combination appears only once
+$regions = Region::where('is_active', true)
+    ->select('country_en', 'city_en')
+    ->distinct()
+    ->orderBy('country_en')
+    ->orderBy('city_en')
+    ->get();
+
+// If you prefer an array grouped by country with unique cities:
+// $regions = Region::where('is_active', true)
+//     ->select('country', 'city')
+//     ->distinct()
+//     ->orderBy('country')
+//     ->orderBy('city')
+//     ->get()
+//     ->groupBy('country')
+//     ->map(fn($items) => $items->pluck('city')->values());
+
+$order->load(['items.product']);
+
+$employees = User::select('id', 'name')->get();
+
+return view('orders.edit', [
+    'order'       => $order,
+    'employees'   => $employees,
+    'orderStatus' => $orderStatus,
+    'regions'     => $regions,
+]);
     }
 
     public function update(Request $r, Order $order)
@@ -133,4 +155,8 @@ class OrderController extends Controller
 
         return view('orders.history', compact('history'));
     }
+
+    function  _setText(){}
+
 }
+

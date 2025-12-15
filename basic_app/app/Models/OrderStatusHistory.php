@@ -17,8 +17,10 @@ class OrderStatusHistory extends Model
     protected $fillable = [
         'name_en',   // Foreign key to products table
         'name_ar',
+        'status',
         'is_active',
-                'user_id'
+                'user_id',
+
          // Foreign key to additionals table
     ];
   public function user()

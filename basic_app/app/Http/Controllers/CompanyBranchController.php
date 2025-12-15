@@ -167,7 +167,7 @@ public function history(){
         $historyData = $branchHistory->toArray();
         unset($historyData['id']);
         $historyData['is_active'] =true;
-                    $historyData["company_id"] =$branchHistory->company_id;
+    $historyData["company_id"] =$branchHistory->company_id;
 
         // Create back into active branches
         CompanyBranch::create($historyData);

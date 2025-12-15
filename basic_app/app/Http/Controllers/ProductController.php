@@ -242,53 +242,104 @@ broadcast(new \App\Events\ProductEventUpdate($product));
      * @param Product $product
      * @param bool $isActive
      */
-    private function storeProductInHistory(Product $product, bool $isActive = false)
-    {
-        $history = new ProductHistory([
-            'name_en' => $product->name_en,
-            'name_ar' => $product->name_ar,
-            'description_en' => $product->description_en,
-            'description_ar' => $product->description_ar,
-            'price' => $product->price,
-            'is_active' => $isActive,
-            'user_id' => auth()->id(),
-            'category_id' => $product->category_id,
-            'type_id' => $product->type_id,
+
+private function storeProductInHistory(Product $product, bool $isActive = false): ProductHistory
+{
+    return DB::transaction(function () use ($product, $isActive) {
+
+        // ✅ تأكدي العلاقات محمّلة قبل النسخ
+        $product->loadMissing(['sizes:id', 'additionals:id', 'images']);
+
+        // ✅ create history row
+        $history = ProductHistory::create([
+            'name_en'             => $product->name_en,
+            'name_ar'             => $product->name_ar,
+            'description_en'      => $product->description_en,
+            'description_ar'      => $product->description_ar,
+            'price'               => $product->price,
+            'is_active'           => $isActive,
+            'user_id'             => auth()->id(),
+            'category_id'         => $product->category_id,
+            'type_id'             => $product->type_id,
             'original_product_id' => $product->id,
-            'colors' => ($product->colors ?? [])
+            'colors'              => $product->colors ?? [], // لازم تكون cast json في ProductHistory
         ]);
-        $history->save();
 
-        // Copy relations
-        if ($product->sizes) {
-         $history->sizes()->sync($product->sizes->pluck('id')->toArray());
+        // =========================
+        // ✅ 1) Copy sizes -> product_size_history
+        // =========================
+        $sizeIds = $product->sizes?->pluck('id')->map(fn ($v) => (int)$v)->all() ?? [];
+
+        if (!empty($sizeIds)) {
+            // لو العلاقة sizes() مضبوطة في ProductHistory:
+            $history->sizes()->sync($sizeIds);
+
+            // ✅ إذا حابة بدون علاقة (حل بديل مضمون):
+            // DB::table('product_size_history')->insert(
+            //     collect($sizeIds)->map(fn($id) => [
+            //         'product_history_id' => $history->id,
+            //         'size_id'            => $id,
+            //         'created_at'         => now(),
+            //         'updated_at'         => now(),
+            //     ])->all()
+            // );
         }
 
-        if ($product->additionals) {
-$historyAdditionals = [];
+        // =========================
+        // ✅ 2) Copy additionals (pivot) -> product_additional_history (إذا موجود)
+        // =========================
+        $additionalIds = $product->additionals?->pluck('id')->map(fn ($v) => (int)$v)->all() ?? [];
 
-foreach ($product->additionals as $additional) {
-    $historyAdditionals[] = [
-        'additional_id' => $additional->id,
-        'product_id' => $history->original_product_id,
-        // add other fields if your history table needs them
-        'created_at' => now(),
-        'updated_at' => now(),
-    ];
-}
+        if (!empty($additionalIds)) {
+            // لو عندك علاقة additionals() في ProductHistory كـ belongsToMany:
+            $history->additionals()->sync($additionalIds);
 
-// insert them all at once if using Eloquent:
-$history->additionals()->createMany($historyAdditionals);
+            // ✅ إذا جدولك اسمه مختلف أو ما عندك علاقة:
+            // DB::table('product_additional_history')->insert(
+            //     collect($additionalIds)->map(fn($id) => [
+            //         'product_history_id' => $history->id,
+            //         'additional_id'      => $id,
+            //         'created_at'         => now(),
+            //         'updated_at'         => now(),
+            //     ])->all()
+            // );
         }
-if ($product->images && $product->images->count()) {
-    foreach ($product->images as $image) {
-        $history->images()->create([
-            'image_path' => $image->image_path,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
+
+        // =========================
+        // ✅ 3) Copy images -> product_history_images
+        // =========================
+        if ($product->images && $product->images->count()) {
+
+            $rows = [];
+            foreach ($product->images as $img) {
+
+                // غيّري هذا السطر حسب اسم العمود عندك:
+                $path = $img->image_path ?? $img->path ?? $img->url ?? null;
+
+                if (!$path) continue;
+
+                $rows[] = [
+                    'product_id' => $history->id         ,
+                    'image_path'         => $path,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ];
+            }
+
+            if (!empty($rows)) {
+                // إذا عندك علاقة images() في ProductHistory كـ hasMany:
+                $history->images()->createMany(
+                    collect($rows)->map(fn($r) => ['image_path' => $r['image_path']])->all()
+                );
+
+                // ✅ أو الإدخال المباشر (بديل مضمون):
+                // DB::table('product_history_images')->insert($rows);
+            }
+        }
+
+        return $history;
+    });
 }
-    }
+
     }
 

@@ -24,6 +24,7 @@ class OrderStatusRequest extends FormRequest
         return [
             'name_en'=>'required|string',
             'name_ar'=>'required|string',
+            'status'=>'required',
             'is_active'=>'required|boolean'
             //
         ];

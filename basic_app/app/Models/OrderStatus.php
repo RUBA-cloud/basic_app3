@@ -18,7 +18,7 @@ class OrderStatus extends Model
         'name_en',   // Foreign key to products table
         'name_ar',
         'is_active',
-        'user_id',
+        'user_id',  'status'
 
          // Foreign key to additionals table
     ];

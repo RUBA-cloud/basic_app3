@@ -82,7 +82,7 @@
 
     {{-- Expected Day Count (number) --}}
     <div class="form-group">
-        <label for="excepted_day_count">{{ __('adminlte::adminlte.excepted_delivery_days') }}</label>
+        <label for="excepted_day_count">{{ __('adminlte::adminlte.excepted_delivery_day') }}</label>
         <input
             id="excepted_day_count"
             type="number"

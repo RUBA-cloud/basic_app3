@@ -62,20 +62,29 @@ class OrderStatusController extends Controller
     }
 
     /** Store */
-    public function store(OrderStatusRequest $request)
-    {
-        $data = $request->validated();
-        $data['user_id']   = $data['user_id']   ?? Auth::id();
-        $data['is_active'] = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : true;
 
-        DB::transaction(function () use ($data) {
-            $status = OrderStatus::create($data);
-            $this->writeHistory($status, 'created', $status->toArray());
-        });
-
-        return redirect()->route('order_status.index')
-            ->with('success', __('Order status created successfully.'));
+    public function storeaa(OrderStatusRequest $request){
+        dd($request->validated());
     }
+public function store(OrderStatusRequest $request)
+{
+
+    $data = $request->validated();
+
+    // user who created the status
+    $data['user_id'] = $data['user_id'] ?? Auth::id();
+
+    // handle checkbox is_active (HTML checkbox may not be sent)
+    $data['is_active'] = isset($data['is_active'])
+        ? (bool) $data['is_active']
+        : true;
+
+    OrderStatus::create($data);
+
+    return redirect()
+        ->route('order_status.index')
+        ->with('success', __('Order status created successfully.'));
+}
 
     /** Show */
     public function show(OrderStatus $orderStatus)
@@ -109,8 +118,8 @@ class OrderStatusController extends Controller
     public function destroy(OrderStatus $orderStatus)
     {
         DB::transaction(function () use ($orderStatus) {
+            $orderStatus['is_active'] =false;
             $this->writeHistory($orderStatus, 'deleted', $orderStatus->toArray());
-            $orderStatus->update(['is_active' => false]);
         });
 
         return redirect()->route('order_status.index')

@@ -42,7 +42,7 @@ class ProductHistory extends Model
     }
     public function images()
     {
-        return $this->hasMany(ProductImage::class, 'product_id');
+        return $this->hasMany(ProductImageHistory::class, 'product_id');
     }
 
     public function sizes()
