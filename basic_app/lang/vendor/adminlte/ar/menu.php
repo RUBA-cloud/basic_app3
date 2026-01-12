@@ -15,10 +15,7 @@ return [
     'change_password' => 'تغيير كلمة المرور',
     'multilevel' => 'متعدد المستويات',
     'pages' => 'Pages',
-    'account_settings' => 'ACCOUNT SETTINGS',
-    'profile' => 'Profile',
-    'change_password' => 'Change Password',
-    'multilevel' => 'Multi Level',
+
     'level_one' => 'Level 1',
     'level_two' => 'Level 2',
     'level_three' => 'Level 3',
@@ -43,6 +40,9 @@ return [
        'order_status'=>'خالات الطلب',
        'company_delivery'=>'شركات التوصيل',
     'order_status_module'=>' خالات الطلب',
-
+'transpartion'=>'النقل',
+    'trasportation_way'=>'طريقة النقل',
+    'countries'=>'الدول',
+    'cities'=>'المدن',
 
 ];

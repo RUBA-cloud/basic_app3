@@ -30,7 +30,14 @@ class Module extends Model
         'region_module',
         'company_delivery_module',
         'payment_module',
-        'additional_module'
+        'additional_module',
+        'notifications_module',
+
+        'countries_module',
+        'cities_module',
+        'transportation_type_module',
+        'transportation_way_module',
+
     ];
 
     protected $fillable = [
@@ -53,6 +60,11 @@ class Module extends Model
         'employee_module'            => 'boolean',
         'order_module'               => 'boolean',
       'additional_module'            => 'boolean',
+      'notifications_module'         => 'boolean',
+        'countries_module'           => 'boolean',
+        'cities_module'              => 'boolean',
+        'transportation_type_module' => 'boolean',
+        'transportation_way_module'  => 'boolean',
 
 
     ];
@@ -102,6 +114,16 @@ class Module extends Model
             'product_module'             => __('adminlte::adminlte.module_product'),
             'employee_module'            => __('adminlte::adminlte.module_employee'),
             'order_module'               => __('adminlte::adminlte.module_order'),
+            'order_status_module'        => __('adminlte::adminlte.module_order_status'),
+            'region_module'              => __('adminlte::adminlte.module_region'),
+            'company_delivery_module'    => __('adminlte::adminlte.module_delivery'),
+            'payment_module'             => __('adminlte::adminlte.module_payment'),
+            'additional_module'          => __('adminlte::adminlte.module_additional'),
+            'notifications_module'       => __('adminlte::adminlte.module_notifications'),
+            'countries_module'           => __('adminlte::adminlte.module_countries'),
+            'cities_module'              => __('adminlte::adminlte.module_cities'),
+            'transportation_type_module' => __('adminlte::adminlte.module_transportation_type'),
+            'transportation_way_module'  => __('adminlte::adminlte.module_transportation_way'),
         ];
     }
 

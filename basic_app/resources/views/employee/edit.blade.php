@@ -18,7 +18,7 @@
     <div class="card-body">
 
         @include('employee.form', [
-            'action'      => route('employees.update', $employee),   {{-- or $employee->id --}}
+            'action'      => route('employees.update', $employee),
             'method'      => 'PUT',
             'emp'    => $employee,
             'permissions' => $permissions,

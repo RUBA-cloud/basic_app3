@@ -140,6 +140,41 @@ class MenuBuilder
                 'icon'       => 'fas fa-fw fa-cogs',
                 'icon_color' => $iconColor,
             ];
+
+            // Add the 'notifications_module' and 'countries_module' items
+            $menu[] = [
+                'text'       => 'notifications_module',
+                'url'        => '/notifications_module',
+                'icon'       => 'fas fa-fw fa-bell',
+                'icon_color' => $iconColor,
+            ];
+            $menu[] = [
+                'text'       => 'countries',
+                'url'        => '/countries',
+                'icon'       => 'fas fa-fw fa-globe',
+                'icon_color' => $iconColor,
+            ];
+
+            $menu[] = [
+                'text'       => 'cities',
+                'url'        => '/cities',
+                'icon'       => 'fas fa-fw fa-city',
+                'icon_color' => $iconColor,
+            ];
+            $menu[] = [
+                'text'       => 'transpartion',
+                'url'        => '/transportation_type_module',
+                'icon'       => 'fas fa-fw fa-truck-moving',
+                'icon_color' => $iconColor,
+            ];
+            $menu[] = [
+                'text'       => 'trasportation_way',
+                'url'        => '/transportation_way_module',
+                'icon'       => 'fas fa-fw fa-route',
+                'icon_color' => $iconColor,
+            ];
+
+
         }
 
         // Final pass: if any 'can' keys exist, strip false items; then drop 'can' keys

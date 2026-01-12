@@ -41,6 +41,11 @@ return [
         'payment'=>'payment',
 'regions'=>'Regions',
     'order_status_module'=>' Order Status Module',
+    'countries'=>'Countries',
+    'cities'=>'Cities',
+    'transpartion'=>'Transpartion',
+    'trasportation_way'=>'Trasportation Way',
+
 
 
 ];

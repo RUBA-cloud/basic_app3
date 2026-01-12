@@ -182,7 +182,7 @@
                                               method="POST"
                                               class="d-inline"
                                               onsubmit="return confirm(@json(__('adminlte::adminlte.do_you_want_to_reactive') ?: 'Reactivate?'))">
-                                            @csrf @method('PUT')
+                                            @csrf @method('POST')
                                             <button type="submit" class="btn btn-warning btn-sm lw-action-btn" style="background:green;color:white">
                                                 <i class="fas fa-undo"></i>
                                                 {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}

@@ -16,7 +16,7 @@ use App\Http\Controllers\{
     OfferController, OfferTypeController, ModulesController, TypeController,
     PermissionController, OrderController, RegionController, PaymentController,
     OrderStatusController, CompanyDeliveryController, NotificationController,
-    DeviceTokenController, ProfileController, ChatController
+    DeviceTokenController, ProfileController, ChatController, CountryController
 };
 
 /*
@@ -408,6 +408,25 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('/search',            'search')->middleware('perm:company_delivery_module,can_view_history')->name('search');
                 Route::post('/restore',           'restore')->middleware('perm:company_delivery_module,can_edit')->name('reactivate');
                 Route::get('/history/{isHistory?}', 'history')->middleware('perm:company_info_module,can_view_history')->name('history');
+            });
+
+Route::controller(CountryController::class)
+            ->prefix('countries')
+            ->name('countries.')
+            ->middleware('module:countries_module')
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create','create')->middleware('perm:countries_module,can_add')->name('create');
+                Route::put('/{country}/update', 'update')->middleware('perm:countries_module,can_edit')->name('update');
+
+                Route::post('/', 'store')->middleware('perm:countries_module,can_add')->name('store');
+                Route::get('/{country}', 'show')->name('show');
+
+                Route::get('/{country}/edit','edit')->middleware('perm:countries_module,can_edit')->name('edit');
+                Route::delete('/{country}','destroy')->middleware('perm:countries_module,can_delete')->name('destroy');
+                Route::get('/history/{isHistory?}',        'history')->middleware('perm:countries_module,can_view_history')->name('history');
+                Route::post('/search','search')->middleware('perm:countries_module,can_view_history')->name('search');
+                Route::post('/reactivate/{id}','reactivate')->middleware('perm:countries_module,can_edit')->name('reactivate');
             });
 
         /* ==============================

@@ -105,6 +105,11 @@
                         'company_delivery_module'    => __('adminlte::adminlte.company_delivery_module'),
                         'payment_module'             => __('adminlte::adminlte.payment_module'),
                         'additional_module'          => __('adminlte::adminlte.additional'),
+                        'notifications_module'       => __('adminlte::adminlte.notifications_module'),
+                        'countries_module'           => __('adminlte::adminlte.countries_module'),
+                        'cities_module'              => __('adminlte::adminlte.cities_module'),
+                        'transportation_type_module' => __('adminlte::adminlte.transportation_type_module'),
+                        'transportation_way_module'  => __('adminlte::adminlte.transportation_way_module'),å
                     ];
 
                     $enabledCount = collect(array_keys($featureFields))
