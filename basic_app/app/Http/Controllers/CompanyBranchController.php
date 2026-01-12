@@ -197,8 +197,8 @@ public function history(){
                 $historyData['image'] = $branch['image'];
             }
             $historyData["company_info_id"] =$branch->company_id;
-            if (!empty($data['working_days']) && is_array($data['working_days'])) {
-                $validated['working_days'] = implode(',', $data['working_days']);}
+            if (!empty($historyData['working_days']) && is_array($historyData['working_days'])) {
+                $validated['working_days'] = implode(',', $historyData['working_days']);}
             CompanyBranchesHistory::create($historyData);
 
             $branch->update($validated);

@@ -41,7 +41,8 @@ class CompanyInfoHistory extends Model
     protected $casts = ['created_at' => 'datetime',];
     public function user(){return $this->belongsTo(User::class, 'user_id');}
     public static function company(){
-    $this->belongs(CompanyInfo::class,'company_info_id');;
+
+
 }
 
 

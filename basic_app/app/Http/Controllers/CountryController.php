@@ -35,11 +35,10 @@ class CountryController extends Controller
         $data = $request->validated();
         $country = Country::create($data);
         if(!$country) {
+             event(new \App\Events\CountryEventUpdate($country));
                     return redirect()
             ->route('country.index')
             ->with('success', 'Country created successfully.');
-
-        event(new \App\Events\CountryUpdateeVENT($country));
         }
         return redirect()
             ->route('countries.index')
@@ -94,9 +93,12 @@ public function destroy(Country $country)
 
         // 2) خزّن الهيستوري (يفضل قبل الحذف)
         $this->setHistoryData($country);
+    event(new \App\Events\CountryEventUpdate($country->fresh()));
 
         // 3) Soft delete (إذا الموديل فيه SoftDeletes)
        Country::where('id', $country->id)->delete();
+           event(new \App\Events\CountryEventUpdate($country->fresh()));
+
     });
 
     return redirect()

@@ -648,6 +648,7 @@ return [
   'notes' => 'ملاحظات',
   'status' => 'الحالة',
   'select' => 'اختر',
+  'choose_country'=> ' اختر الدولة',
   'assign_employee' => 'تعيين موظف',
   'required_when_accepted' => 'مطلوب عند اختيار حالة (مقبول).',
   'reject_reason' => 'سبب الرفض',

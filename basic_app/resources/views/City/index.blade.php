@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', __('adminlte::adminlte.city') . ' ' . __('adminlte::adminlte.history'))
+@section('title', __('adminlte::adminlte.company_branch'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
@@ -12,9 +12,9 @@
             <x-action_buttons
                 label="{{ __('adminlte::adminlte.city') }}"
                 addRoute="cities.create"
-                historyRoute="cities.index"
+                historyRoute="cities.history"
                :historyParams="true"
-                :showAdd="false"
+                :showAdd="true"
             />
         </div>
 
@@ -48,12 +48,13 @@
         {{-- Table Component --}}
         <livewire:adminlte.data-table
             :fields="$fields"                                   {{-- columns --}}
-            model="\App\Models\CityHistory"                            {{-- Eloquent model --}}
+            model="\App\Models\city"                            {{-- Eloquent model --}}
             details-route="cities.show"                         {{-- route names --}}
-            edit-route="cities.edit"
+                        edit-route="cities.edit"
+
             delete-route="cities.destroy"
             reactive-route="cities.reactivate"
-            initial-route="{{ route('cities.index') }}"
+            initial-route="{{ route('cities.index')}}"
             :search-in="['name_en','name_ar']"
             :pagination-in-table="true"                         {{-- 🔹 pagination in table --}}
         />

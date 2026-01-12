@@ -25,7 +25,7 @@ class CityRequest extends FormRequest
             'name_en' => 'required|string|max:255',
             'name_ar' => 'required|string|max:255',
             'is_active' => 'boolean',
-            'country_id' => 'nullable|exists:countries,id',
+            'country_id' => 'nullable|exists:country,id',
         ];
     }
 }

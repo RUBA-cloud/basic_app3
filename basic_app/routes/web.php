@@ -16,7 +16,7 @@ use App\Http\Controllers\{
     OfferController, OfferTypeController, ModulesController, TypeController,
     PermissionController, OrderController, RegionController, PaymentController,
     OrderStatusController, CompanyDeliveryController, NotificationController,
-    DeviceTokenController, ProfileController, ChatController, CountryController
+    DeviceTokenController, ProfileController, ChatController, CountryController,CityController,
 };
 
 /*
@@ -418,17 +418,31 @@ Route::controller(CountryController::class)
                 Route::get('/', 'index')->name('index');
                 Route::get('/create','create')->middleware('perm:countries_module,can_add')->name('create');
                 Route::put('/{country}/update', 'update')->middleware('perm:countries_module,can_edit')->name('update');
-
                 Route::post('/', 'store')->middleware('perm:countries_module,can_add')->name('store');
                 Route::get('/{country}', 'show')->name('show');
-
                 Route::get('/{country}/edit','edit')->middleware('perm:countries_module,can_edit')->name('edit');
                 Route::delete('/{country}','destroy')->middleware('perm:countries_module,can_delete')->name('destroy');
                 Route::get('/history/{isHistory?}',        'history')->middleware('perm:countries_module,can_view_history')->name('history');
                 Route::post('/search','search')->middleware('perm:countries_module,can_view_history')->name('search');
                 Route::post('/reactivate/{id}','reactivate')->middleware('perm:countries_module,can_edit')->name('reactivate');
             });
+            Route::controller(CityController::class)
+            ->prefix('cities')
+            ->name('cities.')
+            ->middleware('module:cities_module')
+            ->group(function () {
+                                              Route::get('/{city}/edit','edit')->middleware('perm:cities_module,can_edit')->name('edit');
 
+                Route::get('/', 'index')->name('index');
+                Route::get('/create','create')->middleware('perm:cities_module,can_add')->name('create');
+                Route::put('/{city}/update', 'update')->middleware('perm:cities_module,can_edit')->name('update');
+                Route::post('/', 'store')->middleware('perm:cities_module,can_add')->name('store');
+                Route::get('/{city}', 'show')->name('show');
+                Route::delete('/{city}','destroy')->middleware('perm:cities_module,can_delete')->name('destroy');
+                Route::get('/history/{isHistory?}',        'history')->middleware('perm:cities_module,can_view_history')->name('history');
+                Route::post('/search','search')->middleware('perm:cities_module,can_view_history')->name('search');
+                Route::post('/reactivate/{id}','reactivate')->middleware('perm:cities_module,can_edit')->name('reactivate');
+            });
         /* ==============================
          * Order Status (order_status_module)
          * ============================== */

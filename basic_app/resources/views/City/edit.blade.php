@@ -1,3 +1,33 @@
 <div>
-    <!-- Act only according to that maxim whereby you can, at the same time, will that it should become a universal law. - Immanuel Kant -->
+    <!-- Simplicity is an acquired taste. - Katharine Gerould -->
 </div>
+@extends('adminlte::page')
+@section('title', __('adminlte::adminlte.edit') . ' ' . __('adminlte::adminlte.city'))
+
+@section('content')
+<div style="min-height: 100vh; display: flex;">
+    <div class="card" style="padding: 24px; width: 100%;">
+
+        <h2 style="font-size: 2rem; font-weight: 700; color: #22223B; margin-bottom: 24px;">
+            {{ __('adminlte::adminlte.create') }} {{ __('adminlte::adminlte.city') }}
+        </h2>
+
+        {{-- Errors --}}
+        @if ($errors->any())
+            <div class="alert alert-danger mb-3">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $e)
+                        <li>{{ $e }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @include('city.form', [
+            'action'     => route('cities.update', $city->id),
+            'method'     => 'PUT',
+            'city' => $city,
+        ])
+    </div>
+</div>
+@endsection
