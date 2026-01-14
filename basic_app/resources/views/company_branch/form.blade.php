@@ -11,7 +11,7 @@
       enctype="multipart/form-data"
       style="margin:10px"
       id="company-branch-form"
-      data-channel="company_branch"
+      data-channel=""
       data-events='@json(["company_branch_updated"])'
       data-pusher-key="{{ $pusher_key ?? '' }}"
       data-pusher-cluster="{{ $pusher_cluster ?? '' }}">

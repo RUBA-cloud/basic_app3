@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CityHistory extends Model
 {
-    protected $table = "cities";
+    protected $table = "cities_history";
     protected $fillable = [
         'name_en',
         'name_ar',

@@ -30,6 +30,8 @@
         'region_module'            => __('adminlte::adminlte.region_module'),
         'payment_module'           => __('adminlte::adminlte.payment_module'),
         'company_delivery_module'  => __('adminlte::adminlte.company_delivery_module'),
+
+
     ];
 
     // Other group fields
@@ -37,6 +39,10 @@
         'product_module'  => __('adminlte::adminlte.product_module'),
         'employee_module' => __('adminlte::adminlte.employee_module'),
         'order_module'    => __('adminlte::adminlte.order_module'),
+        'transportation_type_module' => __('adminlte::adminlte.transportation_type_module'),
+        'transportation_way_module'  => __('adminlte::adminlte.transportation_way_module'),
+        'country_module'           => __('adminlte::adminlte.country_module'),
+        'city_module'              => __('adminlte::adminlte.city_module'),
         'is_active'       => __('adminlte::adminlte.is_active'),
     ];
 

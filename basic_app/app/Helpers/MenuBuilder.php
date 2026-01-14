@@ -162,14 +162,14 @@ class MenuBuilder
                 'icon_color' => $iconColor,
             ];
             $menu[] = [
-                'text'       => 'transpartion',
-                'url'        => '/transportation_type_module',
+                'text'       => 'transpartation_type',
+                'url'        => '/transpartation_types' ,
                 'icon'       => 'fas fa-fw fa-truck-moving',
                 'icon_color' => $iconColor,
             ];
             $menu[] = [
                 'text'       => 'trasportation_way',
-                'url'        => '/transportation_way_module',
+                'url'        => '/transpartation_ways',
                 'icon'       => 'fas fa-fw fa-route',
                 'icon_color' => $iconColor,
             ];

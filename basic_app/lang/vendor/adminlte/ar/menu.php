@@ -40,7 +40,7 @@ return [
        'order_status'=>'خالات الطلب',
        'company_delivery'=>'شركات التوصيل',
     'order_status_module'=>' خالات الطلب',
-'transpartion'=>'النقل',
+'transpartation_type'=>'نوع النقل',
     'trasportation_way'=>'طريقة النقل',
     'countries'=>'الدول',
     'cities'=>'المدن',

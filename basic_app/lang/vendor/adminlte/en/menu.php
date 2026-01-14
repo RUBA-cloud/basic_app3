@@ -43,7 +43,7 @@ return [
     'order_status_module'=>' Order Status Module',
     'countries'=>'Countries',
     'cities'=>'Cities',
-    'transpartion'=>'Transpartion',
+    'transpartation_type'=>'Transpartation Type',
     'trasportation_way'=>'Trasportation Way',
 
 

@@ -117,6 +117,7 @@ return [
     'unread'=>'unread',
 'optional'=>'optional',
 'choose_status'=>'Choose Status',
+'transpartation_type'=>'Transpartation Type',
     // Form
       'offers_type' => 'Offer Type',
     'is_discount' => 'Discount',
@@ -396,6 +397,10 @@ return [
     'company_offers_module'       => 'Company Offers',
     'product_module'              => 'Products Module',
     'employee_module'             => 'Employees Module',
+    'country_module'             => 'Countries Module',
+    'city_module'                => 'Cities Module',
+    'transportation_type_module' => 'Transportation Types Module',
+    'transportation_way_module'  => 'Transportation Ways Module',
     'order_module'                => 'Orders Module',
     'module_details_title'        => 'Module Details',
     'module_n_hash'               => 'Module #:id',
@@ -421,6 +426,7 @@ return [
     'please_add_reason_cancel'    => 'Please write a product rejection reason for this order',
     'effective_total'             => 'Total after discount',
     'sub_total'                   => 'Subtotal',
+    'days_count'=> 'days count',
 
     // Notifications & user menu
     'Notifications' => 'Notifications',

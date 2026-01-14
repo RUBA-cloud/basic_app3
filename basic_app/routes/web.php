@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\TransapartationTypeController;
+use App\Http\Controllers\TranspartationWayController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Broadcast;
@@ -17,6 +19,7 @@ use App\Http\Controllers\{
     PermissionController, OrderController, RegionController, PaymentController,
     OrderStatusController, CompanyDeliveryController, NotificationController,
     DeviceTokenController, ProfileController, ChatController, CountryController,CityController,
+
 };
 
 /*
@@ -443,9 +446,29 @@ Route::controller(CountryController::class)
                 Route::post('/search','search')->middleware('perm:cities_module,can_view_history')->name('search');
                 Route::post('/reactivate/{id}','reactivate')->middleware('perm:cities_module,can_edit')->name('reactivate');
             });
+             Route::controller(TransapartationTypeController::class)
+            ->prefix('transpartation_types')
+            ->name('transpartation_types.')
+            ->middleware('module:transpartation_types_module')
+            ->group(function () {
+             Route::get('/{transpartation_type}/edit','edit')->middleware('perm:transpartation_types_module,can_edit')->name('edit');
+
+                Route::get('/', 'index')->name('index');
+                Route::get('/create','create')->middleware('perm:transpartation_types_module,can_add')->name('create');
+                Route::put('/{transpartation_type}/update', 'update')->middleware('perm:transpartation_types_module,can_edit')->name('update');
+                Route::post('/', 'store')->middleware('perm:transpartation_types_module,can_add')->name('store');
+                Route::get('/{transpartation_type}', 'show')->name('show');
+                Route::delete('/{transpartation_type}','destroy')->middleware('perm:transpartation_types_module,can_delete')->name('destroy');
+                Route::get('/history/{isHistory?}',        'history')->middleware('perm:transpartation_types_module,can_view_history')->name('history');
+                Route::post('/search','search')->middleware('perm:transpartation_types_module,can_view_history')->name('search');
+                Route::post('/reactivate/{id}','reactivate')->middleware('perm:transpartation_types_module,can_edit')->name('reactivate');
+            });
         /* ==============================
          * Order Status (order_status_module)
          * ============================== */
+
+
+
         Route::controller(OrderStatusController::class)
             ->prefix('order_status')
             ->name('order_status.')
@@ -483,7 +506,22 @@ Route::controller(CountryController::class)
 
         // Permissions
         Route::resource('permissions', PermissionController::class);
-
+ Route::controller(TranspartationWayController::class)
+            ->prefix('transpartation_ways')
+            ->name('transpartation_ways.')
+            ->middleware('module:transpartation_ways_module')
+            ->group(function () {
+             Route::get('/{transpartation_way}/edit','edit')->middleware('perm:transpartation_ways_module,can_edit')->name('edit');
+                Route::get('/', 'index')->name('index');
+                Route::get('/create','create')->middleware('perm:transpartation_ways_module,can_add')->name('create');
+                Route::put('/{transpartation_way}/update', 'update')->middleware('perm:transpartation_ways_module,can_edit')->name('update');
+                Route::post('/', 'store')->middleware('perm:transpartation_ways_module,can_add')->name('store');
+                Route::get('/{transpartation_way}/show', 'show')->name('show');
+                Route::delete('/{transpartation_way}','destroy')->middleware('perm:transpartation_ways_module,can_delete')->name('destroy');
+                Route::get('/history/{isHistory?}',        'history')->middleware('perm:transpartation_ways_module,can_view_history')->name('history');
+                Route::post('/search','search')->middleware('perm:transpartation_ways_module,can_view_history')->name('search');
+                Route::post('/reactivate/{id}','reactivate')->middleware('perm:transpartation_ways_module,can_edit')->name('reactivate');
+            });
         /* ==============================
          * Notifications
          * ============================== */

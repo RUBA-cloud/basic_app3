@@ -621,6 +621,10 @@ return [
 'facebook'=>'فيس بوك',
 'twitter'=>'تويتر',
 'payment'=>'الدفع',
+ 'country_module'             => 'وحدات الدول',
+    'city_module'                => 'وحدات المدن',
+    'transportation_type_module' => 'وحدات أنواع النقل',
+    'transportation_way_module'  => 'وحدات طرق النقل',
  'offers_type' => 'نوع العرض',
     'is_discount' => 'خصم',
     'is_total_gift' => 'هدية إجمالية',
@@ -697,7 +701,7 @@ return [
     'mark_all_as_read' => 'تمييز الكل كمقروء',
         'view_all'=>'عرض الكل',
 "search_user"=>'بحث عن المستخدمين',
-
+'transpartation_type'=>'نوع النقل',
             'reset_preheader' => 'إعادة تعيين كلمة المرور لحساب :app.',
             'greeting'       => 'مرحبًا :name،',
             'intro'          => 'لقد تلقينا طلبًا لإعادة تعيين كلمة المرور لحسابك في :app.',
@@ -707,6 +711,7 @@ return [
             'ignore'         => 'إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذه الرسالة ولن تتغير كلمة مرورك.',
             'footer'         => 'وصلتك هذه الرسالة لأن لديك حسابًا في :app. إذا لم تكن أنت، يمكنك تجاهل هذه الرسالة.',
             'copyright'      => '© :year :app. جميع الحقوق محفوظة.',
+            'days_count'=>'أيام',
     // عام
     'auth' => [
         'user' => 'المستخدم',

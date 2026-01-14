@@ -109,7 +109,8 @@
                         'countries_module'           => __('adminlte::adminlte.countries_module'),
                         'cities_module'              => __('adminlte::adminlte.cities_module'),
                         'transportation_type_module' => __('adminlte::adminlte.transportation_type_module'),
-                        'transportation_way_module'  => __('adminlte::adminlte.transportation_way_module'),å
+                        'transportation_way_module'  => __('adminlte::adminlte.transportation_way_module'),
+                        
                     ];
 
                     $enabledCount = collect(array_keys($featureFields))

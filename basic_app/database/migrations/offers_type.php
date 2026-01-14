@@ -26,7 +26,7 @@ return new class extends Migration
             $table->decimal('product_count_gift', 10, 2)->default(0);
             $table->decimal('total_gift', 10, 2)->default(0);
                 $table->boolean('is_active')->default(true);
-            
+
                         $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->timestamps();

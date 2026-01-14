@@ -6,7 +6,6 @@ use App\Http\Requests\CityRequest;
 use App\Models\City;
 use App\Models\CityHistory;
 use App\Models\Country;
-use Illuminate\Http\Request;
 
 class CityController extends Controller
 {
