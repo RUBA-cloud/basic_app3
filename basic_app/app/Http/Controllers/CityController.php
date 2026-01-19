@@ -29,8 +29,9 @@ class CityController extends Controller
      */
     public function store(CityRequest $request)
     {
-        $city = City::create($request->validated());
-          event(new \App\Events\CityEventUpdate($city->fresh()));
+        $validare = $request->validated();
+        $city = City::create($validare);
+        // event(new \App\Events\CityEventUpdate($city->fresh()));
 
         return redirect()->route('cities.index');
     }
