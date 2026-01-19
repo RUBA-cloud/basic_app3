@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TraspartationWay extends Model
 {
-    protected $table = "traspartation_ways";
+    protected $table = "transpartation_way";
     protected $fillable = ["name_en", "name_ar",'country_id', 'city_id', 'is_active', 'user_id,', 'days_count','type_id'];
 
 
