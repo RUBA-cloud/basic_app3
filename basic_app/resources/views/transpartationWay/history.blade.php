@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', __('adminlte::adminlte.transpartation_way_history'))
+@section('title', __('adminlte::adminlte.transpartation_way'))
 
 @section('content')
 <div style="min-height: 100vh; display: flex; flex-direction: row; align-items: stretch;">
@@ -8,7 +8,7 @@
     <main style="flex: 1; padding: 40px 32px;">
         <div class="card_table">
             <h2 style="font-size: 2rem; font-weight: 700; color: #22223B;">
-                {{ __('adminlte::adminlte.transpartation_way_history') }}
+                {{ __('adminlte::adminlte.transpartation_way') }}
             </h2>
 
             {{-- Action Buttons --}}

@@ -31,7 +31,7 @@ class CityEventUpdate
     public function broadcastOn(): array
     {
         return [
-            new Channel('city-updated'),
+            new Channel('city-channel'),
         ];
     }
     public function broadcastAs(): string

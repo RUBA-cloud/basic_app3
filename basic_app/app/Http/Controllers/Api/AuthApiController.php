@@ -4,6 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Country;
+use App\Models\City;
+use App\Models\TranspartationWay;
+use Illuminate\Support\Facades\DB;
+
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -15,15 +20,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
+
 class AuthApiController extends Controller
 {
     protected Configuration $jwtConfig;
@@ -104,65 +107,148 @@ class AuthApiController extends Controller
     /**
      * Login a user and return JWT token.
      */
-    public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email'        => 'required|email',
-            'password'     => 'required|string',
-            'device_token' => 'nullable|string',
-            'language'     => 'nullable|string|in:en,ar',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'validation_error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
 
-        $credentials = $request->only(['email', 'password']);
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
 
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
 
-        if (method_exists($user, 'hasVerifiedEmail') && !$user->hasVerifiedEmail()) {
-            return response()->json(['error' => 'Email not verified'], 403);
-        }
+public function login(Request $request)
+{
+    // ✅ 1) Validate FIRST
+    $validator = Validator::make($request->all(), [
+        'email'        => ['required', 'email'],
+        'password'     => ['required', 'string'],
+        'device_token' => ['nullable', 'string'],
+        'country'      => ['required', 'string', 'max:150'],
+        'city'         => ['required', 'string', 'max:150'],
+        'language'     => ['nullable', 'string', 'in:en,ar'],
+    ]);
 
-        try {
-            if ($request->filled('device_token') && Schema::hasColumn('users', 'device_token')) {
-                $user->device_token = $request->string('device_token');
-            }
-            if ($request->filled('language') && Schema::hasColumn('users', 'language')) {
-                $user->language = $request->string('language');
-            }
-            $user->save();
-        } catch (\Throwable $e) {}
-
-        $now = new CarbonImmutable();
-        $expiry = $now->addHours(24);
-
-        $token = $this->jwtConfig->builder()
-            ->issuedBy(config('app.url'))
-            ->permittedFor(config('app.url'))
-            ->issuedAt($now)
-            ->canOnlyBeUsedAfter($now)
-            ->expiresAt($expiry)
-            ->relatedTo((string) $user->id)
-            ->withClaim('email', $user->email)
-            ->getToken(
-                $this->jwtConfig->signer(),
-                $this->jwtConfig->signingKey()
-            );
-$user->access_token = $token->toString();
+    if ($validator->fails()) {
         return response()->json([
-            'data'         => $user,
-            'token_type'   => 'Bearer',
-            'expires_in'   => $expiry->diffInSeconds($now),
-        ], 200);
+            'status' => 'validation_error',
+            'errors' => $validator->errors(),
+        ], 422);
     }
+
+    // ✅ 2) Auth attempt
+    $credentials = $request->only(['email', 'password']);
+    if (!Auth::attempt($credentials)) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    if (method_exists($user, 'hasVerifiedEmail') && !$user->hasVerifiedEmail()) {
+        return response()->json(['error' => 'Email not verified'], 403);
+    }
+
+    $countryNameEn = trim((string) $request->input('country'));
+    $cityNameEn    = trim((string) $request->input('city'));
+
+    // if you don't have Arabic names from mobile, fallback to english
+    $countryNameAr = $countryNameEn;
+    $cityNameAr    = $cityNameEn;
+
+    // ✅ 3) Get or Create Country + City + Way safely
+    try {
+        DB::transaction(function () use (
+            $countryNameEn, $countryNameAr,
+            $cityNameEn, $cityNameAr,
+            $request, $user
+        ) {
+            // -------- Country --------
+            $country = Country::firstOrCreate(
+                ['name_en' => $countryNameEn],
+                ['name_ar' => $countryNameAr, 'is_active' => true]
+            );
+
+            if (isset($country->is_active) && !$country->is_active) {
+                $country->is_active = true;
+                $country->save();
+            }
+
+            // -------- City --------
+            $city = City::firstOrCreate(
+                ['country_id' => $country->id, 'name_en' => $cityNameEn],
+                ['name_ar' => $cityNameAr, 'is_active' => true]
+            );
+
+            if (isset($city->is_active) && !$city->is_active) {
+                $city->is_active = true;
+                $city->save();
+            }
+
+            // ✅ Create way ONLY when either country/city was newly created
+            if ($country->wasRecentlyCreated || $city->wasRecentlyCreated) {
+                $nameEn = trim(($country->name_en ?? '') . ' - ' . ($city->name_en ?? ''));
+                $nameAr = trim(($country->name_ar ?? $country->name_en ?? '') . ' - ' . ($city->name_ar ?? $city->name_en ?? ''));
+
+                TranspartationWay::firstOrCreate(
+                    [
+                        'country_id' => $country->id,
+                        'city_id'    => $city->id,
+                    ],
+                    [
+                        'name_en'    => $nameEn,
+                        'name_ar'    => $nameAr,
+                        'days_count' => 5,
+                        'is_active'  => true,
+                    ]
+                );
+            }
+
+            // ✅ Update user location always
+            if (Schema::hasColumn('users', 'country_id')) {
+                $user->country_id = $country->id;
+            }
+            if (Schema::hasColumn('users', 'city_id')) {
+                $user->city_id = $city->id;
+            }
+
+            // optional fields
+            if (Schema::hasColumn('users', 'device_token') && $request->filled('device_token')) {
+                $user->device_token = (string) $request->input('device_token');
+            }
+            if (Schema::hasColumn('users', 'language') && $request->filled('language')) {
+                $user->language = (string) $request->input('language');
+            }
+
+            $user->save();
+        });
+    } catch (\Throwable $e) {
+        // If DB ops fail, return clear error
+        return response()->json([
+            'error'   => 'Failed to update location data',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+
+    // ✅ 4) JWT token (same logic)
+    $now    = new CarbonImmutable();
+    $expiry = $now->addHours(24);
+
+    $token = $this->jwtConfig->builder()
+        ->issuedBy(config('app.url'))
+        ->permittedFor(config('app.url'))
+        ->issuedAt($now)
+        ->canOnlyBeUsedAfter($now)
+        ->expiresAt($expiry)
+        ->relatedTo((string) $user->id)
+        ->withClaim('email', $user->email)
+        ->getToken(
+            $this->jwtConfig->signer(),
+            $this->jwtConfig->signingKey()
+        );
+
+    $user->access_token = $token->toString();
+
+    return response()->json([
+        'data'       => $user,
+        'token_type' => 'Bearer',
+        'expires_in' => $expiry->diffInSeconds($now),
+    ], 200);
+}
+
 
 
     /**

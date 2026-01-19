@@ -155,7 +155,7 @@
     const anchor = document.getElementById('transportation-way-show-listener');
     if (!anchor) return;
 
-    const channelName = anchor.dataset.channel || 'transportation-way';
+    const channelName = anchor.dataset.channel || 'transpartation_way_channel';
 
     let events = [];
     try { events = JSON.parse(anchor.dataset.events || '[]'); } catch (e) { events = []; }

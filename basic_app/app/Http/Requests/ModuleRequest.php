@@ -35,6 +35,11 @@ class ModuleRequest extends FormRequest
             'region_module'=>'nullable|boolean',
             'company_delivery_module'=>'nullable|boolean',
             'payment_module'=>'nullable|boolean',
+            'country_module'=>'nullable|boolean',
+            'city_module'=>'nullable|boolean',
+            'transpartation_type_module'=>'nullable|boolean',
+            'transportation_way_module'=>'nullable|boolean',
+
             'is_active'=> 'nullable|boolean',
             'user_id' =>'nullable|exists:users,id',
         ];

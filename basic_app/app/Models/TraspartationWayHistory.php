@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TraspartationWayHistory extends Model
 {
     protected $table = "traspartation_ways_histories";
-    protected $fillable = ["name_en", "name_ar",'country_id', 'city_id', 'is_active', 'user_id', 'days_count'];
+    protected $fillable = ["name_en", "name_ar",'country_id','type_id', 'city_id', 'is_active', 'user_id', 'days_count'];
 
 
     public function country(){
@@ -21,4 +21,8 @@ class TraspartationWayHistory extends Model
     public function city(){
         return $this->belongsTo(City::class);
     }
+     public function transpartation(){
+        return $this->belongsTo(TranspartationType::class);
+    }
+
 }

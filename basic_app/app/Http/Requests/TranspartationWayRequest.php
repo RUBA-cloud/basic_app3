@@ -6,28 +6,36 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class TranspartationWayRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            "city_id"=> "required|exists:cities,id",
-            "country_id"=> "required|exists:country,id",
-            "name_en"=> "required|string|max:255",
-            "name_ar"=> "required|string|max:255",
-            "days_count"=> "required|integer|min:1",
-            "is_active"=> "boolean",
+            'country_id' => ['required', 'integer', 'exists:country,id'], // ✅ fix countries
+            'city_id'    => ['required', 'integer', 'exists:cities,id'],
+
+//            // إذا جدولك اسمه `type` بدل transpartation_types:
+            'type_id'    => ['required', 'integer', 'exists:transpartation_types,id'],
+
+            'name_en'    => ['required', 'string', 'max:255'],
+            'name_ar'    => ['required', 'string', 'max:255'],
+
+            'days_count' => ['required', 'integer', 'min:0'], // ✅ لو بدك تسمح 0 خليها min:0
+            // إذا لازم >0 خليها min:1
+
+            'is_active'  => ['nullable', 'boolean'], // ✅ checkbox safe
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        // ✅ Normalize checkbox value + ensure type_id integer
+        $this->merge([
+            'is_active' => $this->has('is_active') ? (int) $this->input('is_active') : 0,
+            'type_id'   => $this->input('type_id') !== null ? (int) $this->input('type_id') : null,
+        ]);
     }
 }

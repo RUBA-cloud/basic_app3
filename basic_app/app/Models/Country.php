@@ -15,4 +15,8 @@ class Country extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function cities()  {
+        return $this->belongsTo(City::class);
+    }
 }

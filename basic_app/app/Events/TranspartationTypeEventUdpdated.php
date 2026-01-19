@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TranspartationEventUdpdated
+class TranspartationTypeEventUdpdated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -31,12 +31,16 @@ class TranspartationEventUdpdated
     public function broadcastOn(): array
     {
         return [
-            new Channel('transpartation-updated'),
+            new Channel('transpartation-type_channel'),
         ];
     }
 
     public function broadcastAs(): string
     {
-        return 'transpartation.updated';
+        return 'transpartation-type-updated';
+    }
+     public function broadcastWith(): array
+    {
+        return ['transpartationWay' => $this->transpartation];
     }
 }

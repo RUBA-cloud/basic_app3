@@ -1,80 +1,217 @@
 @php
-    $transpartationObj = $transpartationType ?? null;
+    // ✅ model may be null in create
+    $obj = $transpartationType ?? null;
 
-    // المطلوب: Laravel form method لازم تكون POST أو GET فقط
-    $spoofMethod = strtoupper($method ?? (empty($transpartationObj?->id) ? 'POST' : 'PUT'));
+    // ✅ default method: POST create, PUT edit
+    $spoofMethod = strtoupper($method ?? (empty($obj?->id) ? 'POST' : 'PUT'));
 
-    // HTML method الحقيقي
-    $formMethod = $spoofMethod === 'GET' ? 'GET' : 'POST';
+    // ✅ HTML form method must be GET or POST only
+    $formMethod  = $spoofMethod === 'GET' ? 'GET' : 'POST';
 
+    // ✅ refresh url that returns THIS form partial (HTML)
+    $refreshUrl = $refreshUrl ?? (!empty($obj?->id) ? route('transpartationTypes.form', $obj->id) : null);
+
+    // ✅ broadcast defaults (MUST match event->broadcastAs())
     $broadcast = $broadcast ?? [
-        'channel' => 'transpartation-type-updated',
+        'channel' => 'transpartation-type-channel',
         'events'  => ['transpartation_type_updated'],
     ];
+
+    // ✅ is active stable
+    $isActive = (int) old('is_active', (int) data_get($obj, 'is_active', 1));
 @endphp
 
-<form id="transpartation-form"
-      method="{{ $formMethod }}"
-      action="{{ $action }}"
-      enctype="multipart/form-data"
-      data-channel="{{ $broadcast['channel'] }}"
-      data-events='@json($broadcast["events"])'>
+<div id="transpartation-form-wrap">
+    <form id="transpartation-form"
+          method="{{ $formMethod }}"
+          action="{{ $action }}"
+          enctype="multipart/form-data"
+          data-channel="{{ $broadcast['channel'] }}"
+          data-events='@json($broadcast["events"])'
+          data-refresh-url="{{ $refreshUrl ?? '' }}"
+          data-current-id="{{ data_get($obj,'id','') }}">
 
-    @csrf
+        @csrf
 
-    {{-- Spoof HTTP verbs like PUT/PATCH/DELETE --}}
-    @if($formMethod === 'POST' && $spoofMethod !== 'POST')
-        @method($spoofMethod)  {{-- هنا بصير PUT --}}
-    @endif
+        {{-- ✅ Spoof PUT/PATCH/DELETE --}}
+        @if($formMethod === 'POST' && $spoofMethod !== 'POST')
+            @method($spoofMethod)
+        @endif
 
-    @if(!empty($transpartationObj?->id))
-        <input type="hidden" name="id" value="{{ $transpartationObj->id }}">
-    @endif
+        @if(!empty($obj?->id))
+            <input type="hidden" name="id" value="{{ $obj->id }}">
+        @endif
 
-    {{-- Errors --}}
-    @if ($errors->any())
-        <div class="alert alert-danger mb-3">
-            <ul class="mb-0">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+        {{-- ✅ Errors --}}
+        @if ($errors->any())
+            <div class="alert alert-danger mb-3">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $e)
+                        <li>{{ $e }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        {{-- ✅ Name EN --}}
+        <x-form.textarea
+            id="name_en"
+            name="name_en"
+            label="{{ __('adminlte::adminlte.name_en') }}"
+            :value="old('name_en', data_get($obj,'name_en',''))"
+            rows="1"
+        />
+        @error('name_en') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+
+        {{-- ✅ Name AR --}}
+        <x-form.textarea
+            id="name_ar"
+            name="name_ar"
+            label="{{ __('adminlte::adminlte.name_ar') }}"
+            dir="rtl"
+            :value="old('name_ar', data_get($obj,'name_ar',''))"
+            rows="1"
+        />
+        @error('name_ar') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+
+        {{-- ✅ Is Active --}}
+        <div class="form-group" style="margin: 20px 0;">
+            <input type="hidden" name="is_active" value="0">
+            <label class="mb-0">
+                <input type="checkbox" name="is_active" value="1" {{ $isActive ? 'checked' : '' }}>
+                {{ __('adminlte::adminlte.is_active') }}
+            </label>
         </div>
-    @endif
+        @error('is_active') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
 
-    {{-- Size Name EN --}}
-    <x-form.textarea
-        id="name_en"
-        name="name_en"
-        label="{{ __('adminlte::adminlte.name_en') }}"
-        :value="old('name_en', data_get($transpartationObj,'name_en',''))"
-    />
-    @error('name_en') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+        <x-adminlte-button
+            label="{{ $spoofMethod === 'POST'
+                ? __('adminlte::adminlte.save_information')
+                : __('adminlte::adminlte.update_information') }}"
+            type="submit"
+            theme="success"
+            class="w-100"
+            icon="fas fa-save"
+        />
+    </form>
+</div>
 
-    {{-- Size Name AR --}}
-    <x-form.textarea
-        id="name_ar"
-        name="name_ar"
-        label="{{ __('adminlte::adminlte.name_ar') }}"
-        dir="rtl"
-        :value="old('name_ar', data_get($transpartationObj,'name_ar',''))"
-    />
-    @error('name_ar') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+{{-- ✅ Listener Anchor (مثل country/city/category) --}}
+<div id="transpartation-form-listener"
+     data-channel="{{ $broadcast['channel'] }}"
+     data-events='@json($broadcast["events"])'
+     data-refresh-url="{{ $refreshUrl ?? '' }}"
+     data-current-id="{{ data_get($obj,'id','') }}">
+</div>
 
-    {{-- Is Active --}}
-    <div class="form-group" style="margin: 20px 0;">
-        <input type="hidden" name="is_active" value="0">
-        @php $isActive = old('is_active', (int) data_get($transpartationObj,'is_active', 1)); @endphp
-        <label>
-            <input type="checkbox" name="is_active" value="1" {{ (int)$isActive ? 'checked' : '' }}>
-            {{ __('adminlte::adminlte.is_active') }}
-        </label>
-    </div>
-    @error('is_active') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+@push('js')
+<script>
+(function () {
+  'use strict';
 
-    <x-adminlte-button
-        label="{{ $spoofMethod === 'POST'
-            ? __('adminlte::adminlte.save_information')
-            : __('adminlte::adminlte.update_information') }}"
-        type="submit"
-        theme="success"
-        class="w-100"
-        icon="fas fa-save"
-    />
-</form>
+  function parseJsonSafe(v, fallback) {
+    try { return JSON.parse(v); } catch (_) { return fallback; }
+  }
+
+  function takeSnapshot(form) {
+    return {
+      name_en: form.querySelector('#name_en')?.value ?? '',
+      name_ar: form.querySelector('#name_ar')?.value ?? '',
+      is_active: form.querySelector('input[name="is_active"][type="checkbox"]')?.checked ?? true,
+    };
+  }
+
+  async function refreshForm(snapshot) {
+    const wrap = document.getElementById('transpartation-form-wrap');
+    const form = document.getElementById('transpartation-form');
+    if (!wrap || !form) return;
+
+    const url = String(form.dataset.refreshUrl || '');
+    if (!url) return;
+
+    const res = await fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) return;
+
+    wrap.innerHTML = await res.text();
+
+    // ✅ restore snapshot
+    const newForm = document.getElementById('transpartation-form');
+    if (!newForm || !snapshot) return;
+
+    if (newForm.querySelector('#name_en')) newForm.querySelector('#name_en').value = snapshot.name_en ?? '';
+    if (newForm.querySelector('#name_ar')) newForm.querySelector('#name_ar').value = snapshot.name_ar ?? '';
+
+    const chk = newForm.querySelector('input[name="is_active"][type="checkbox"]');
+    if (chk) chk.checked = !!snapshot.is_active;
+  }
+
+  function initBroadcast() {
+    const form   = document.getElementById('transpartation-form');
+    const anchor = document.getElementById('transpartation-form-listener');
+
+    if (!form && !anchor) return;
+
+    const channelName = String(anchor?.dataset.channel || form?.dataset.channel || '').trim();
+
+    const events = parseJsonSafe(
+      (anchor?.dataset.events || form?.dataset.events || '[]'),
+      []
+    );
+
+    const currentId = String(anchor?.dataset.currentId || form?.dataset.currentId || '');
+
+    if (!channelName || !Array.isArray(events) || !events.length) {
+      console.warn('[transpartation-form] missing channel/events');
+      return;
+    }
+
+    function handler(payload) {
+      // Accept { transpartationType: {...} } OR { transpartation_type: {...} } OR direct {...}
+      const t =
+        payload?.transpartationType ??
+        payload?.transpartation_type ??
+        payload?.transportationType ??
+        payload?.transportation_type ??
+        payload ??
+        {};
+
+      const payloadId = String(t.id ?? payload?.id ?? '');
+
+      // ✅ only refresh for same record when editing
+      if (currentId && payloadId && currentId !== payloadId) return;
+
+      const snap = takeSnapshot(form);
+      refreshForm(snap);
+
+      if (window.toastr) {
+        try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch (_) {}
+      }
+
+      console.log('[transpartation-form] broadcast payload received:', t);
+    }
+
+    // ✅ Register like country/city (NO Echo)
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    events.forEach(function (ev) {
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, ev, handler);
+        console.info('[transpartation-form] subscribed via AppBroadcast →', channelName, '/', ev);
+      } else {
+        window.__pageBroadcasts.push({ channel: channelName, event: ev, handler: handler });
+        console.info('[transpartation-form] registered in __pageBroadcasts →', channelName, '/', ev);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initBroadcast);
+})();
+</script>
+@endpush

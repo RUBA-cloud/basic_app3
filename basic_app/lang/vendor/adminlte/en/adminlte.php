@@ -11,6 +11,8 @@ return [
 'twitter'=>'twitter',
 'payment'=>'payment',
 'order_status'=>'Order Status',
+'transpartation_way'=>'transpartation Way',
+'choose_city'=>'choose City',
     // Company fields
     'company_name_en' => 'Company Name (English)',
     'company_name_en_placeholder' => 'Enter the company name in English',
@@ -119,6 +121,8 @@ return [
 'choose_status'=>'Choose Status',
 'transpartation_type'=>'Transpartation Type',
     // Form
+    'additional_module'=>'Additional Module',
+    'delivery_module'=>'Delivery Module',
       'offers_type' => 'Offer Type',
     'is_discount' => 'Discount',
     'is_total_gift' => 'Total Gift',
@@ -139,7 +143,6 @@ return [
     'required'=>'required',
     'quick_overview'=>'Quick overview',
     'edit_order' => 'Edit Order',
-  'edit' => 'Edit',
   'user' => 'User',
   'back' => 'Back',
   'order' => 'Order',
@@ -458,6 +461,8 @@ return [
     'Update Password' => 'Update Password',
     'Password updated successfully' => 'Password updated successfully',
     'Incorrect current password' => 'Incorrect current password',
+    'transportation_way'=>'Transpotation way',
+    'transpartationType'=> 'Transporation Type',
 
     // Dashboard bits
     'Dashboard' => 'Dashboard',

@@ -57,7 +57,7 @@
 
 {{-- 🔔 Listener anchor (used by JS to know which record & channel) --}}
 <div id="country-listener"
-     data-channel="country"
+     data-channel="country-channel"
      data-events='["country_updated","CompanyDeliveryUpdated"]'
      data-delivery-id="{{ $country->id }}">
 </div>
@@ -134,16 +134,16 @@
         };
 
         window.__pageBroadcasts.push({
-            channel: 'country',           // broadcastOn()
-            event:   'country_updated',   // broadcastAs()
+            channel: 'city-channel',           // broadcastOn()
+            event:   'city_updated',   // broadcastAs()
             handler: handler
         });
 
         if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
-            window.AppBroadcast.subscribe('country', 'country_updated', handler);
-            console.info('[country show] subscribed via AppBroadcast → country / country_updated');
+            window.AppBroadcast.subscribe('city-channel', 'city_updated', handler);
+            console.window('[city show] registered in __pageBroadcasts; layout will subscribe later.');
         } else {
-            console.info('[country show] registered in __pageBroadcasts; layout will subscribe later.');
+            console.info('[city show] registered in __pageBroadcasts; layout will subscribe later.');
         }
     });
 })();

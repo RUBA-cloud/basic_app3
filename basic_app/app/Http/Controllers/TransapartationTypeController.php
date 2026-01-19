@@ -29,7 +29,7 @@ class TransapartationTypeController extends Controller
     public function store(TranspartationTypeRequest $request)
     {
         $transpartation = TranspartationType::create($request->validated());
-          event(new \App\Events\TranspartationEventUdpdated($transpartation->fresh()));
+          event(new \App\Events\TranspartationTypeEventUdpdated($transpartation->fresh()));
 
         return redirect()->route('transpartation_types.index');
     }
@@ -66,7 +66,7 @@ class TransapartationTypeController extends Controller
          $transpartation->is_active = true;
          $this->setHistoryData($transpartation);
         $transpartation->update($request->validated());
-          event(new \App\Events\TranspartationEventUdpdated($transpartation->fresh()));
+          event(new \App\Events\TranspartationTypeEventUdpdated($transpartation->fresh()));
 
         return redirect()->route('transpartation_types.index')->with('success', 'transpartation updated successfully.s');
     }
@@ -78,7 +78,7 @@ class TransapartationTypeController extends Controller
         $this->setHistoryData($transpartation);
 
         TranspartationType::where('id', $id)->delete();
-            event(new \App\Events\TranspartationEventUdpdated($transpartation->fresh()));
+            event(new \App\Events\TranspartationTypeEventUdpdated($transpartation->fresh()));
         return redirect()->route('transpartation_types.index')->with('success', 'transpartation deleted successfully.');
     }
     public function history()

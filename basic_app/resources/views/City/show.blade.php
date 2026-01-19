@@ -62,7 +62,7 @@
 
 {{-- 🔔 Listener anchor (used by JS to know which record & channel) --}}
 <div id="city-listener"
-     data-channel="city"
+     data-channel="city-channel"
      data-events='["city_updated"]'
      data-delivery-id="{{ $city->id }}">
 </div>

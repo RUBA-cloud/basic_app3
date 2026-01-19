@@ -560,7 +560,11 @@ Route::controller(CountryController::class)
                 Route::get('/{id}', 'show')->name('show');
             });
     });
+Route::get('/countries/{country}/cities', [CountryController::class, 'cities'])
+    ->name('countries.cities');
 
+Route::get('/transportation-ways/search', [TranspartationWayController::class, 'search'])
+    ->name('transportationWays.search');
     /*
     |----------------------------------------------------------------------
     | Change language (still inside SetLocale, outside auth/verified)

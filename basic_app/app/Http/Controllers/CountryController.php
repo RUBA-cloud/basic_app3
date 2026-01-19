@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CountryRequest;
+use App\Models\City;
 use App\Models\Country;
 use App\Models\CountryHistory;
 use Illuminate\Http\Request;
@@ -53,6 +54,10 @@ class CountryController extends Controller
 
         return view('country.show', compact('country'));
     }
+public function cities(Country $country) {
+   return response()->json(['data' => City::where('country_id',$country->id)->get()]);
+
+}
 
     /**
      * Show the form for editing the specified resource.

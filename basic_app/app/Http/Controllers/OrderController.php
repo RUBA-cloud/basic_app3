@@ -7,8 +7,11 @@ use App\Models\OrderHistory;
 use App\Models\OrderStatus;
 use App\Models\OrderItem;
 use App\Models\OrderItemHistory;
+use App\Models\TraspartationWay;
 use App\Models\User;
-use App\Models\Region;
+use App\Models\Country;
+use App\Models\City;
+
 use App\Notifications\OrderStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -61,23 +64,41 @@ class OrderController extends Controller
      * Edit
      * =============================== */
     public function edit(Order $order)
-    {
-        $order->load(['items.product']);
+{
+    $order->load(['items.product', 'user', 'employee', 'offer']);
 
-        $regions = Region::where('is_active', true)
-            ->orderBy('country_en')
-            ->orderBy('city_en')
-            ->get();
+    $orderStatus = OrderStatus::where('is_active', true)->orderBy('id')->get();
+    $employees   = User::all();
+    $countries   = Country::where('is_active', true)->orderBy('id')->get();
 
-        $employees = User::select('id', 'name')->get();
+    // ✅ selected (default from employee, but old() should override in blade)
+    $employeeCountryId = optional($order->employee)->country_id;
+    $employeeCityId    = optional($order->employee)->city_id;
 
-        return view('orders.edit', [
-            'order'       => $order,
-            'employees'   => $employees,
-            'orderStatus' => $this->getOrderStatuses(),
-            'regions'     => $regions,
-        ]);
-    }
+    // ✅ cities list for the selected country (so city dropdown is filled on load)
+    $cities = City::where('is_active', true)
+        ->when($employeeCountryId, fn($q) => $q->where('country_id', $employeeCountryId))
+        ->orderBy('id')
+        ->get();
+
+    $transparations = TraspartationWay::where('is_active', true)
+        ->with(['country', 'city'])
+        ->orderBy('id')
+        ->get();
+
+    return view('orders.edit', compact(
+        'order',
+        'orderStatus',
+        'employees',
+        'countries',
+        'cities',
+        'employeeCountryId',
+        'employeeCityId',
+        'transparations'
+    ));
+}
+
+
 
     /* ===============================
      * DELETE Order Item (with history)
@@ -102,7 +123,7 @@ class OrderController extends Controller
                 'price'         => $item->price,
                 'quantity'      => $item->quantity,
                 'color'         => $item->color,
-                'note'          => $request->note,
+                'note'          => $item->note,
                 'action'        => 'deleted',
                 'actor_id'      => auth()->id(),
             ]);

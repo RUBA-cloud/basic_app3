@@ -11,16 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transportation_type', function (Blueprint $table) {
-            $table->id();
-            $table->string('name_en')->nullable();
+        //
+        Schema::create("cities_history", function (Blueprint $table) {
+            $table->bigIncrements("id");
+           $table->string('name_en')->nullable();
             $table->string('name_ar')->nullable();
             $table->boolean('is_active')->nullable();
-
-              $table->foreignId('user_id')
-                ->constrained()                 // references users.id
-                ->cascadeOnDelete();
-            $table->timestamps();
+            $table->unsignedBigInteger('country_id')->nullable();
+            $table->foreign('user_id')
+                  ->references('id')
+                  ->on('country')
+                  ->onDelete('set null');
         });
     }
 
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('transportation_type');
+        //
     }
 };

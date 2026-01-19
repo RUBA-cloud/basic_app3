@@ -31,7 +31,7 @@ class CountryEventUpdate
     public function broadcastOn(): array
     {
         return [
-            new Channel('country-updated'),
+            new Channel('country-channel'),
         ];
     }
      public function broadcastAs(): string

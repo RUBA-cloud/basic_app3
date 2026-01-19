@@ -13,16 +13,25 @@
 
   $isAr = app()->getLocale() === 'ar';
 
+  // ✅ refresh url (partial form) — لازم route يرجع نفس الفورم partial
+  $refreshUrl = $refreshUrl ?? (!empty($obj?->id) ? route('transpartation_ways.update', $obj->id) : null);
+
   // ✅ selected values (old -> model)
   $selectedCountryId = (string) old('country_id', data_get($obj, 'country_id', ''));
   $selectedCityId    = (string) old('city_id', data_get($obj, 'city_id', ''));
+  $selectedTypeId    = (string) old('type_id', data_get($obj, 'type_id', ''));
+
+  $isActive = (int) old('is_active', (int) data_get($obj,'is_active', 1));
 @endphp
 
+<div id="transportation-way-form-wrap">
 <form id="transportation-way-form"
       method="{{ $formMethod }}"
       action="{{ $action }}"
       data-channel="{{ $broadcast['channel'] }}"
-      data-events='@json($broadcast["events"])'>
+      data-events='@json($broadcast["events"])'
+      data-refresh-url="{{ $refreshUrl ?? '' }}"
+      data-current-id="{{ data_get($obj,'id','') }}">
 
   @csrf
 
@@ -77,9 +86,29 @@
                   {{ $isAr ? ($c->name_ar ?? $c->name_en) : ($c->name_en ?? $c->name_ar) }}
               </option>
           @endforeach
-      </select>
+      </select>fv
       @error('city_id') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
   </div>
+
+<div class="form-group mb-3">
+  <label for="type_id">{{ __('adminlte::adminlte.transpartationType') }}</label>
+
+  <select id="type_id"
+          name="type_id"
+          class="form-control @error('type_id') is-invalid @enderror"
+          required>
+    <option value="">{{ __('adminlte::adminlte.select') }}</option>
+
+    @foreach(($transpartationsType ?? []) as $t)
+      <option value="{{ $t->id }}"
+        {{ (string)$t->id === (string)$selectedTypeId ? 'selected' : '' }}>
+        {{ $isAr ? ($t->name_ar ?? $t->name_en) : ($t->name_en ?? $t->name_ar) }}
+      </option>
+    @endforeach
+  </select>
+
+  @error('type_id') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+</div>
 
   {{-- Name EN --}}
   <x-form.textarea
@@ -116,8 +145,6 @@
   {{-- Is Active --}}
   <div class="form-group" style="margin: 20px 0;">
       <input type="hidden" name="is_active" value="0">
-      @php $isActive = (int) old('is_active', (int) data_get($obj,'is_active', 1)); @endphp
-
       <label class="mb-0">
           <input type="checkbox" name="is_active" value="1" {{ $isActive ? 'checked' : '' }}>
           {{ __('adminlte::adminlte.is_active') }}
@@ -135,11 +162,24 @@
       icon="fas fa-save"
   />
 </form>
+</div>
+
+{{-- ✅ Listener Anchor (مثل country) --}}
+<div id="transportation-way-form-listener"
+     data-channel="{{ $broadcast['channel'] }}"
+     data-events='@json($broadcast["events"])'
+     data-refresh-url="{{ $refreshUrl ?? '' }}"
+     data-current-id="{{ data_get($obj,'id','') }}">
+</div>
 
 @push('js')
 <script>
 (function () {
   'use strict';
+
+  function parseJsonSafe(v, fallback) {
+    try { return JSON.parse(v); } catch (_) { return fallback; }
+  }
 
   function filterCities() {
     const countrySel = document.getElementById('country_id');
@@ -180,7 +220,127 @@
     }
   }
 
+  function takeSnapshot(form) {
+    return {
+      country_id: form.querySelector('#country_id')?.value ?? '',
+      city_id: form.querySelector('#city_id')?.value ?? '',
+      name_en: form.querySelector('#name_en')?.value ?? '',
+      name_ar: form.querySelector('#name_ar')?.value ?? '',
+      days_count: form.querySelector('#days_count')?.value ?? '',
+      is_active: form.querySelector('input[name="is_active"][type="checkbox"]')?.checked ?? true,
+    };
+  }
+
+  async function refreshForm(snapshot) {
+    const wrap = document.getElementById('transportation-way-form-wrap');
+    const form = document.getElementById('transportation-way-form');
+    if (!wrap || !form) return;
+
+    const url = String(form.dataset.refreshUrl || '');
+    if (!url) return;
+
+    const res = await fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) return;
+
+    wrap.innerHTML = await res.text();
+
+    // ✅ restore snapshot
+    const newForm = document.getElementById('transportation-way-form');
+    if (!newForm || !snapshot) return;
+
+    const c = newForm.querySelector('#country_id');
+    if (c) c.value = snapshot.country_id;
+
+    // city select has dataset.selected
+    const citySel = newForm.querySelector('#city_id');
+    if (citySel) {
+      citySel.dataset.selected = snapshot.city_id || '';
+    }
+
+    if (newForm.querySelector('#name_en')) newForm.querySelector('#name_en').value = snapshot.name_en;
+    if (newForm.querySelector('#name_ar')) newForm.querySelector('#name_ar').value = snapshot.name_ar;
+    if (newForm.querySelector('#days_count')) newForm.querySelector('#days_count').value = snapshot.days_count;
+
+    const chk = newForm.querySelector('input[name="is_active"][type="checkbox"]');
+    if (chk) chk.checked = !!snapshot.is_active;
+
+    // ✅ re-run city filter after rebuild
+    filterCities();
+
+    // ✅ re-bind country change
+    const countrySel = document.getElementById('country_id');
+    if (countrySel) {
+      countrySel.addEventListener('change', function () {
+        const citySel2 = document.getElementById('city_id');
+        if (citySel2) citySel2.dataset.selected = '';
+        filterCities();
+      });
+    }
+  }
+
+  function initBroadcast() {
+    const form   = document.getElementById('transportation-way-form');
+    const anchor = document.getElementById('transportation-way-form-listener');
+
+    if (!form && !anchor) return;
+
+    const channelName = String(anchor?.dataset.channel || form?.dataset.channel || '').trim();
+    const events = parseJsonSafe((anchor?.dataset.events || form?.dataset.events || '[]'), []);
+    const currentId = String(anchor?.dataset.currentId || form?.dataset.currentId || '');
+
+    if (!channelName || !Array.isArray(events) || !events.length) {
+      console.warn('[transportation-way-form] missing channel/events');
+      return;
+    }
+
+    function handler(payload) {
+      // Accept { transportationWay: {...} } OR direct {...}
+      const t =
+        payload?.transportationWay ??
+        payload?.transpartationWay ??
+        payload?.transportation_way ??
+        payload?.transpartation_way ??
+        payload ??
+        {};
+
+      const payloadId = String(t.id ?? payload?.id ?? '');
+
+      // ✅ only refresh when same record if editing
+      if (currentId && payloadId && currentId !== payloadId) return;
+
+      const snap = takeSnapshot(form);
+      refreshForm(snap);
+
+      if (window.toastr) {
+        try { toastr.success(@json(__('adminlte::adminlte.saved_successfully'))); } catch (_) {}
+      }
+
+      console.log('[transportation-way-form] broadcast payload received:', t);
+    }
+
+    // ✅ Register like country (NO Echo)
+    window.__pageBroadcasts = window.__pageBroadcasts || [];
+
+    events.forEach(function (ev) {
+      if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
+        window.AppBroadcast.subscribe(channelName, ev, handler);
+        console.info('[transportation-way-form] subscribed via AppBroadcast →', channelName, '/', ev);
+      } else {
+        window.__pageBroadcasts.push({ channel: channelName, event: ev, handler: handler });
+        console.info('[transportation-way-form] registered in __pageBroadcasts →', channelName, '/', ev);
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    // keep your original behavior
     const countrySel = document.getElementById('country_id');
     if (countrySel) {
       countrySel.addEventListener('change', function () {
@@ -190,6 +350,9 @@
       });
     }
     filterCities();
+
+    // start pusher
+    initBroadcast();
   });
 })();
 </script>

@@ -25,6 +25,7 @@ class TranspartationTypeRequest extends FormRequest
             "name_en"=> "required|string|max:255",
             "name_ar"=> "required|string|max:255",
             "is_active"=> "boolean",
+            "type_id"=>'required'
         ];
     }
 }
