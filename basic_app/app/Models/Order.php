@@ -50,7 +50,7 @@ public function getUpdatedAtHumanAttribute(): ?string
 }
 
 public function trnasparation():BelongsTo{
-
+ return $this->belongsTo(TraspartationWay::class,'transpartation_id');
 }
 
 

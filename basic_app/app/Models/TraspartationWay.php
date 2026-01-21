@@ -3,24 +3,41 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TraspartationWay extends Model
 {
-    protected $table = "transpartation_way";
-    protected $fillable = ["name_en", "name_ar",'country_id', 'city_id', 'is_active', 'user_id,', 'days_count','type_id'];
+    protected $table = 'transpartation_way';
 
+    protected $fillable = [
+        'name_en',
+        'name_ar',
+        'country_id',
+        'city_id',
+        'is_active',
+        'user_id',
+        'days_count',
+        'type_id',
+    ];
 
-    public function country(){
-        return $this->belongsTo(Country::class);
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id');
     }
 
-    public function user(){
-        return $this->belongsTo(User::class);
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
     }
-    public function city(){
-        return $this->belongsTo(City::class);
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
-    public function transpartatiom(){
-        return $this->belongsTo(TranspartationType::class);
+
+    // ✅ type relation
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(TranspartationType::class, 'type_id');
     }
 }

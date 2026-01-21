@@ -463,6 +463,8 @@ return [
     'Incorrect current password' => 'Incorrect current password',
     'transportation_way'=>'Transpotation way',
     'transpartationType'=> 'Transporation Type',
+    'confirm_delete_product'=>'Confirm  to delete product ?',
+    'delete_product'=>'delet Product',
 
     // Dashboard bits
     'Dashboard' => 'Dashboard',

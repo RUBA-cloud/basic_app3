@@ -52,11 +52,12 @@ class OrderController extends Controller
      * =============================== */
     public function show(Order $order)
     {
-        $order->load(['user', 'employee', 'items.product', 'offer']);
-
+        $order->load(['user', 'employee', 'items.product', 'offer','trnasparation']);
+        $orderCountryAndCity = Order::with(['trnasparation.country', 'trnasparation.city'])->find($order->id);
         return view('orders.show', [
             'order'       => $order,
             'orderStatus' => $this->getOrderStatuses(),
+            'orderCountryAndCity'=> $orderCountryAndCity
         ]);
     }
 
