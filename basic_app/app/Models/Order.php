@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-    use Illuminate\Support\Carbon;
 
 class Order extends Model
 {
@@ -19,6 +18,7 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'employee_id',
+        'transpartation_id',
         'address',
         'building_number',
         'street_name',
@@ -49,6 +49,9 @@ public function getUpdatedAtHumanAttribute(): ?string
     return $this->updated_at?->diffForHumans();
 }
 
+public function trnasparation():BelongsTo{
+
+}
 
 
 

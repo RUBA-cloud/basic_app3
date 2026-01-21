@@ -17,6 +17,8 @@
 <div class="card">
     <div class="card-body">
         @php
+            $isAr = app()->getLocale() === 'ar';
+
             // Determine which image to show
             $avatar = null;
 
@@ -27,6 +29,25 @@
             } else {
                 $avatar = asset('images/logo_image.png');
             }
+
+            // Country/City display (safe)
+            $countryName = null;
+            if (!empty($employee->country)) {
+                $countryName = $isAr
+                    ? ($employee->country->name_ar ?? $employee->country->name_en ?? $employee->country->name ?? null)
+                    : ($employee->country->name_en ?? $employee->country->name_ar ?? $employee->country->name ?? null);
+            } elseif (!empty($employee->country_name)) {
+                $countryName = $employee->country_name;
+            }
+
+            $cityName = null;
+            if (!empty($employee->city)) {
+                $cityName = $isAr
+                    ? ($employee->city->name_ar ?? $employee->city->name_en ?? $employee->city->name ?? null)
+                    : ($employee->city->name_en ?? $employee->city->name_ar ?? $employee->city->name ?? null);
+            } elseif (!empty($employee->city_name)) {
+                $cityName = $employee->city_name;
+            }
         @endphp
 
         <div class="d-flex gap-3 align-items-center mb-3" style="padding: 5px">
@@ -35,9 +56,28 @@
                  class="rounded-circle border"
                  style="width:70px;height:70px;object-fit:cover;margin:5px;"
                  data-placeholder="{{ $avatar }}">
-            <div>
+            <div class="w-100">
                 <div id="employee-name" class="h5 mb-1">{{ $employee->name }}</div>
                 <div id="employee-email" class="text-muted">{{ $employee->email }}</div>
+
+                {{-- ✅ Country + City --}}
+                <div class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                    <span class="badge bg-light text-dark border">
+                        <i class="fas fa-flag me-1"></i>
+                        <span class="text-muted me-1">{{ __('adminlte::adminlte.country') }}:</span>
+                        <span id="employee-country">
+                            {{ $countryName ?: '—' }}
+                        </span>
+                    </span>
+
+                    <span class="badge bg-light text-dark border">
+                        <i class="fas fa-city me-1"></i>
+                        <span class="text-muted me-1">{{ __('adminlte::adminlte.city') }}:</span>
+                        <span id="employee-city">
+                            {{ $cityName ?: '—' }}
+                        </span>
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -70,9 +110,30 @@
 (function () {
     'use strict';
 
+    const IS_AR = @json(app()->getLocale() === 'ar');
+
     function norm(v) {
         if (v === undefined || v === null) return '';
         return String(v);
+    }
+
+    function pickLocalizedName(obj) {
+        if (!obj) return '';
+        // supports {name_en,name_ar} or {name}
+        if (IS_AR) return norm(obj.name_ar || obj.name_en || obj.name || '');
+        return norm(obj.name_en || obj.name_ar || obj.name || '');
+    }
+
+    function resolveCountryName(e) {
+        // supports many shapes:
+        // e.country (object), e.country_name (string), e.countryName, e.country_label
+        if (e.country && typeof e.country === 'object') return pickLocalizedName(e.country);
+        return norm(e.country_name || e.countryName || e.country_label || '');
+    }
+
+    function resolveCityName(e) {
+        if (e.city && typeof e.city === 'object') return pickLocalizedName(e.city);
+        return norm(e.city_name || e.cityName || e.city_label || '');
     }
 
     function renderPermissions(container, permissions) {
@@ -111,11 +172,26 @@
 
         // Name
         const nameEl = document.getElementById('employee-name');
-        if (nameEl) nameEl.textContent = norm(e.name);
+        if (nameEl && e.name !== undefined) nameEl.textContent = norm(e.name);
 
         // Email
         const emailEl = document.getElementById('employee-email');
-        if (emailEl) emailEl.textContent = norm(e.email);
+        if (emailEl && e.email !== undefined) emailEl.textContent = norm(e.email);
+
+        // ✅ Country
+        const countryEl = document.getElementById('employee-country');
+        if (countryEl) {
+            const cn = resolveCountryName(e);
+            if (cn !== '') countryEl.textContent = cn;
+            // لو رجع فاضي وما بدك يمسح القيمة القديمة، اتركها زي ما هي
+        }
+
+        // ✅ City
+        const cityEl = document.getElementById('employee-city');
+        if (cityEl) {
+            const ctn = resolveCityName(e);
+            if (ctn !== '') cityEl.textContent = ctn;
+        }
 
         // Avatar
         const avatarEl = document.getElementById('employee-avatar');
@@ -160,12 +236,13 @@
         }
 
         const handler = function (eventPayload) {
+            // بعض المشاريع تبعث payload كامل أو payload.employee
             updateDomFromPayload(eventPayload && (eventPayload.employee ?? eventPayload));
         };
 
         window.__pageBroadcasts.push({
-            channel: 'employees',         // broadcastOn()
-            event:   'employee_updated',  // broadcastAs()
+            channel: 'employees',
+            event:   'employee_updated',
             handler: handler
         });
 

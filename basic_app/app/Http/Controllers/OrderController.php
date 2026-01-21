@@ -156,54 +156,63 @@ public function edit(Order $order)
     /* ===============================
      * Update Order
      * =============================== */
-    public function update(Request $request, Order $order)
-    {
-        $orderStatus = $this->getOrderStatuses();
 
-        $data = $request->validate([
-            'notes'       => ['nullable', 'string', 'max:2000'],
-            'status'      => ['required', 'integer'],
-            'employee_id' => ['nullable', 'exists:users,id'],
-        ]);
+public function update(Request $request, Order $order)
+{
+    $orderStatuses = $this->getOrderStatuses();
 
-        // Validate status id
-        if (!$orderStatus->pluck('id')->contains($data['status'])) {
-            return back()->withErrors(['status' => 'Invalid status'])->withInput();
-        }
+    $data = $request->validate([
+        'notes'             => ['nullable', 'string', 'max:2000'],
+        'status'            => ['required'], // نخليها مرنة (0/1/2/3 أو رقم)
+        'employee_id'       => ['nullable', 'integer', 'exists:users,id'],
+        'transpartation_id' => ['nullable', 'integer', 'exists:transpartation_way,id'], // ✅ عدّل اسم الجدول إذا مختلف
+        'reject_reason'     => ['nullable', 'string', 'max:2000'], // لو عندك رفض
+    ]);
 
-        // Employee required when accepted
-        $acceptedStatusId = $orderStatus
-            ->firstWhere('name_en', 'Accepted')
-            ?->id;
-
-        if ($acceptedStatusId && (int)$data['status'] === (int)$acceptedStatusId) {
-            if (empty($data['employee_id'])) {
-                return back()
-                    ->withErrors(['employee_id' => 'Employee is required'])
-                    ->withInput();
-            }
-        }
-
-        $order->update([
-            'notes'       => $data['notes'],
-            'status'      => (int) $data['status'],
-            'employee_id' => $data['employee_id'],
-        ]);
-
-        // Notify customer
-        if ($order->user) {
-            $order->user->notify(
-                new OrderStatusChanged(
-                    "Order #{$order->id}",
-                    __('adminlte::adminlte.order_status_changed')
-                )
-            );
-        }
-
-        return redirect()
-            ->route('orders.show', $order)
-            ->with('success', __('adminlte::adminlte.order_updated_successfully'));
+    // ✅ Validate status value (الفورم يرسل st->status)
+    $validStatuses = $orderStatuses->pluck('status')->map(fn ($v) => (string)$v)->all();
+    if (!in_array((string)$data['status'], $validStatuses, true)) {
+        return back()->withErrors(['status' => 'Invalid status'])->withInput();
     }
+
+    // ✅ Employee required when Accepted (حسب status value)
+    $acceptedStatusValue = (string) optional($orderStatuses->firstWhere('name_en', 'Accepted'))->status;
+
+    if ($acceptedStatusValue !== '' && (string)$data['status'] === $acceptedStatusValue) {
+        if (empty($data['employee_id'])) {
+            return back()
+                ->withErrors(['employee_id' => 'Employee is required'])
+                ->withInput();
+        }
+    }
+
+    // ✅ Reject reason required when Rejected (اختياري - إذا عندك حالة رفض)
+    $rejectedStatusValue = (string) optional($orderStatuses->firstWhere('name_en', 'Rejected'))->status;
+    if ($rejectedStatusValue !== '' && (string)$data['status'] === $rejectedStatusValue) {
+        if (empty($data['reject_reason'])) {
+            return back()
+                ->withErrors(['reject_reason' => 'Reject reason is required'])
+                ->withInput();
+        }
+    }
+
+    // ✅ Update correctly (بدون array داخل array)
+    $order->update($data);
+
+    // ✅ Notify customer
+    if ($order->user) {
+        $order->user->notify(
+            new OrderStatusChanged(
+                "Order #{$order->id}",
+                __('adminlte::adminlte.order_status_changed')
+            )
+        );
+    }
+
+    return redirect()
+        ->route('orders.show', $order)
+        ->with('success', __('adminlte::adminlte.order_updated_successfully'));
+}
 
     /* ===============================
      * Delete Order

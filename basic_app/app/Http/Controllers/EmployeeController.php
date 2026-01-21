@@ -200,7 +200,7 @@ $countries   = Country::where('is_active', true)->orderBy('id')->get();
     {
         abort_unless($employee->role === 'employee', 404);
 
-        $employee->load('permissions');
+        $employee->load('permissions','city','country');
 
         return view('employee.show', compact('employee'));
     }
@@ -251,7 +251,8 @@ $countries   = Country::where('is_active', true)->orderBy('id')->get();
         }
 
         $employee->save();
-broadcast(new \App\Events\EmployeeEventUpdate($employee));
+
+        broadcast(new \App\Events\EmployeeEventUpdate($employee));
         $employee->permissions()->sync($data['permissions'] ?? []);
 
         // AFTER snapshot (optional)

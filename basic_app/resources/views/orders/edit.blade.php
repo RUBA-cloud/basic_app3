@@ -28,25 +28,13 @@
   $toCountry    = (string) old('to_country_id',   $order->to_country_id   ?? $userCountryId);
   $toCity       = (string) old('to_city_id',      $order->to_city_id      ?? $userCityId);
 
-  $fromWay      = (string) old('from_way_id', $order->from_way_id ?? '');
-  $toWay        = (string) old('to_way_id',   $order->to_way_id ?? '');
-
-  $fromDays     = (string) old('from_days_count', $order->from_days_count ?? '');
-  $toDays       = (string) old('to_days_count',   $order->to_days_count ?? '');
-
+  // ✅ one way only
+  $wayId        = (string) old('transportation_way_id', $order->transportation_way_id ?? $order->way_id ?? '');
+  $daysCount    = (string) old('days_count', $order->days_count ?? '');
   $rejectReason = (string) old('reject_reason', $order->reject_reason ?? '');
 @endphp
 
 @section('content')
-<style>
-  .glass-card{border-radius:18px;border:1px solid rgba(0,0,0,.06);box-shadow:0 10px 30px rgba(0,0,0,.06)}
-  .pill{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .65rem;border-radius:999px;background:#f3f5f7;border:1px solid rgba(0,0,0,.06);font-size:.85rem}
-  .soft-field{border-radius:12px}
-  .section-title{display:flex;align-items:center;gap:.5rem;font-weight:700}
-  .subtle{color:#6c757d;font-size:.85rem}
-  .mini-card{border:1px solid rgba(0,0,0,.06);border-radius:16px;padding:14px;background:#fff}
-  .badge-soft{border-radius:999px;padding:.35rem .6rem}
-</style>
 
 <div class="container-fluid">
 
@@ -144,8 +132,6 @@
             {{-- FROM --}}
             <div class="col-lg-6 mb-3">
               <div class="mini-card">
-
-                {{-- ✅ Country + City component (FROM) --}}
                 <x-country-city
                   prefix="from"
                   :countries="$countries"
@@ -155,38 +141,18 @@
                   cityName="from_city_id"
                   countryId="from_country_id"
                   cityId="from_city_id"
-                                    locked="false"
-
                   :selectedCountry="$fromCountry"
                   :selectedCity="$fromCity"
+                  :locked="false"
                   title="{{ __('adminlte::adminlte.from') ?? 'From' }}"
-                  badgeText="{{ __('adminlte::adminlte.source') ?? 'Source' }}"
                   :required="false"
                 />
-
-                {{-- Transportation Way (FROM) --}}
-                <div class="mb-2 mt-2">
-                  <label class="subtle">{{ __('adminlte::adminlte.transportation_way') ?? 'Transportation Way' }}</label>
-                  <select name="from_way_id" id="from_way_id" class="form-control soft-field" data-selected="{{ $fromWay }}">
-                    <option value="">{{ __('adminlte::adminlte.select') ?? 'Select' }}</option>
-                  </select>
-
-                  <div class="d-flex flex-wrap gap-2 mt-2">
-                    <span class="badge badge-info badge-soft" id="fromDaysBadge" style="display:none;"></span>
-                    <span class="badge badge-primary badge-soft" id="fromTypeBadge" style="display:none;"></span>
-                  </div>
-
-                  <input type="hidden" name="from_days_count" id="from_days_count" value="{{ $fromDays }}">
-                </div>
-
               </div>
             </div>
 
             {{-- TO --}}
             <div class="col-lg-6 mb-3">
               <div class="mini-card">
-
-                {{-- ✅ Country + City component (TO) --}}
                 <x-country-city
                   prefix="to"
                   :countries="$countries"
@@ -198,33 +164,31 @@
                   cityId="to_city_id"
                   :selectedCountry="$toCountry"
                   :selectedCity="$toCity"
-                  locked="false"
+                  :locked="false"
                   title="{{ __('adminlte::adminlte.to') ?? 'To' }}"
-                  badgeText="{{ __('adminlte::adminlte.destination') ?? 'Destination' }}"
                   :required="false"
                 />
 
-                {{-- Transportation Way (TO) --}}
-                <div class="mb-2 mt-2">
+                {{-- ✅ ONE Transportation Way --}}
+                <div class="mb-2 mt-3">
                   <label class="subtle">{{ __('adminlte::adminlte.transportation_way') ?? 'Transportation Way' }}</label>
-                  <select name="to_way_id" id="to_way_id" class="form-control soft-field" data-selected="{{ $toWay }}">
+
+                  <select name="transpartation_id" id="transportation_way_id"
+                          class="form-control soft-field"
+                          data-selected="{{ $wayId }}">
                     <option value="">{{ __('adminlte::adminlte.select') ?? 'Select' }}</option>
                   </select>
 
                   <div class="d-flex flex-wrap gap-2 mt-2">
-                    <span class="badge badge-info badge-soft" id="toDaysBadge" style="display:none;"></span>
-                    <span class="badge badge-primary badge-soft" id="toTypeBadge" style="display:none;"></span>
+                    <span class="badge badge-info badge-soft" id="daysBadge" style="display:none;"></span>
+                    <span class="badge badge-primary badge-soft" id="typeBadge" style="display:none;"></span>
                   </div>
 
-                  <input type="hidden" name="to_days_count" id="to_days_count" value="{{ $toDays }}">
+                  <input type="hidden" name="days_count" id="days_count" value="{{ $daysCount }}">
                 </div>
 
               </div>
             </div>
-          </div>
-
-          <div class="d-flex flex-wrap gap-2">
-            <span class="badge badge-dark badge-soft" id="totalBadge" style="display:none;"></span>
           </div>
 
           <div class="subtle mt-2">
@@ -234,7 +198,7 @@
 
       </div>
 
-      <div class="card-footer bg-transparent d-flex flex-wrap gap-2">
+      <div class="card-footer bg d-flex flex-wrap gap-3" >
         <button class="btn btn-primary" style="border-radius:14px" type="submit">
           <i class="fas fa-save mr-1"></i> {{ __('adminlte::adminlte.save') ?? 'Save' }}
         </button>
@@ -274,17 +238,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const toCountry   = document.getElementById('to_country_id');
   const toCity      = document.getElementById('to_city_id');
 
-  const fromWay     = document.getElementById('from_way_id');
-  const toWay       = document.getElementById('to_way_id');
-
-  const fromDaysH   = document.getElementById('from_days_count');
-  const toDaysH     = document.getElementById('to_days_count');
-
-  const fromDaysB   = document.getElementById('fromDaysBadge');
-  const toDaysB     = document.getElementById('toDaysBadge');
-  const fromTypeB   = document.getElementById('fromTypeBadge');
-  const toTypeB     = document.getElementById('toTypeBadge');
-  const totalB      = document.getElementById('totalBadge');
+  // ✅ one way only
+  const waySel     = document.getElementById('transportation_way_id');
+  const daysH      = document.getElementById('days_count');
+  const daysB      = document.getElementById('daysBadge');
+  const typeB      = document.getElementById('typeBadge');
 
   const empCountryDefault  = document.getElementById('employee_country_id_default')?.value || '';
   const empCityDefault     = document.getElementById('employee_city_id_default')?.value || '';
@@ -300,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function setRequiredForShipment(on){
-    [fromCountry, fromCity, toCountry, toCity, fromWay, toWay].forEach(el => { if(el) el.required = !!on; });
+    [fromCountry, fromCity, toCountry, toCity, waySel].forEach(el => { if(el) el.required = !!on; });
   }
 
   function lockShipmentAddresses(lock){
@@ -347,11 +305,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }catch(e){ console.warn('loadCities', e); }
   }
 
-  async function loadWays(countryId, cityId, waySelect){
-    resetSelect(waySelect);
+  // ✅ Decide which (country_id, city_id) to search with:
+  // - if different countries -> use FROM as source
+  // - if same country -> still use FROM city (because endpoint accepts one city)
+  function getSearchPair(){
+    const fc = String(fromCountry?.value || '');
+    const tc = String(toCountry?.value || '');
+    const fct = String(fromCity?.value || '');
+    const tct = String(toCity?.value || '');
+
+    if(!fc) return { countryId:'', cityId:'' };
+
+    // different countries => source side
+    if(fc && tc && fc !== tc){
+      return { countryId: fc, cityId: fct || '' };
+    }
+
+    // same country => "from city -> to city" (endpoint limitation)
+    // so we query by FROM city; you can change to tct if your data is destination-based.
+    return { countryId: fc, cityId: fct || tct || '' };
+  }
+
+  async function loadWaysOne(){
+    resetSelect(waySel);
+
+    const { countryId, cityId } = getSearchPair();
     if(!countryId || !cityId) return;
 
-    const selected = String(waySelect.dataset.selected || '');
+    const selected = String(waySel.dataset.selected || '');
+
     const url = new URL(@json(route('transportationWays.search')), window.location.origin);
     url.searchParams.set('country_id', countryId);
     url.searchParams.set('city_id', cityId);
@@ -383,49 +365,33 @@ document.addEventListener('DOMContentLoaded', function () {
         opt.dataset.type = typeName;
 
         if(selected && String(w.id) === selected) opt.selected = true;
-        waySelect.appendChild(opt);
+        waySel.appendChild(opt);
       });
 
-    }catch(e){ console.warn('loadWays', e); }
+    }catch(e){ console.warn('loadWaysOne', e); }
   }
 
-  function updateWayBadges(waySelect, daysBadge, typeBadge, hiddenInput){
-    const opt = waySelect?.options?.[waySelect.selectedIndex];
+  function updateWayBadges(){
+    const opt = waySel?.options?.[waySel.selectedIndex];
     if(!opt || !opt.value){
-      hide(daysBadge); hide(typeBadge);
-      if(hiddenInput) hiddenInput.value = '';
-      updateTotal();
+      hide(daysB); hide(typeB);
+      if(daysH) daysH.value = '';
       return;
     }
 
     const days = String(opt.dataset.days || '0');
     const type = String(opt.dataset.type || '');
 
-    if(hiddenInput) hiddenInput.value = days;
+    if(daysH) daysH.value = days;
 
-    daysBadge.textContent = (isAr ? 'الأيام: ' : 'Days: ') + days;
-    show(daysBadge);
+    daysB.textContent = (isAr ? 'الأيام: ' : 'Days: ') + days;
+    show(daysB);
 
     if(type){
-      typeBadge.textContent = (isAr ? 'النوع: ' : 'Type: ') + type;
-      show(typeBadge);
+      typeB.textContent = (isAr ? 'النوع: ' : 'Type: ') + type;
+      show(typeB);
     }else{
-      hide(typeBadge);
-    }
-
-    updateTotal();
-  }
-
-  function updateTotal(){
-    const a = parseInt(fromDaysH?.value || '0',10) || 0;
-    const b = parseInt(toDaysH?.value || '0',10) || 0;
-    const t = a + b;
-
-    if(t > 0){
-      totalB.textContent = (isAr ? 'مجموع الأيام: ' : 'Total days: ') + t;
-      show(totalB);
-    }else{
-      hide(totalB);
+      hide(typeB);
     }
   }
 
@@ -437,105 +403,96 @@ document.addEventListener('DOMContentLoaded', function () {
     const toC  = userCountryDefault;
     const toCt = userCityDefault;
 
+    // from
     if(fromC){
       fromCountry.value = fromC;
       fromCity.dataset.selected = fromCt || '';
       await loadCities(fromC, fromCity);
-
-      await loadWays(fromC, fromCity.value, fromWay);
-      updateWayBadges(fromWay, fromDaysB, fromTypeB, fromDaysH);
     }else{
       resetSelect(fromCity);
-      resetSelect(fromWay);
-      updateWayBadges(fromWay, fromDaysB, fromTypeB, fromDaysH);
     }
 
+    // to
     if(toC){
       toCountry.value = toC;
       toCity.dataset.selected = toCt || '';
       await loadCities(toC, toCity);
-
-      await loadWays(toC, toCity.value, toWay);
-      updateWayBadges(toWay, toDaysB, toTypeB, toDaysH);
     }else{
       resetSelect(toCity);
-      resetSelect(toWay);
-      updateWayBadges(toWay, toDaysB, toTypeB, toDaysH);
     }
+
+    // load one way based on logic
+    await loadWaysOne();
+    updateWayBadges();
 
     lockShipmentAddresses(true);
   }
 
   async function initShipmentCurrentValues(){
-    const fromC = String(fromCountry.value || fromCountry.dataset.selected || '');
-    const toC   = String(toCountry.value   || toCountry.dataset.selected   || '');
+    const fromC = String(fromCountry?.value || fromCountry?.dataset?.selected || '');
+    const toC   = String(toCountry?.value   || toCountry?.dataset?.selected   || '');
 
-    if(fromC){
-      await loadCities(fromC, fromCity);
-      await loadWays(fromC, fromCity.value, fromWay);
-      updateWayBadges(fromWay, fromDaysB, fromTypeB, fromDaysH);
-    }
-    if(toC){
-      await loadCities(toC, toCity);
-      await loadWays(toC, toCity.value, toWay);
-      updateWayBadges(toWay, toDaysB, toTypeB, toDaysH);
-    }
+    if(fromC) await loadCities(fromC, fromCity);
+    if(toC)   await loadCities(toC, toCity);
+
+    await loadWaysOne();
+    updateWayBadges();
   }
 
   async function toggleBlocks(){
     const v = String(statusSel.value || '');
 
     const accepted = (v === ACCEPTED);
-    if(accepted) show(employeeBox); else hide(employeeBox);
+    employeeBox.style.display = accepted ? '' : 'none';
     if(empSel) empSel.required = accepted;
 
     const rejected = (v === REJECTED);
-    if(rejected) show(rejectBox); else hide(rejectBox);
+    rejectBox.style.display = rejected ? '' : 'none';
     if(rejectTxt) rejectTxt.required = rejected;
 
     const shipped = (v === SHIPPED);
     if(shipped){
-      show(shipmentBox);
+      shipmentBox.style.display = '';
       setRequiredForShipment(true);
       await applyShippedDefaults();
     }else{
-      hide(shipmentBox);
+      shipmentBox.style.display = 'none';
       setRequiredForShipment(false);
       lockShipmentAddresses(false);
       await initShipmentCurrentValues();
     }
   }
 
+  // change events
   fromCountry?.addEventListener('change', async () => {
     fromCity.dataset.selected = '';
     await loadCities(fromCountry.value, fromCity);
-    fromWay.dataset.selected = '';
-    await loadWays(fromCountry.value, fromCity.value, fromWay);
-    updateWayBadges(fromWay, fromDaysB, fromTypeB, fromDaysH);
+    waySel.dataset.selected = '';
+    await loadWaysOne();
+    updateWayBadges();
   });
 
   toCountry?.addEventListener('change', async () => {
     toCity.dataset.selected = '';
     await loadCities(toCountry.value, toCity);
-    toWay.dataset.selected = '';
-    await loadWays(toCountry.value, toCity.value, toWay);
-    updateWayBadges(toWay, toDaysB, toTypeB, toDaysH);
+    waySel.dataset.selected = '';
+    await loadWaysOne();
+    updateWayBadges();
   });
 
   fromCity?.addEventListener('change', async () => {
-    fromWay.dataset.selected = '';
-    await loadWays(fromCountry.value, fromCity.value, fromWay);
-    updateWayBadges(fromWay, fromDaysB, fromTypeB, fromDaysH);
+    waySel.dataset.selected = '';
+    await loadWaysOne();
+    updateWayBadges();
   });
 
   toCity?.addEventListener('change', async () => {
-    toWay.dataset.selected = '';
-    await loadWays(toCountry.value, toCity.value, toWay);
-    updateWayBadges(toWay, toDaysB, toTypeB, toDaysH);
+    waySel.dataset.selected = '';
+    await loadWaysOne();
+    updateWayBadges();
   });
 
-  fromWay?.addEventListener('change', () => updateWayBadges(fromWay, fromDaysB, fromTypeB, fromDaysH));
-  toWay?.addEventListener('change', () => updateWayBadges(toWay, toDaysB, toTypeB, toDaysH));
+  waySel?.addEventListener('change', updateWayBadges);
 
   statusSel?.addEventListener('change', () => toggleBlocks());
 
@@ -544,6 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
     await applyShippedDefaults();
   });
 
+  // init
   toggleBlocks();
 });
 </script>

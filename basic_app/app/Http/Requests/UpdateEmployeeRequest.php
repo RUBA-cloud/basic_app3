@@ -24,8 +24,8 @@ class UpdateEmployeeRequest extends FormRequest
             'permissions'    => ['nullable','array'],
             'permissions.*'  => ['integer', Rule::exists('permissions','id')],
            'is_active'          => ['nullable|boolean'],'
-           country_id'=>['required', Rule::exists('country','id')],
-            'city_id'=>['required', Rule::exists('cities','id')],
+           country_id'=>['nullable', Rule::exists('country','id')],
+            'city_id'=>['nullable', Rule::exists('cities','id')],
 
         ];
     }
