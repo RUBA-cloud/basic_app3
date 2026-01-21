@@ -21,6 +21,9 @@ class StoreEmployeeRequest extends FormRequest
             'avatar'         => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
             'permissions'    => ['nullable','array'],
             'permissions.*'  => ['integer', Rule::exists('permissions','id')],
+            'country_id'=>['required', Rule::exists('country','id')],
+            'city_id'=>['required', Rule::exists('cities','id')],
+
         ];
     }
 }

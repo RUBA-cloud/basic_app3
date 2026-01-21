@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Country;
 use App\Models\City;
-use App\Models\TranspartationWay;
+use App\Models\TraspartationWay;
 use Illuminate\Support\Facades\DB;
-
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -26,7 +25,6 @@ use Illuminate\Validation\Rule;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
-
 class AuthApiController extends Controller
 {
     protected Configuration $jwtConfig;
@@ -183,7 +181,7 @@ public function login(Request $request)
                 $nameEn = trim(($country->name_en ?? '') . ' - ' . ($city->name_en ?? ''));
                 $nameAr = trim(($country->name_ar ?? $country->name_en ?? '') . ' - ' . ($city->name_ar ?? $city->name_en ?? ''));
 
-                TranspartationWay::firstOrCreate(
+                TraspartationWay::firstOrCreate(
                     [
                         'country_id' => $country->id,
                         'city_id'    => $city->id,

@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Sanctum\HasApiTokens; // ✅ هذا المهم
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    // ✅ بدالي HasSanctumTokens بـ HasApiTokens
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
@@ -24,6 +23,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'address',
         'street',
         'notification_on',
+        'country_id',
+        'city_id',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -51,24 +52,39 @@ class User extends Authenticatable implements MustVerifyEmail
         'payment_module'             => 'payment_module',
     ];
 
-    // === RELATIONS ===
+    // =========================
+    // Relations
+    // =========================
 
     public function permissions()
     {
-        return $this->belongsToMany(\App\Models\Permission::class, 'permission_user')->withTimestamps();
+        return $this->belongsToMany(Permission::class, 'permission_user')->withTimestamps();
     }
 
     public function modulesHistory()
     {
-        return $this->hasOne(\App\Models\Module::class, 'user_id')->latestOfMany();
+        return $this->hasOne(Module::class, 'user_id')->latestOfMany();
     }
 
     public function deviceTokens()
     {
-        return $this->hasMany(\App\Models\DeviceToken::class, 'user_id');
+        return $this->hasMany(DeviceToken::class, 'user_id');
     }
 
-    // === MAIN ADMIN LOGIC ===
+    // ✅ Country/City relations (fixed)
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id');
+    }
+
+    // =========================
+    // Main admin logic
+    // =========================
 
     public function isMainAdmin(): bool
     {
@@ -77,27 +93,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasModuleFeature(string $featureKey): bool
     {
-        if ($this->isMainAdmin()) {
-            return true;
-        }
-
-        return $this->canUseModule($featureKey);
+        return $this->isMainAdmin() ? true : $this->canUseModule($featureKey);
     }
 
     public function canUseModule(string $featureKey): bool
     {
-        if ($this->isMainAdmin()) {
-            return true;
-        }
-
-        return $this->hasAnyPermissionForFeature($featureKey);
+        return $this->isMainAdmin() ? true : $this->hasAnyPermissionForFeature($featureKey);
     }
 
     public function hasPermission(string $moduleName, string $ability): bool
     {
-        if ($this->isMainAdmin()) {
-            return true;
-        }
+        if ($this->isMainAdmin()) return true;
 
         if (!in_array($ability, ['can_add', 'can_edit', 'can_delete', 'can_view_history'], true)) {
             return false;
@@ -119,26 +125,20 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function availableModules(): array
     {
-        if ($this->isMainAdmin()) {
-            return self::MODULE_FLAG_TO_NAME;
-        }
+        if ($this->isMainAdmin()) return self::MODULE_FLAG_TO_NAME;
 
         $mods = [];
         foreach (self::MODULE_FLAG_TO_NAME as $flag => $slug) {
-            if ($this->canUseModule($flag)) {
-                $mods[$flag] = $slug;
-            }
+            if ($this->canUseModule($flag)) $mods[$flag] = $slug;
         }
         return $mods;
     }
 
-    public function moduleRow(): ?\App\Models\Module
+    public function moduleRow(): ?Module
     {
         if ($this->relationLoaded('modulesHistory')) {
             $rel = $this->getRelation('modulesHistory');
-            if ($rel instanceof \App\Models\Module) {
-                return $rel;
-            }
+            if ($rel instanceof Module) return $rel;
         }
 
         try {
@@ -147,9 +147,7 @@ class User extends Authenticatable implements MustVerifyEmail
         } catch (\Throwable $e) {}
 
         try {
-            return \App\Models\Module::where('user_id', $this->id)
-                ->orderByDesc('id')
-                ->first();
+            return Module::where('user_id', $this->id)->orderByDesc('id')->first();
         } catch (\Throwable $e) {
             return null;
         }
@@ -158,15 +156,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasAnyPermissionForFeature(string $featureKey): bool
     {
         $moduleName = self::MODULE_FLAG_TO_NAME[$featureKey] ?? null;
-
-        if (!$moduleName) {
-            return false;
-        }
+        if (!$moduleName) return false;
 
         $perm = $this->permissionFor($moduleName);
-        if (!$perm) {
-            return false;
-        }
+        if (!$perm) return false;
 
         return (bool)(
             ($perm->can_add ?? false) ||
@@ -176,23 +169,21 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
-    public function permissionFor(string $moduleName): ?\App\Models\Permission
+    public function permissionFor(string $moduleName): ?Permission
     {
         if ($this->isMainAdmin()) {
-            return new \App\Models\Permission([
-                'module_name'       => $moduleName,
-                'can_add'           => true,
-                'can_edit'          => true,
-                'can_delete'        => true,
-                'can_view_history'  => true,
-                'is_active'         => true,
+            return new Permission([
+                'module_name'      => $moduleName,
+                'can_add'          => true,
+                'can_edit'         => true,
+                'can_delete'       => true,
+                'can_view_history' => true,
+                'is_active'        => true,
             ]);
         }
 
         if ($this->relationLoaded('permissions')) {
-            return $this->permissions->first(function ($p) use ($moduleName) {
-                return $p->module_name === $moduleName && (bool) $p->is_active;
-            });
+            return $this->permissions->first(fn($p) => $p->module_name === $moduleName && (bool) $p->is_active);
         }
 
         return $this->permissions()
@@ -200,6 +191,10 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('permissions.is_active', true)
             ->first();
     }
+
+    // =========================
+    // Scopes / Notifications
+    // =========================
 
     public function scopeEmployees($q)
     {
@@ -211,6 +206,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->deviceTokens()->pluck('token')->all();
     }
 
+    // =========================
+    // Accessors
+    // =========================
+
     protected function avatarUrl(): Attribute
     {
         return Attribute::get(function () {
@@ -220,6 +219,10 @@ class User extends Authenticatable implements MustVerifyEmail
             return asset('images/avatar-placeholder.png');
         });
     }
+
+    // =========================
+    // Other relations
+    // =========================
 
     public function faviorates()
     {

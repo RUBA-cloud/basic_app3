@@ -13,7 +13,7 @@ return new class extends Migration
     {
         //
         Schema::create("transpartation_way", function (Blueprint $table) {
- $table->bigIncrements("id");
+            $table->bigIncrements("id");
            $table->string('name_en')->nullable();
             $table->string('name_ar')->nullable();
             $table->boolean('is_active')->nullable();

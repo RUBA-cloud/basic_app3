@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Permission;
 use App\Models\EmployeeHistory;
+use App\Models\Country;
+use App\Models\City;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -56,14 +59,17 @@ class EmployeeController extends Controller
     {
         // Get all permissions (adjust ordering as you prefer)
         $permissions = Permission::orderBy('name_en')->get();
-
-        return view('employee.create', compact('permissions'));
+$countries   = Country::where('is_active', true)->orderBy('id')->get();
+    $cities   = City::where('is_active', true)->orderBy('id')->get();
+        return view('employee.create', compact('permissions','countries','cities'));
     }
 
     public function store(\App\Http\Requests\StoreEmployeeRequest $request)
     {
         $data = $request->validated();
 
+
+    //
         $avatarPath = null;
         if ($request->hasFile('avatar')) {
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
@@ -75,6 +81,8 @@ class EmployeeController extends Controller
             'password'    => Hash::make($data['password']),
             'role'        => 'employee',
             'avatar_path' => $avatarPath,
+            'country_id'=> $data['country_id'],
+            'city_id'=>$data['city_id'],
         ]);
 
         $user->permissions()->sync($data['permissions'] ?? []);
@@ -198,15 +206,20 @@ class EmployeeController extends Controller
     }
 
     // Prefer route-model binding for consistency
-    public function edit(User $employee)
-    {
-        abort_unless($employee->role === 'employee', 404);
+  public function edit(User $employee)
+{
+    abort_unless($employee->role === 'employee', 404);
 
-        $permissions = Permission::orderBy('name_en')->get();
-        $employee->load('permissions');
+    $countries   = Country::where('is_active', true)->orderBy('id')->get();
+      $cities   = City::where('is_active', true)->orderBy('id')->get();
 
-        return view('employee.edit', compact('employee', 'permissions'));
-    }
+    $permissions = Permission::orderBy('name_en')->get();
+
+    // ✅ load relations so you can use $employee->country / $employee->city in blade
+    $employee->load(['permissions', 'country', 'city']);
+    return view('employee.edit', compact('employee', 'permissions', 'countries','cities'));
+}
+
 
     public function update(\App\Http\Requests\UpdateEmployeeRequest $request, User $employee)
     {

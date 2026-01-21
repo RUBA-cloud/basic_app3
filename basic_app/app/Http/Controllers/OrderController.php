@@ -63,28 +63,30 @@ class OrderController extends Controller
     /* ===============================
      * Edit
      * =============================== */
-    public function edit(Order $order)
+
+
+
+public function edit(Order $order)
 {
     $order->load(['items.product', 'user', 'employee', 'offer']);
 
     $orderStatus = OrderStatus::where('is_active', true)->orderBy('id')->get();
-    $employees   = User::all();
+    $employees   = User::orderBy('id')->get();
     $countries   = Country::where('is_active', true)->orderBy('id')->get();
+    $cities   = City::where('is_active', true)->orderBy('id')->get();
 
-    // ✅ selected (default from employee, but old() should override in blade)
-    $employeeCountryId = optional($order->employee)->country_id;
-    $employeeCityId    = optional($order->employee)->city_id;
+    // Defaults for employee/user (used as fallback in blade + JS)
+    $employeeCountryId = (string) optional($order->employee)->country_id;
+    $employeeCityId    = (string) optional($order->employee)->city_id;
 
-    // ✅ cities list for the selected country (so city dropdown is filled on load)
-    $cities = City::where('is_active', true)
-        ->when($employeeCountryId, fn($q) => $q->where('country_id', $employeeCountryId))
-        ->orderBy('id')
-        ->get();
+    $userCountryId     = (string) optional($order->user)->country_id;
+    $userCityId        = (string) optional($order->user)->city_id;
 
-    $transparations = TraspartationWay::where('is_active', true)
-        ->with(['country', 'city'])
-        ->orderBy('id')
-        ->get();
+    // Single models (not collections)
+    $userCountry     = $userCountryId ? Country::find($userCountryId) : null;
+    $userCity        = $userCityId ? City::find($userCityId) : null;
+    $employeeCountry = $employeeCountryId ? Country::find($employeeCountryId) : null;
+    $employeeCity    = $employeeCityId ? City::find($employeeCityId) : null;
 
     return view('orders.edit', compact(
         'order',
@@ -92,9 +94,18 @@ class OrderController extends Controller
         'employees',
         'countries',
         'cities',
+
+        // IDs (important for your blade/js)
         'employeeCountryId',
         'employeeCityId',
-        'transparations'
+        'userCountryId',
+        'userCityId',
+
+        // models (optional if you need them in blade)
+        'employeeCountry',
+        'employeeCity',
+        'userCountry',
+        'userCity',
     ));
 }
 

@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        //
+        schema::table("transpartation_way", function (Blueprint $table) {
 
-        Schema::table("transpartation_way_history", function (Blueprint $table) {
-     $table->double("days_count");
-            $table->unsignedBigInteger('type_id')->nullable();
-     $table->foreign('type_id')->references('transpartation_types')->nullable();
+            $table->timestamps();
         });
+
+
     }
+
     /**
      * Reverse the migrations.
      */
