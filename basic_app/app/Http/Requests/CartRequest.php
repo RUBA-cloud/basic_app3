@@ -26,6 +26,7 @@ class CartRequest extends FormRequest
             'quantity' => 'required|integer|min:1',
             'size_id' => 'exists:sizes,id',
             'color' => 'string|max:255',
+            'additionals'=>'nullable|exists:additonal,id'
         ];
     }
 }

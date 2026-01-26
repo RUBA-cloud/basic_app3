@@ -22,11 +22,11 @@ class CategoryController extends Controller
             $categories = Category::query()
                 ->with(['products' => function ($q) {
                     // Only active products
-                    $q->where('is_active', true);
+                    $q->with(['additionals','images'])->where('is_active', true);
                 }])
                 ->where('is_active', true)
                 ->whereHas('products', function ($q) {
-                    $q->where('is_active', true);
+                    $q->where('is_active', true)->limit(5);
                 })
                 ->paginate($perPage);
 
@@ -48,40 +48,51 @@ class CategoryController extends Controller
      * GET /api/categories/{id}
      * Single active category with its active products.
      */
-    public function show(int $id): JsonResponse
-    {
-        try {
-            $category = Category::query()
-                ->with(['products' => function ($q) {
-                    $q->where('is_active', true);
-                }])
-                ->where('is_active', true)
-                ->whereHas('products', function ($q) {
-                    $q->where('is_active', true);
-                })
-                ->find($id);
 
-            if (! $category) {
-                return response()->json([
-                    'status'  => 'not_found',
-                    'message' => 'Category not found or inactive.',
-                    'data'    => null,
-                ], 404);
-            }
 
+
+public function show(Request $request, int $id): JsonResponse
+{
+    try {
+        $perPage = (int) $request->query('perPage', 10);
+        $perPage = max(1, min($perPage, 100)); // حماية من أرقام كبيرة
+
+        $category = Category::query()
+            ->where('is_active', true)
+            ->whereHas('products', fn ($q) =>  $q->with(['additionals','images'])->where('is_active', true))
+            ->find($id);
+
+        if (! $category) {
             return response()->json([
-                'status'  => 'ok',
-                'message' => 'Category retrieved.',
-                'data'    => $category,
-            ], 200);
-        } catch (Throwable $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Failed to retrieve category.',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
-            ], 500);
+                'status'  => 'not_found',
+                'message' => 'Category not found or inactive.',
+                'data'    => null,
+            ], 404);
         }
+
+        // ✅ pagination على منتجات هذا القسم فقط
+        $products = $category->products()
+            ->where('is_active', true)
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
+        return response()->json([
+            'status'  => 'ok',
+            'message' => 'Category retrieved.',
+            'data'    => [
+                'category' => $category,     // بيانات القسم
+                'products' => $products,     // منتجات paginated حسب perPage
+            ],
+        ], 200);
+
+    } catch (Throwable $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Failed to retrieve category.',
+            'error'   => config('app.debug') ? $e->getMessage() : null,
+        ], 500);
     }
+}
 
     /**
      * SEARCH

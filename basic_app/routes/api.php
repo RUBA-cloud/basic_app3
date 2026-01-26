@@ -32,7 +32,7 @@ Route::middleware([JWTAuthMiddleware::class])->group(function () {
     Route::post('user/profile', [AuthApiController::class, 'updateProfile']);
     Route::post('update-settings', [AuthApiController::class, 'updateSettings']);
     Route::post('change-password', [AuthApiController::class, 'changePassword']);
-    Route::get('company-info/first/stream', [CoxmpanyInfoController::class, 'streamFirst']);
+    Route::get('company-info/first/stream', [CompanyInfoController::class, 'streamFirst']);
     Route::get('company-info/first/long-poll', [CompanyInfoController::class, 'longPollFirst']);
     Route::get('company-branch', [CompanyBranchController::class, 'index']);
     Route::get('user', function (Request $request) {

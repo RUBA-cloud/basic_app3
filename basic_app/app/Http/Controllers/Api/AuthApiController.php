@@ -150,58 +150,13 @@ public function login(Request $request)
     // ✅ 3) Get or Create Country + City + Way safely
     try {
         DB::transaction(function () use (
-            $countryNameEn, $countryNameAr,
-            $cityNameEn, $cityNameAr,
+            $countryNameEn,
+            $cityNameEn,
             $request, $user
         ) {
+            $this->setCountryAndCity($user,$countryNameEn,$cityNameEn);
             // -------- Country --------
-            $country = Country::firstOrCreate(
-                ['name_en' => $countryNameEn],
-                ['name_ar' => $countryNameAr, 'is_active' => true]
-            );
 
-            if (isset($country->is_active) && !$country->is_active) {
-                $country->is_active = true;
-                $country->save();
-            }
-
-            // -------- City --------
-            $city = City::firstOrCreate(
-                ['country_id' => $country->id, 'name_en' => $cityNameEn],
-                ['name_ar' => $cityNameAr, 'is_active' => true]
-            );
-
-            if (isset($city->is_active) && !$city->is_active) {
-                $city->is_active = true;
-                $city->save();
-            }
-
-            // ✅ Create way ONLY when either country/city was newly created
-            if ($country->wasRecentlyCreated || $city->wasRecentlyCreated) {
-                $nameEn = trim(($country->name_en ?? '') . ' - ' . ($city->name_en ?? ''));
-                $nameAr = trim(($country->name_ar ?? $country->name_en ?? '') . ' - ' . ($city->name_ar ?? $city->name_en ?? ''));
-
-                TraspartationWay::firstOrCreate(
-                    [
-                        'country_id' => $country->id,
-                        'city_id'    => $city->id,
-                    ],
-                    [
-                        'name_en'    => $nameEn,
-                        'name_ar'    => $nameAr,
-                        'days_count' => 5,
-                        'is_active'  => true,
-                    ]
-                );
-            }
-
-            // ✅ Update user location always
-            if (Schema::hasColumn('users', 'country_id')) {
-                $user->country_id = $country->id;
-            }
-            if (Schema::hasColumn('users', 'city_id')) {
-                $user->city_id = $city->id;
-            }
 
             // optional fields
             if (Schema::hasColumn('users', 'device_token') && $request->filled('device_token')) {
@@ -239,16 +194,67 @@ public function login(Request $request)
         );
 
     $user->access_token = $token->toString();
-
+    $user->load('country');
+    $user->load('city');
     return response()->json([
         'data'       => $user,
+        'country'=> $cityNameEn,
+        'city'=> $cityNameEn,
         'token_type' => 'Bearer',
         'expires_in' => $expiry->diffInSeconds($now),
     ], 200);
 }
 
 
+function setCountryAndCity($user,$countryName,$cityName){
+       $country = Country::firstOrCreate(
+                ['name_en' => $countryName],
+                ['name_ar' => $countryName, 'is_active' => true]
+            );
 
+            if (isset($country->is_active) && !$country->is_active) {
+                $country->is_active = true;
+                $country->save();
+            }
+
+            // -------- City --------
+            $city = City::firstOrCreate(
+                ['country_id' => $country->id, 'name_en' => $cityName],
+                ['name_ar' => $cityName, 'is_active' => true]
+            );
+
+            if (isset($city->is_active) && !$city->is_active) {
+                $city->is_active = true;
+                $city->save();
+            }
+
+            // ✅ Create way ONLY when either country/city was newly created
+            if ($country->wasRecentlyCreated || $city->wasRecentlyCreated) {
+                $nameEn = trim(($country->name_en ?? '') . ' - ' . ($city->name_en ?? ''));
+                $nameAr = trim(($country->name_ar ?? $country->name_en ?? '') . ' - ' . ($city->name_ar ?? $city->name_en ?? ''));
+
+                TraspartationWay::firstOrCreate(
+                    [
+                        'country_id' => $country->id,
+                        'city_id'    => $city->id,
+                    ],
+                    [
+                        'name_en'    => $nameEn,
+                        'name_ar'    => $nameAr,
+                        'days_count' => 5,
+                        'is_active'  => true,
+                    ]
+                );
+            }
+
+            // ✅ Update user location always
+            if (Schema::hasColumn('users', 'country_id')) {
+                $user->country_id = $country->id;
+            }
+            if (Schema::hasColumn('users', 'city_id')) {
+                $user->city_id = $city->id;
+            }
+}
     /**
      * Update language/theme settings.
      */
@@ -501,6 +507,8 @@ public function login(Request $request)
         ],
         'avatar'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         'avatar_path' => 'nullable|string|max:1024',
+        'country' => 'nullable|string|max:1024',
+        'city' => 'nullable|string|max:1024',
     ]);
 
     if ($validator->fails()) {
@@ -539,6 +547,8 @@ public function login(Request $request)
     //     $user->avatar_path = trim((string) $request->input('avatar_path'));
     // }
     // ✅ إذا avatar null وما في avatar_path => لا تعمل شيء (تبقي الصورة القديمة)
+
+                $this->setCountryAndCity($user,$request->country,$request->city,$request->city);
 
     $user->save();
 
