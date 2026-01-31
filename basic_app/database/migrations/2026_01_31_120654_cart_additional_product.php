@@ -24,7 +24,7 @@ return new class extends Migration
             // ✅ عدّلي اسم الجدول إذا كان مختلف عندك
             $table->foreignId('additional_id')
                 ->nullable()
-                ->constrained('additionals')
+                ->constrained('additional')
                 ->nullOnDelete();
 
             // ✅ إذا فعلاً بدك user_id لازم تضيفيه
@@ -33,7 +33,6 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
 
-            // ✅ يمنع تكرار نفس الإضافة لنفس المنتج داخل نفس الطلب
             $table->unique(['order_id', 'product_id', 'additional_id'], 'order_product_additional_unique');
 
             $table->timestamps();
@@ -42,6 +41,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('order_additional_product');
+        Schema::dropIfExists('cart_additional_product');
     }
 };

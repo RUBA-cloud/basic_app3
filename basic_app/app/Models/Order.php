@@ -112,7 +112,7 @@ public function orderStatus():BelongsTo{
     }
     public function productAdditional()
 {
-    return $this->belongsToMany(OrderAddiitionalProduct::class , 'order_id', 'id')
+    return $this->belongsTo(OrderAddiitionalProduct::class , 'order_id', 'id')
         ->with([
             'product:id,name_en,name_ar,price',
             'additional:id,name_en,name_ar,price',

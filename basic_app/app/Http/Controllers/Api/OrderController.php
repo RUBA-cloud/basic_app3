@@ -96,7 +96,7 @@ public function store(OrderRequest $request): JsonResponse
                 'building_number' => $data['building_number'] ?? null,
                 'lat'             => $data['lat'] ?? null,
                 'long'            => $data['long'] ?? null,
-                'total_price'     => 0,
+                'total_price'     => $data['total_price'],
             ]);
 
             $orderTotal = 0;
@@ -106,12 +106,8 @@ public function store(OrderRequest $request): JsonResponse
                 $sizeId      = $productData['size_id'] ?? null;
                 $quantity    = (int) ($productData['quantity'] ?? 1);
                 $colors      = $productData['colors'] ?? [null];
-
-                // ✅ توقعنا من Flutter: additionals_id: [1,2,3]
                 $additionals = $productData['additionals_id'] ?? [];
-
                 $product = Product::query()->findOrFail($productId);
-
                 $price     = (float) ($product->price ?? 0);
                 $lineTotal = $price * $quantity;
                 $orderTotal += $lineTotal;
@@ -147,12 +143,11 @@ public function store(OrderRequest $request): JsonResponse
                     }
 
                     if (!empty($rows)) {
-                        OrderAddiitionalProduct::query()->insert($rows);
+                        OrderAddiitionalProduct::create($rows);
                     }
                 }
             }
 
-            $order->update(['total_price' => $orderTotal]);
 
             // ✅ IMPORTANT: delete cart_additional_product rows first, then carts
             $cartIds = Cart::query()
