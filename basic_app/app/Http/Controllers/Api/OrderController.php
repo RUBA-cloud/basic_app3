@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
 use App\Models\Cart;
+use App\Models\CartAdditionalProduct;
 use App\Models\Order;
+use App\Models\OrderAddiitionalProduct;
 use App\Models\OrderItem;
+use App\Models\OrderStatus;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -29,8 +32,9 @@ class OrderController extends Controller
         $orders = Order::query()
             ->with([
                 'items.product',
-                'offer',
-                'employee:id,name,email',
+               'productAdditional',
+             'offer',
+                'employee:id,name,email','orderStatus',
                 'trnasparation' => function ($q) {
                     $q->select([
                         'id', 'name_en', 'name_ar', 'country_id', 'city_id',
@@ -53,109 +57,133 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Store a new order with items.
-     */
-    public function store(OrderRequest $request): JsonResponse
-    {
-        $userId = Auth::id();
 
-        if (!$userId) {
-            return response()->json([
-                'status'  => 'unauthenticated',
-                'message' => 'Unauthenticated.',
-                'data'    => [],
-            ], 401);
-        }
+public function store(OrderRequest $request): JsonResponse
+{
+    $userId = Auth::id();
 
-        $data = $request->validated();
+    if (!$userId) {
+        return response()->json([
+            'status'  => 'unauthenticated',
+            'message' => 'Unauthenticated.',
+            'data'    => [],
+        ], 401);
+    }
 
-        // ✅ Ensure products exist
-        if (empty($data['products']) || !is_array($data['products'])) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'No products provided for this order.',
-                'data'    => null,
-            ], 422);
-        }
+    $data = $request->validated();
 
-        try {
-            $order = DB::transaction(function () use ($userId, $data) {
+    if (empty($data['products']) || !is_array($data['products'])) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'No products provided for this order.',
+            'data'    => null,
+        ], 422);
+    }
 
-                // ✅ Create order (without trusting client total_price)
-                $order = Order::create([
-                    'user_id'         => $userId,
-                    'status'          => defined(Order::class.'::STATUS_PENDING') ? Order::STATUS_PENDING : 0,
-                    'address'         => $data['address'] ?? null,
-                    'street_name'     => $data['street_name'] ?? null,
-                    'building_number' => $data['building_number'] ?? null,
-                    'lat'             => $data['lat'] ?? null,
-                    'long'            => $data['long'] ?? null,
-                    'total_price'     => 0, // will be calculated
-                ]);
+    try {
+        $order = DB::transaction(function () use ($userId, $data) {
 
-                $orderTotal = 0;
+            $orderStatusId = OrderStatus::query()
+                ->where('status', 0)
+                ->value('id'); // int|null
 
-                foreach ($data['products'] as $productData) {
-                    $productId = $productData['product_id'];
-                    $sizeId    = $productData['size_id'] ?? null;
-                    $quantity  = (int) $productData['quantity'];
-                    $colors    = $productData['colors'] ?? [null];
-
-                    $product = Product::query()->findOrFail($productId);
-
-                    $price = (float) ($product->price ?? 0); // adjust if your price column is different
-                    $lineTotal = $price * $quantity;
-
-                    $orderTotal += $lineTotal;
-
-                    // ✅ Create item rows (one per color)
-                    foreach ((array) $colors as $color) {
-                        OrderItem::create([
-                            'order_id'    => $order->id,
-                            'product_id'  => $productId,
-                            'size_id'     => $sizeId,
-                            'color'       => $color,
-                            'quantity'    => $quantity,
-                            'price'       => $price,
-                            'total_price' => $lineTotal,
-                        ]);
-                    }
-                }
-
-                // ✅ Save server-calculated total
-                $order->update([
-                    'total_price' => $orderTotal,
-                ]);
-
-                // ✅ Clear cart
-                Cart::query()->where('user_id', $userId)->delete();
-
-                return $order;
-            });
-
-            // ✅ Reload relationships
-            $order->load([
-                'items.product',
-                'offer',
-                'employee:id,name,email',
-                'trnasparation.country:id,name_en,name_ar',
-                'trnasparation.city:id,name_en,name_ar',
-                'trnasparation.type:id,name_en,name_ar',
+            $order = Order::create([
+                'user_id'         => $userId,
+                'status'          => defined(Order::class.'::STATUS_PENDING') ? Order::STATUS_PENDING : 0,
+                'order_status_id' => $orderStatusId, // غيّريها لو عمودك اسمه order_status
+                'address'         => $data['address'] ?? null,
+                'street_name'     => $data['street_name'] ?? null,
+                'building_number' => $data['building_number'] ?? null,
+                'lat'             => $data['lat'] ?? null,
+                'long'            => $data['long'] ?? null,
+                'total_price'     => 0,
             ]);
 
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Order created successfully.',
-                'data'    => $order,
-            ], 201);
+            $orderTotal = 0;
 
-        } catch (\Throwable $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Failed to create order.',
-                'error'   => $e->getMessage(),
-            ], 500);
-        }
+            foreach ($data['products'] as $productData) {
+                $productId   = (int) ($productData['product_id'] ?? 0);
+                $sizeId      = $productData['size_id'] ?? null;
+                $quantity    = (int) ($productData['quantity'] ?? 1);
+                $colors      = $productData['colors'] ?? [null];
+
+                // ✅ توقعنا من Flutter: additionals_id: [1,2,3]
+                $additionals = $productData['additionals_id'] ?? [];
+
+                $product = Product::query()->findOrFail($productId);
+
+                $price     = (float) ($product->price ?? 0);
+                $lineTotal = $price * $quantity;
+                $orderTotal += $lineTotal;
+
+                // ✅ items per color
+                foreach ((array) $colors as $color) {
+                    OrderItem::create([
+                        'order_id'    => $order->id,
+                        'product_id'  => $productId,
+                        'size_id'     => $sizeId,
+                        'color'       => $color,
+                        'quantity'    => $quantity,
+                        'price'       => $price,
+                        'total_price' => $lineTotal,
+                    ]);
+                }
+
+                // ✅ insert order additionals
+                if (is_array($additionals) && !empty($additionals)) {
+                    $rows = [];
+
+                    foreach ($additionals as $additionalId) {
+                        $additionalId = (int) $additionalId;
+                        if ($additionalId <= 0) continue;
+
+                        $rows[] = [
+                            'order_id'      => $order->id,
+                            'product_id'    => $productId,
+                            'additional_id' => $additionalId,
+                            'created_at'    => now(),
+                            'updated_at'    => now(),
+                        ];
+                    }
+
+                    if (!empty($rows)) {
+                        OrderAddiitionalProduct::query()->insert($rows);
+                    }
+                }
+            }
+
+            $order->update(['total_price' => $orderTotal]);
+
+            // ✅ IMPORTANT: delete cart_additional_product rows first, then carts
+            $cartIds = Cart::query()
+                ->where('user_id', $userId)
+                ->pluck('id')
+                ->all();
+
+            if (!empty($cartIds)) {
+                DB::table('cart_additional_product')
+                    ->whereIn('cart_id', $cartIds)
+                    ->delete();
+            }
+
+            Cart::query()->where('user_id', $userId)->delete();
+
+            return $order;
+        });
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Order created successfully.',
+            'data'    => $order,
+        ], 201);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Failed to create order.',
+            'error'   => config('app.debug') ? $e->getMessage() : null,
+        ], 500);
     }
+}
+
 }

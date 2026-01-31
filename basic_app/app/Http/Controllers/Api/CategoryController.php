@@ -59,7 +59,7 @@ public function show(Request $request, int $id): JsonResponse
 
         $category = Category::query()
             ->where('is_active', true)
-            ->whereHas('products', fn ($q) =>  $q->with(['additionals','images'])->where('is_active', true))
+            ->whereHas('products', fn ($q) =>  $q->where('is_active', true))
             ->find($id);
 
         if (! $category) {
@@ -75,7 +75,6 @@ public function show(Request $request, int $id): JsonResponse
             ->where('is_active', true)
             ->orderByDesc('id')
             ->paginate($perPage);
-
         return response()->json([
             'status'  => 'ok',
             'message' => 'Category retrieved.',

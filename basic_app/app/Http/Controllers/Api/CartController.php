@@ -4,17 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CartRequest;
-use Illuminate\Http\Request;
-
 use App\Http\Requests\QuantityRequest;
 use App\Models\Cart;
+use App\Models\CartAdditionalProduct;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
-    /**
-     * Return full cart for the authenticated user (with product + size).
-     */
     public function index(): JsonResponse
     {
         $userId = auth()->id();
@@ -30,9 +28,6 @@ class CartController extends Controller
         return $this->buildCartResponse($userId, 'Cart retrieved.');
     }
 
-    /**
-     * Add item to cart, then return the updated cart (same as index).
-     */
     public function addToCart(CartRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -46,11 +41,11 @@ class CartController extends Controller
             ], 401);
         }
 
-        // Check if item already exists in cart for this user (same product + color + size)
+        // ✅ check exists (product + color + size)
         $exists = Cart::where('user_id', $userId)
             ->where('product_id', $validated['product_id'])
-            ->when(isset($validated['color']), fn($q) => $q->where('color', $validated['color']))
-            ->when(isset($validated['size_id']), fn($q) => $q->where('size_id', $validated['size_id']))
+            ->when(array_key_exists('color', $validated) && $validated['color'] !== null, fn ($q) => $q->where('color', $validated['color']))
+            ->when(array_key_exists('size_id', $validated) && $validated['size_id'] !== null, fn ($q) => $q->where('size_id', $validated['size_id']))
             ->exists();
 
         if ($exists) {
@@ -58,19 +53,52 @@ class CartController extends Controller
                 'status'  => 'exists',
                 'message' => 'Product already added to cart.',
                 'data'    => [],
-            ], 409); // 409 Conflict is clearer than 403 here
+            ], 409);
         }
 
-        $validated['user_id'] = $userId;
-        Cart::create($validated);
+        try {
+            DB::beginTransaction();
 
-        // 🔥 After adding, return the same data format as index (updated cart)
-        return $this->buildCartResponse($userId, 'Product added to cart.', 201);
+            $validated['user_id'] = $userId;
+
+            // ✅ create cart item
+            $cart = Cart::create($validated);
+
+            // ✅ if additionals exist, attach them
+            $additionals = $validated['additionals_id'] ?? null;
+
+            if (is_array($additionals) && count($additionals) > 0) {
+                $rows = [];
+
+                foreach ($additionals as $additionalId) {
+                    if ($additionalId === null) continue;
+
+                    $rows[] = [
+                        'cart_id'       => $cart->id,
+                        'product_id'    => $validated['product_id'],
+                        'additional_id' => (int) $additionalId,
+                    ];
+                }
+
+                if (!empty($rows)) {
+                    CartAdditionalProduct::insert($rows);
+                }
+            }
+
+            DB::commit();
+
+            return $this->buildCartResponse($userId, 'Product added to cart.', 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to add product to cart.',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
-    /**
-     * Update quantity of a cart item (only for authenticated user).
-     */
     public function updateQuantity(QuantityRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -100,14 +128,10 @@ class CartController extends Controller
             'quantity' => $validated['quantity'],
         ]);
 
-        // You can return just the item OR the full cart; here I return full cart:
         return $this->buildCartResponse($userId, 'Cart item quantity updated.');
     }
 
-    /**
-     * Remove an item from cart and return the updated cart.
-     */
-      public function removeFromCart(Request $request): JsonResponse
+    public function removeFromCart(Request $request): JsonResponse
     {
         $userId = auth()->id();
 
@@ -131,21 +155,40 @@ class CartController extends Controller
             ], 404);
         }
 
-        $cartItem->delete();
+        try {
+            DB::beginTransaction();
 
-        return $this->buildCartResponse($userId, 'Product removed from cart.');
+            // ✅ delete related additionals rows first
+            CartAdditionalProduct::where('cart_id', $cartItem->id)->delete();
+
+            // ✅ delete cart item
+            $cartItem->delete();
+
+            DB::commit();
+
+            return $this->buildCartResponse($userId, 'Product removed from cart.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to remove product from cart.',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
-
-    /**
-     * Helper: build a unified cart response (used by index/add/update/remove).
-     */
     protected function buildCartResponse(
         int $userId,
         string $message = 'Cart retrieved.',
         int $statusCode = 200
     ): JsonResponse {
-        $cart = Cart::with(['product', 'size'])
+        // ✅ load cart + additional products (requires relations on Cart model)
+        $cart = Cart::with([
+                'product',
+                'size',
+                'cartAdditional', // keep your method name (typo) as-is
+            ])
             ->where('user_id', $userId)
             ->get();
 

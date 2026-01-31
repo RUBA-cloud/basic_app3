@@ -10,7 +10,7 @@ class ProductImageHistory extends Model
     //
 
     use HasFactory, Notifiable;
-    protected $table = 'product_image_histories'; // Ensure the table name is correct
+    protected $table = 'product_images_history'; // Ensure the table name is correct
     protected $fillable = [
         'product_id',
         'image_path', // or just 'image' if you prefer

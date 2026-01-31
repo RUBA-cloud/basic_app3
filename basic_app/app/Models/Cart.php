@@ -24,8 +24,14 @@ class Cart extends Model
         return $this->belongsTo(Size::class);
     }
 
-    public function color()
-    {
-        return $this->belongsTo(Color::class);
+    public function cartAdditional(){
+        return $this->hasMany(\App\Models\CartAdditionalProduct::class, 'cart_id', 'id')
+        ->with([
+            'product:id,name_en,name_ar,price',
+            'additioanls:id,name_en,name_ar,price',
+        ]);
+
     }
+
+
 }

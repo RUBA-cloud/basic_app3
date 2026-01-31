@@ -24,9 +24,11 @@ class Order extends Model
         'street_name',
         'lat','long',
         'status',
+        'order_status_id',
         'offer_id',
         'created_at',
         'updated_at',
+
     ];
 
     protected $casts = [
@@ -53,6 +55,9 @@ public function trnasparation():BelongsTo{
  return $this->belongsTo(TraspartationWay::class,'transpartation_id');
 }
 
+public function orderStatus():BelongsTo{
+ return $this->belongsTo(OrderStatus::class,'order_status_id');
+}
 
 
     /**
@@ -105,6 +110,15 @@ public function trnasparation():BelongsTo{
             ->withPivot(['id', 'color', 'quantity', 'price', 'total_price'])
             ->withTimestamps();
     }
+    public function productAdditional()
+{
+    return $this->belongsToMany(OrderAddiitionalProduct::class , 'order_id', 'id')
+        ->with([
+            'product:id,name_en,name_ar,price',
+            'additional:id,name_en,name_ar,price',
+        ]);
+}
+
 
 
     /* =========================

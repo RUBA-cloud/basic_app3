@@ -26,7 +26,9 @@ class CartRequest extends FormRequest
             'quantity' => 'required|integer|min:1',
             'size_id' => 'exists:sizes,id',
             'color' => 'string|max:255',
-            'additionals'=>'nullable|exists:additonal,id'
+              // ✅ additionals per product (recommended)
+            'additionals_id'     => ['nullable', 'array'],
+            'additionals_id.*'   => ['integer', 'distinct', 'exists:additonal,id']
         ];
     }
 }

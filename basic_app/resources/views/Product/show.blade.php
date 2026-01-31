@@ -26,14 +26,15 @@
         {{-- Type & Category --}}
         <div class="mb-3">
             <strong>{{ __('adminlte::adminlte.type') }}:</strong>
-            @if(app()->getLocale()=="ar")
+            @if(app()->getLocale() == "ar")
                 {{ optional($product->type)->name_ar ?? '-' }}
             @else
                 {{ optional($product->type)->name_en ?? '-' }}
             @endif
             <br>
+
             <strong>{{ __('adminlte::adminlte.category') }}:</strong>
-            @if(app()->getLocale()=="ar")
+            @if(app()->getLocale() == "ar")
                 {{ optional($product->category)->name_ar ?? optional($product->category)->name_en ?? '-' }}
             @else
                 {{ optional($product->category)->name_en ?? '-' }}
@@ -43,10 +44,10 @@
         {{-- Description --}}
         <div class="mb-3">
             <strong>{{ __('adminlte::adminlte.description') }} (EN):</strong>
-            <p>{{ $product->description_en ?? '-' }}</p>
+            <p class="mb-2">{{ $product->description_en ?? '-' }}</p>
 
             <strong>{{ __('adminlte::adminlte.description') }} (AR):</strong>
-            <p>{{ $product->description_ar ?? '-' }}</p>
+            <p class="mb-0">{{ $product->description_ar ?? '-' }}</p>
         </div>
 
         {{-- Colors --}}
@@ -70,13 +71,16 @@
                 <strong>{{ __('adminlte::adminlte.size') }}:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
                     @foreach($product->sizes as $size)
-                        @if (app()->getLocale()=="ar")
-                            <x-adminlte-badge label="{{ $size->name_ar }}" theme="primary" />
-                        @else
-                            <x-adminlte-badge label="{{ $size->name_en }}" theme="primary" />
-                        @endif
+                        <label> {{  app()->getLocale()=='ar' ? ($size->name_ar ?? $size->name_en) : ($size->name_en ?? $size->name_ar) }}</label>
+
+
+
                     @endforeach
                 </div>
+            </div>
+        @else
+            <div class="mb-3 text-muted">
+                <strong>{{ __('adminlte::adminlte.size') }}:</strong> -
             </div>
         @endif
 
@@ -86,13 +90,17 @@
                 <strong>{{ __('adminlte::adminlte.additional') }}:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
                     @foreach($product->additionals as $additional)
-                        @if(app()->getLocale()=="ar")
-                            <x-adminlte-badge label="{{ $additional->name_ar }}" theme="info" />
-                        @else
-                            <x-adminlte-badge label="{{ $additional->name_en }}" theme="info" />
-                        @endif
+                        <label>
+                            {{ app()->getLocale()=='ar' ? ($additional->name_ar ?? $additional->name_en) : ($additional->name_en ?? $additional->name_ar) }}
+
+                        </label>
+
                     @endforeach
                 </div>
+            </div>
+        @else
+            <div class="mb-3 text-muted">
+                <strong>{{ __('adminlte::adminlte.additional') }}:</strong> -
             </div>
         @endif
 
@@ -103,7 +111,8 @@
                 <div class="d-flex flex-wrap gap-3 mt-2">
                     @foreach($product->images as $image)
                         <div class="border rounded-3 overflow-hidden shadow-sm" style="width:120px; height:120px;">
-                            <img src="{{ $image->image_path }}" alt="Product Image"
+                            <img src="{{ $image->image_path }}"
+                                 alt="Product Image"
                                  class="img-fluid object-fit-cover w-100 h-100">
                         </div>
                     @endforeach
@@ -162,13 +171,11 @@
       const event = String(evtName);
 
       const handler = function (e) {
-        // Accept shapes: { payload: { product: {...} } }, { product: {...} }, or plain
         const raw = e?.payload || e?.product || e;
         const t   = raw?.product || raw || {};
 
         const incomingId = t.id ?? raw?.id;
         if (currentId && incomingId && String(incomingId) !== String(currentId)) {
-          // Different product → ignore
           return;
         }
 
@@ -176,23 +183,17 @@
           toastr.info(@json(__('adminlte::adminlte.saved_successfully')));
         }
 
-        // Reset page → full reload to get fresh data from server
         window.location.reload();
       };
 
-      // Register for global bootstrapper
       window.__pageBroadcasts.push({
         channel: channelName,
         event:   event,
         handler: handler,
       });
 
-      // Subscribe immediately if AppBroadcast is ready
       if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
         window.AppBroadcast.subscribe(channelName, event, handler);
-        console.info('[product-show] subscribed via AppBroadcast →', channelName, '/', event);
-      } else {
-        console.info('[product-show] registered in __pageBroadcasts; layout will subscribe later →', channelName, '/', event);
       }
     });
   });

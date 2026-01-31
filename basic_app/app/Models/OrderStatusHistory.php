@@ -20,6 +20,7 @@ class OrderStatusHistory extends Model
         'status',
         'is_active',
                 'user_id',
+                'colors','icon_data'
 
          // Foreign key to additionals table
     ];

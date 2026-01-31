@@ -11,7 +11,7 @@ return [
 'twitter'=>'twitter',
 'payment'=>'payment',
 'order_status'=>'Order Status',
-'transpartation_way'=>'transpartation Way',
+'transpartation_way'=>'Transpartation Way',
 'choose_city'=>'choose City',
     // Company fields
     'company_name_en' => 'Company Name (English)',
@@ -29,7 +29,6 @@ return [
     'dashboard'=>'DashBoard',
     'color'=>'color',
     'refresh_off'=>'refresh Off',
-
     // Company Details
     'company_info_details' => 'Company Info Details',
     'company_info_updated' => 'Company info updated successfully.',

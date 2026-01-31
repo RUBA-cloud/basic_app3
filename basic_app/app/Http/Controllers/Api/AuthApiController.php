@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\TranspartationType;
 use App\Models\User;
 use App\Models\Country;
 use App\Models\City;
@@ -228,6 +229,7 @@ function setCountryAndCity($user,$countryName,$cityName){
                 $city->save();
             }
 
+
             // ✅ Create way ONLY when either country/city was newly created
             if ($country->wasRecentlyCreated || $city->wasRecentlyCreated) {
                 $nameEn = trim(($country->name_en ?? '') . ' - ' . ($city->name_en ?? ''));
@@ -237,6 +239,7 @@ function setCountryAndCity($user,$countryName,$cityName){
                     [
                         'country_id' => $country->id,
                         'city_id'    => $city->id,
+                        'type_id'=>($city->city_id ?? TranspartationType::where('is_active', true)->first()->id ?? null),
                     ],
                     [
                         'name_en'    => $nameEn,

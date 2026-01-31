@@ -85,8 +85,8 @@ if (array_key_exists('sizes', $validated) && $validated['sizes'] !== null)  {
     $product->sizes()->sync($validated['sizes'] ?? []);
 }
 
-if (array_key_exists('additionals', $validated)&& $validated['additionals'] !== null) { // note: correct spelling
-    $product->additionals()->sync($validated['additionals'] ?? []);
+if (array_key_exists('additional', $validated)&& $validated['additional'] !== null) { // note: correct spelling
+    $product->additionals()->sync($validated['additional'] ?? []);
 }
 
 if($request->hasFile('main_image')){

@@ -25,7 +25,9 @@ class OrderStatusRequest extends FormRequest
             'name_en'=>'required|string',
             'name_ar'=>'required|string',
             'status'=>'required',
-            'is_active'=>'required|boolean'
+            'is_active'=>'required|boolean',
+            'colors'=>'required|string',
+            'icon_data'=>'required|string'
             //
         ];
     }
