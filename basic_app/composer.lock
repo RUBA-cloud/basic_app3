@@ -2025,16 +2025,16 @@
         },
         {
             "name": "jeroennoten/laravel-adminlte",
-            "version": "v3.15.2",
+            "version": "v3.15.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jeroennoten/Laravel-AdminLTE.git",
-                "reference": "8f2fe5f6767b69ec5ef28087a10638b9f50e58e7"
+                "reference": "606d34ad54d9f16206323f88b6767fb68e8f6064"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jeroennoten/Laravel-AdminLTE/zipball/8f2fe5f6767b69ec5ef28087a10638b9f50e58e7",
-                "reference": "8f2fe5f6767b69ec5ef28087a10638b9f50e58e7",
+                "url": "https://api.github.com/repos/jeroennoten/Laravel-AdminLTE/zipball/606d34ad54d9f16206323f88b6767fb68e8f6064",
+                "reference": "606d34ad54d9f16206323f88b6767fb68e8f6064",
                 "shasum": ""
             },
             "require": {
@@ -2078,9 +2078,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jeroennoten/Laravel-AdminLTE/issues",
-                "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.15.2"
+                "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.15.3"
             },
-            "time": "2025-08-12T18:28:10+00:00"
+            "time": "2025-12-02T14:31:45+00:00"
         },
         {
             "name": "kreait/firebase-php",
@@ -10610,5 +10610,5 @@
         "php": "^8.2"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
