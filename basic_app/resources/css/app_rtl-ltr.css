@@ -1,39 +1,217 @@
-/* يطبق فقط عند body.rtl */
-body.rtl { direction: rtl; text-align: right; }
+@extends('adminlte::master')
 
-/* Navbar badges & alignment */
-body.rtl .navbar-nav.ml-auto { margin-left: 0 !important; margin-right: auto !important; }
-body.rtl .navbar-nav .dropdown-menu { text-align: right; right: 0; left: auto; }
+@inject('layoutHelper', 'JeroenNoten\LaravelAdminLte\Helpers\LayoutHelper')
+@inject('preloaderHelper', 'JeroenNoten\LaravelAdminLte\Helpers\PreloaderHelper')
 
-/* Chat header / search input alignment */
-body.rtl .form-control, body.rtl input, body.rtl textarea { text-align: right; }
+@php
+    $s = \App\Helpers\CustomSettings::appSettings();
+    $isRtl = session('locale', app()->getLocale()) === 'ar';
+@endphp
 
-/* Breadcrumb arrow flips */
-body.rtl .breadcrumb-item + .breadcrumb-item::before {
-  content: "\f104"; /* fa-angle-left */
-  font-family: "Font Awesome 5 Free"; font-weight: 900;
+{{-- ================= CSS ================= --}}
+@section('adminlte_css')
+<style>
+
+/* ================= COLORS ================= */
+:root {
+    --brand-main: {{ $s['main_color'] }};
+    --brand-sub: {{ $s['sub_color'] }};
+    --brand-text: {{ $s['text_color'] }};
+    --brand-field: {{ $s['text_filed_color'] }};
+    --brand-card: {{ $s['card_color'] }};
 }
 
-/* Sidebar position & layout (AdminLTE 3) */
-body.rtl .main-sidebar { left: auto; right: 0; }
-body.rtl .content-wrapper, body.rtl .main-footer, body.rtl .main-header { margin-left: 0; margin-right: 250px; }
+.main-header.navbar { background: var(--brand-main) !important; }
+.main-sidebar { background: var(--brand-main) !important; }
+.brand-link { background: var(--brand-sub) !important; }
+
+.content-wrapper { background: var(--brand-field) !important; }
+.card { background: var(--brand-card) !important; }
+
+body, p, span, td, th { color: var(--brand-text) !important; }
+
+/* ============================================================
+   ✅ RTL (YOUR CODE — CLEANED & FIXED)
+============================================================ */
+
+/* base */
+body.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+/* navbar */
+body.rtl .navbar-nav.ml-auto {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+body.rtl .navbar-nav .dropdown-menu {
+    text-align: right;
+    right: 0;
+    left: auto;
+}
+
+/* inputs */
+body.rtl input,
+body.rtl textarea,
+body.rtl .form-control {
+    text-align: right;
+}
+
+/* breadcrumb */
+body.rtl .breadcrumb-item + .breadcrumb-item::before {
+    content: "\f104";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+/* ================= SIDEBAR ================= */
+
+body.rtl .main-sidebar {
+    right: 0;
+    left: auto;
+}
+
+/* 🔥 FIX الفراغ الأبيض */
+body.rtl .content-wrapper,
+body.rtl .main-header,
+body.rtl .main-footer {
+    margin-right: 250px;
+    margin-left: 0;
+    transition: margin 0.3s ease;
+}
+
+/* collapse */
 body.rtl.sidebar-collapse .content-wrapper,
-body.rtl.sidebar-collapse .main-footer,
-body.rtl.sidebar-collapse .main-header { margin-right: 0; }
+body.rtl.sidebar-collapse .main-header,
+body.rtl.sidebar-collapse .main-footer {
+    margin-right: 0 !important;
+}
 
-/* Treeview caret direction */
-body.rtl .nav-sidebar .nav-item > .nav-link .right { left: .5rem; right: auto; transform: scaleX(-1); }
+/* منع overflow */
+body.rtl .wrapper {
+    overflow-x: hidden;
+}
 
-/* Badges position on icons */
-body.rtl .navbar-badge { right: auto; left: 5px; }
+/* ================= SIDEBAR ITEMS ================= */
 
-/* Dropdown menu icon spacing (icons قبل النص) */
+body.rtl .nav-sidebar .nav-link {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+}
+
+body.rtl .nav-sidebar .nav-icon {
+    margin-left: .5rem;
+    margin-right: 0;
+    text-align: center;
+}
+
+body.rtl .nav-sidebar .nav-link p {
+    text-align: right;
+}
+
+/* treeview arrow */
+body.rtl .nav-sidebar .nav-item > .nav-link .right {
+    left: .5rem;
+    right: auto;
+    transform: scaleX(-1);
+}
+
+/* ================= COLLAPSED ================= */
+
+body.rtl.sidebar-collapse .nav-sidebar .nav-link {
+    justify-content: center;
+}
+
+body.rtl.sidebar-collapse .nav-sidebar .nav-link p {
+    display: none;
+}
+
+body.rtl.sidebar-collapse .nav-sidebar .nav-icon {
+    margin: 0 !important;
+    font-size: 18px;
+}
+
+/* ================= BADGES ================= */
+
+body.rtl .navbar-badge {
+    left: 5px;
+    right: auto;
+}
+
+/* dropdown icons */
 body.rtl .dropdown-item .fas,
-body.rtl .dropdown-item .far { margin-right: 0; margin-left: .5rem; }
+body.rtl .dropdown-item .far {
+    margin-left: .5rem;
+    margin-right: 0;
+}
 
-/* Form checks */
-body.rtl .form-check { padding-right: 1.25rem; padding-left: 0; }
-body.rtl .form-check-input { margin-right: -1.25rem; margin-left: 0; }
+/* form check */
+body.rtl .form-check {
+    padding-right: 1.25rem;
+    padding-left: 0;
+}
 
-/* Tables/cards default */
-body.rtl .card-header, body.rtl .card-body, body.rtl table { text-align: right; }
+body.rtl .form-check-input {
+    margin-right: -1.25rem;
+    margin-left: 0;
+}
+
+/* tables */
+body.rtl .card-header,
+body.rtl .card-body,
+body.rtl table {
+    text-align: right;
+}
+
+</style>
+@stop
+
+
+{{-- ================= BODY ================= --}}
+@section('classes_body',
+    $layoutHelper->makeBodyClasses() . ' ' . ($isRtl ? 'rtl' : '')
+)
+
+@section('body')
+
+<div class="wrapper">
+
+    {{-- Preloader --}}
+    @if($preloaderHelper->isPreloaderEnabled())
+        @include('adminlte::partials.common.preloader')
+    @endif
+
+    {{-- Navbar --}}
+    @include('adminlte::partials.navbar.navbar')
+
+    {{-- Sidebar --}}
+    @include('adminlte::partials.sidebar.left-sidebar')
+
+    {{-- Content --}}
+    @include('adminlte::partials.cwrapper.cwrapper-default')
+
+    {{-- Footer --}}
+    @include('adminlte::partials.footer.footer')
+
+</div>
+
+@stop
+
+
+{{-- ================= JS ================= --}}
+@section('adminlte_js')
+
+<script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.bsCustomFileInput) {
+        bsCustomFileInput.init();
+    }
+});
+</script>
+
+@stop
