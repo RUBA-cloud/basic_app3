@@ -14,6 +14,11 @@ use App\Http\Controllers\Api\FaviorateController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 
+
+ Broadcast::routes([
+    'middleware' => ['api', \App\Http\Middleware\JWTAuthMiddleware::class],
+]);
+
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthApiController::class, 'register']);
     Route::post('login', [AuthApiController::class, 'login']);

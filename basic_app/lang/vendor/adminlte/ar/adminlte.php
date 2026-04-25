@@ -391,6 +391,7 @@ return [
     'discount' => 'خصم',
     'auto_refresh' => 'تحديث تلقائي',
     'refresh' => 'تحديث',
+    'notifications_module' => 'وحدة الإشعارات',
     'auto_refresh_on' => 'التحديث التلقائي مفعل',
     'auto_refresh_off' => 'التحديث التلقائي غير مفعل',
     'newest_10_Orders' => 'أحدث 10 طلبات',
@@ -515,6 +516,7 @@ return [
     'twitter' => 'تويتر',
 
     'country_module' => 'وحدات الدول',
+    'notification_module' => 'وحدات الدول',
     'city_module' => 'وحدات المدن',
     'transportation_type_module' => 'وحدات أنواع النقل',
     'transportation_way_module' => 'وحدات طرق النقل',
@@ -549,7 +551,6 @@ return [
     'view_all' => 'عرض الكل',
     'search_user' => 'بحث عن المستخدمين',
     'transpartation_type' => 'نوع النقل',
-
     'greeting' => 'مرحبًا :name،',
     'intro' => 'لقد تلقينا طلبًا لإعادة تعيين كلمة المرور لحسابك في :app.',
     'action' => 'لاختيار كلمة مرور جديدة، اضغط الزر أدناه. ولأمانك، يكون هذا الرابط صالحًا لمدة :minutes دقيقة.',

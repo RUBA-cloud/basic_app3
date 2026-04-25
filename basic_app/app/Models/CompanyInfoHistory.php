@@ -36,14 +36,20 @@ class CompanyInfoHistory extends Model
         'mission_ar',
         'vision_en',
         'vision_ar',
+        'country_id',
+        'city_id',
         'user_id',
     ];
     protected $casts = ['created_at' => 'datetime',];
     public function user(){return $this->belongsTo(User::class, 'user_id');}
-    public static function company(){
-
-
-}
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id');    }
+        
 
 
 

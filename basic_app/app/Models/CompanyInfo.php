@@ -44,6 +44,8 @@ class CompanyInfo extends Model
         'mission_ar',
         'vision_en',
         'vision_ar',
+        'country_id',
+        'city_id',
     ];
 
     // Cast attributes as needed (example: date formats)
@@ -51,6 +53,15 @@ class CompanyInfo extends Model
         'created_at' => 'datetime'
     ];
 
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id');
+    }
+    
     // Accessor for logo image to get the full URL
     public function getLogoImageAttribute($value)
     {

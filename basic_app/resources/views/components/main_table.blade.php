@@ -1,161 +1,240 @@
-@props([
-    'fields',
-    'value', // Paginated collection
-    'details_route' => null,
-    'edit_route' => null,
-    'delete_route' => null,
-    'reactive_route' => null,
-    'search_route' => null,
-])
+{{-- ONE root element only --}}
+<div class="card-body" wire:poll.10s>
+    @php
+        $isRtl = app()->getLocale() === 'ar';
+    @endphp
 
-@php
-    $hasActions = $details_route || $edit_route || $delete_route || $reactive_route;
-    $searchQuery = request('search');
-@endphp
-<x-adminlte-card >
-<div class="mb-3">
-  <form method="post" action="{{route($search_route)  }}">
-    @csrf
-    <input type="hidden" name="search" value="{{ $searchQuery }}">
-    <div class="input-group">
-      <input
-        type="text"
-        name="search"
-        onchange="this.form.submit()"
-        value="{{ $searchQuery }}"
-        class="form-control"
-        placeholder="{{ __('adminlte::adminlte.search') }}"
-      >
-      <button class="btn btn-primary" type="submit">
-        <i class="fas fa-search"></i>
-      </button>
-    </div>
-  </form>
-</div>
+    <x-adminlte-card class="lw-list-card">
+        {{-- Toolbar: search + small summary --}}
+        <div class="lw-toolbar">
+            <div class="lw-search-group input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="{{ __('adminlte::adminlte.search') }}"
+                       wire:model.debounce.300ms="search">
+                <button class="btn btn-primary btn-refresh"
+                        type="button"
+                        wire:click="$refresh"
+                        title="{{ __('adminlte::adminlte.refresh') ?? 'Refresh' }}">
+                    <i class="fas fa-sync"></i>
+                </button>
+            </div>
 
+            @if(method_exists($rows, 'total'))
+                <div class="lw-summary {{ $isRtl ? 'text-left' : 'text-right' }}">
+                    {{ __('adminlte::adminlte.total') ?? 'Total' }}:
+                    <strong>{{ $rows->total() }}</strong>
+                </div>
+            @endif
+        </div>
 
+        {{-- Table --}}
+        <div class="table-responsive-md lw-table-wrapper">
+            <table
+                dir="{{ $isRtl ? 'rtl' : 'ltr' }}"
+                class="table table-bordered table-hover text-nowrap align-middle lw-table {{ $isRtl ? 'text-right' : 'text-left' }}">
+                <thead>
+                    <tr dir="{{ $isRtl ? 'rtl' : 'ltr' }}" style="align-content: center">
+                        <th style="width:60px;">#</th>
+                        @foreach ($fields as $field)
+                            <th>
+                                {{ $field['label'] ?? ucfirst(str_replace('_',' ', $field['key'] ?? '')) }}
+                            </th>
+                        @endforeach
+                        <th style="width:1%;white-space:nowrap;" class="{{ $isRtl ? 'text-left' : 'text-right' }}">
+                            {{ __('adminlte::adminlte.actions') ?: 'Actions' }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                @php
+                    $firstItem   = method_exists($rows, 'firstItem') ? ($rows->firstItem() ?? 1) : 1;
+                    $routeParamName = $routeParamName ?? 'id';
+                @endphp
 
-{{-- Table --}}
-<div>
-    <table class="table table-bordered table-hover text-nowrap table-responsive-md">
-        <thead class="thead-light">
-            <tr>
-                <th>#</th>
-                @foreach ($fields as $field)
-                    <th>{{ $field['label'] ?? ucfirst(str_replace('_', ' ', $field['key'])) }}</th>
-                @endforeach
-                @if ($hasActions && $value->count() > 0)
-                    <th>
-                        {{ __('adminlte::adminlte.actions') }}
-                    </th>
-                @endif
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($value as $index => $item)
-                <tr>
-                    <td>{{ $loop->iteration + ($value->firstItem() - 1) }}</td>
-                    @foreach ($fields as $field)
-                        @php
-                            $segments = explode('.', $field['key']);
-                            $data = $item;
-                            foreach ($segments as $segment) {
-                                $data = is_array($data) ? ($data[$segment] ?? null)
-                                      : (is_object($data) ? ($data->{$segment} ?? null) : null);
-                            }
-                        @endphp
+                @forelse ($rows as $row)
+                    <tr wire:key="row-{{ $row->id }}" class="lw-row">
+                        {{-- Row index --}}
                         <td>
-                            @switch($field['type'] ?? null)
-                                @case('bool')
-                                    <span class="badge {{ $data ? 'bg-success' : 'bg-danger' }}">
-                                        {{ $data ?  __('adminlte::adminlte.yes'): __('adminlte::adminlte.no')}}
-                                    </span>
-                                    @break
-                                @case('color')
-                                    <div style="width: 24px; height: 24px; border-radius: 4px; background: {{ $data }};" title="{{ $data }}"></div>
-                                    @break
-                                @case('image')
-                                    @if ($data)
-                                        <img src="{{ Str::startsWith($data, ['http://', 'https://']) ? $data : asset('storage/' . ltrim($data, '/')) }}"
-                                             alt="image"
-                                             class="img-thumbnail"
-                                             style="width: 40px; height: 40px; object-fit: cover;">
-                                    @else
-                                      <label class="text-muted">{{ __('adminlte::adminlte.no_image') }}</label>
-                                    @endif
-                                    @break
-                                @default
-                                    {{ $data }}
-                            @endswitch
+                            <span class="badge badge-light lw-pill">
+                                {{ $loop->iteration + ($firstItem - 1) }}
+                            </span>
                         </td>
-                    @endforeach
 
-                    {{-- Action Buttons --}}
-                    @if ($hasActions)
-                        <td>
-                            <div class="d-flex flex-wrap gap-3" style="padding:5px;margin:5px">
-                                @if ($details_route)
-                                    <a href="{{ route($details_route, $item->id) }}"
-                                       onclick="openDialog(event, '{{ route($details_route, $item->id) }}')"
-                                       class="btn btn-info mb-1" style="margin: 5px">{{ __('adminlte::adminlte.details') }}</a>
+                        {{-- Dynamic fields --}}
+                        @foreach ($fields as $field)
+                            @php
+                                $key  = $field['key'] ?? '';
+                                $type = $field['type'] ?? null;
+                                $data = $this->resolveValue($row, $key);
+                            @endphp
+                            <td>
+                                @switch($type)
+                                    @case('bool')
+                                        <span class="badge lw-pill {{ $data ? 'bg-success' : 'bg-danger' }}">
+                                            {{ $data ? __('adminlte::adminlte.yes') : __('adminlte::adminlte.no') }}
+                                        </span>
+                                        @break
+
+                                    @case('color')
+                                        <span class="color-swatch-24"
+                                              title="{{ $data }}"
+                                              style="background: {{ $data }}"></span>
+                                        @break
+
+                                    @case('image')
+                                        @if ($data)
+                                            <img class="img-thumb-40" width="50" height="50"
+                                                 src="{{ \Illuminate\Support\Str::startsWith($data, ['http://','https://'])
+                                                        ? $data
+                                                        : asset('storage/'.ltrim((string)$data,'/')) }}"
+                                                 alt="image">
+                                        @else
+                                            <span class="text-muted">
+                                                {{ __('adminlte::adminlte.no_image') }}
+                                            </span>
+                                        @endif
+                                        @break
+
+                                    @case('status')
+                                        @php
+                                            $status = (int) ($data ?? 0);
+                                            $labels = [
+                                                0 => __('adminlte::adminlte.pending')   ?: 'Pending',
+                                                1 => __('adminlte::adminlte.accepted')  ?: 'Accepted',
+                                                2 => __('adminlte::adminlte.rejected')  ?: 'Rejected',
+                                                3 => __('adminlte::adminlte.completed') ?: 'Completed',
+                                            ];
+                                            $classes = [
+                                                0 => 'bg-secondary',
+                                                1 => 'bg-success',
+                                                2 => 'bg-danger',
+                                                3 => 'bg-primary',
+                                            ];
+                                            $label  = $labels[$status]  ?? __('adminlte::adminlte.unknown') ?: 'Unknown';
+                                            $class  = $classes[$status] ?? 'bg-light text-dark';
+                                        @endphp
+                                        <span class="badge lw-pill {{ $class }}">{{ $label }}</span>
+                                        @break
+
+                                    @default
+                                        {{ is_scalar($data) ? $data : (is_null($data) ? '' : json_encode($data, JSON_UNESCAPED_UNICODE)) }}
+                                @endswitch
+                            </td>
+                        @endforeach
+
+                        {{-- Actions --}}
+                        <td class="{{ $isRtl ? 'text-left' : 'text-right' }}">
+                            <div class="lw-actions">
+                                {{-- Details --}}
+                                @if(!empty($detailsRoute))
+                                    <a class="btn btn-info btn-sm lw-action-btn"
+                                       style="background:gray;color:white"
+                                       href="{{ route($detailsRoute, $row->id) }}">
+                                        <i class="fas fa-eye"></i>
+                                        {{ __('adminlte::adminlte.details') ?: 'Details' }}
+                                    </a>
+                                @else
+                                    <button type="button"
+                                            class="btn btn-info btn-sm lw-action-btn"
+                                            wire:click="details({{ $row->id }})">
+                                        <i class="fas fa-eye"></i>
+                                        {{ __('adminlte::adminlte.details') ?: 'Details' }}
+                                    </button>
                                 @endif
 
-                                @if ($item->is_active ?? true)
-                                    @if ($edit_route)
-                                        <a href="{{ route($edit_route, $item->id) }}"style="padding:5px;margin:5px" class="btn btn-success mb-1">{{__('adminlte::adminlte.edit') }}</a>
-                                    @endif
+                                {{-- Edit --}}
+                                @if(!empty($editRoute))
+                                    <a class="btn btn-success btn-sm lw-action-btn"
+                                       style="background:green;color:white"
+                                       href="{{ route($editRoute, $row->id) }}">
+                                        <i class="fas fa-edit"></i>
+                                        {{ __('adminlte::adminlte.edit') ?: 'Edit' }}
+                                    </a>
+                                @endif
 
-                                    @if ($delete_route)
-                                        <form action="{{ route($delete_route, $item->id) }}" method="POST" onsubmit="return confirm({{ __('adminlte::adminlte.are_you_sure_youـwant_to_delete') }})" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger mb-1" style="padding:5px;margin:5px">{{__('adminlte::adminlte.delete') }}</button>
+                                @php $isActiveRow = data_get($row, 'is_active', true); @endphp
+
+                                {{-- Delete / Reactivate --}}
+                                @if($isActiveRow)
+                                    @if(!empty($deleteRoute))
+                                        <form action="{{ route($deleteRoute, $row->id) }}"
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm(@json(__('adminlte::adminlte.are_you_sure_youـwant_to_delete') ?: 'Delete?'))">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm lw-action-btn">
+                                                <i class="fas fa-trash"></i>
+                                                {{ __('adminlte::adminlte.delete') ?: 'Delete' }}
+                                            </button>
                                         </form>
+                                    @else
+                                        <button class="btn btn-danger btn-sm lw-action-btn"
+                                                wire:click="delete({{ $row->id }})"
+                                                onclick="return confirm(@json(__('adminlte::adminlte.are_you_sure_youـwant_to_delete') ?: 'Delete?'))">
+                                            <i class="fas fa-trash"></i>
+                                            {{ __('adminlte::adminlte.delete') ?: 'Delete' }}
+                                        </button>
                                     @endif
                                 @else
-                                    @if ($reactive_route)
-                                        <form action="{{ route($reactive_route, $item->id) }}" method="POST" onsubmit="return confirm({{ ('adminlte:adminlte.do_you_want_to_reactive') }})" class="d-inline">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" class="btn btn-warning mb-1" style="padding:5px;margin:5px">{{__('adminlte::adminlte.reactive') }}</button>
+                                    @if(!empty($reactiveRoute))
+                                        <form action="{{ route($reactiveRoute, $row->id) }}"
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm(@json(__('adminlte::adminlte.do_you_want_to_reactive') ?: 'Reactivate?'))">
+                                            @csrf @method('POST')
+                                            <button type="submit" class="btn btn-warning btn-sm lw-action-btn" style="background:green;color:white">
+                                                <i class="fas fa-undo"></i>
+                                                {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
+                                            </button>
                                         </form>
+                                    @else
+                                        <button class="btn btn-warning btn-sm lw-action-btn"
+                                                wire:click="reactivate({{ $row->id }})"
+                                                onclick="return confirm(@json(__('adminlte::adminlte.do_you_want_to_reactive') ?: 'Reactivate?'))">
+                                            <i class="fas fa-undo"></i>
+                                            {{ __('adminlte::adminlte.reactive') ?: 'Reactivate' }}
+                                        </button>
                                     @endif
                                 @endif
                             </div>
                         </td>
-                    @endif
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="{{ count($fields) + ($hasActions ? 1 : 0) }}" class="text-center text-muted">
-                      {{ __('adminlte::adminlte.no_data_found')}}
-                    </td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="{{ count($fields) + 2 }}" class="text-center text-muted">
+                            {{ __('adminlte::adminlte.no_data_found') ?: 'No data found' }}
+                        </td>
+                    </tr>
+                @endforelse
 
-{{-- Pagination --}}
-@if ($value->hasPages())
-    <div class="mt-3 d-flex justify-content-end">
-        {{ $value->withQueryString()->links('pagination::bootstrap-4') }}
-    </div>
-@endif
-
-{{-- Details Modal --}}
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div id="detailsModalBody" class="modal-body"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+                {{-- Pagination INSIDE table as a full-width row --}}
+                @if (method_exists($rows, 'hasPages') && $rows->hasPages())
+                    <tr>
+                        <td colspan="{{ count($fields) + 2 }}">
+                            <div class="mt-2 d-flex {{ $isRtl ? 'justify-content-start' : 'justify-content-end' }}">
+                                {{ $rows->links('pagination::bootstrap-4') }}
+                            </div>
+                        </td>
+                    </tr>
+                @endif
+                </tbody>
+            </table>
         </div>
-    </div>
+    </x-adminlte-card>
+
+    {{-- Lightweight script hooks --}}
+    <script wire:ignore>
+        window.addEventListener('show-details-modal', () => {
+            const el = document.getElementById('detailsModal');
+            if (!el) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(el);
+            modal.show();
+        });
+
+        window.addEventListener('toast', (e) => {
+            const { type = 'info', message = '' } = e.detail || {};
+            if (message) { alert(message); }
+        });
+    </script>
 </div>
-</x-adminlte-card>

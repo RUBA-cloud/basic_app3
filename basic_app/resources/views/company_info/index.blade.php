@@ -196,6 +196,23 @@
                 @endforeach
             </div>
 
+            <select name="country_id" class="form-control mb-3">
+                <option value="">{{ __('adminlte::adminlte.choose_country') }}</option>
+                @foreach($countries as $country)
+                    <option value="{{ $country->id }}" {{ (string)$country->id === (string)data_get($company, 'country_id') ? 'selected' : '' }}>
+                        {{ app()->getLocale() === 'ar' ? ($country->name_ar ?? $country->name_en) : ($country->name_en ?? $country->name_ar) }}
+                    </option>
+                @endforeach
+            </select>
+
+            <select name="city_id" class="form-control mb-3">
+                <option value="">{{ __('adminlte::adminlte.choose_city') }}</option>
+                @foreach($cities as $city)
+                    <option value="{{ $city->id }}" {{ (string)$city->id === (string)data_get($company, 'city_id') ? 'selected' : '' }}>
+                        {{ app()->getLocale() === 'ar' ? ($city->name_ar ?? $city->name_en) : ($city->name_en ?? $city->name_ar) }}
+                    </option>
+                @endforeach
+
             {{-- ══ SINGLE BOTTOM SAVE BUTTON ══ --}}
             <div class="row mt-2 mb-3">
                 <div class="col-12">
@@ -205,6 +222,7 @@
                     </button>
                 </div>
             </div>
+            
 
         </form>
     </x-adminlte-card>

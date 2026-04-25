@@ -6,6 +6,8 @@ use App\Events\CompanyInfoEventSent;
 use App\Http\Requests\CompanyInfoRequest;
 use App\Models\CompanyInfo;
 use App\Models\CompanyInfoHistory;
+use App\Models\Country;
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,15 +27,19 @@ class CompanyInfoController extends Controller
     {
         if($isHistory){
 
-        $history = CompanyInfoHistory::with('user')
+        $history = CompanyInfoHistory::with('user','country','city')
             ->orderByDesc('created_at')
             ->paginate(5);
 
         return view('company_info.history', compact('history'));}
 
-        $company = CompanyInfo::query()->first();
+        $country = Country::where('is_active', true)->get();
+        $city = City::where('is_active', true)->get();
+$company = CompanyInfo::with('country','city')->first();
         return view('company_info.index', [
             'company' => $company,
+            'countries' => $country,
+            'cities' => $city,
         ]);
     }
  public function history(){
@@ -49,7 +55,7 @@ class CompanyInfoController extends Controller
     {
         $searchTerm = (string) $request->input('search', '');
 
-        $history = CompanyInfoHistory::with('user')
+        $history = CompanyInfoHistory::with('user','country','city')
             ->when($searchTerm !== '', function ($q) use ($searchTerm) {
                 $q->where(function ($q2) use ($searchTerm) {
                     $like = '%' . $searchTerm . '%';
@@ -68,7 +74,7 @@ class CompanyInfoController extends Controller
             ->paginate(10)
             ->appends(['search' => $searchTerm]); // keep query in pagination links
 
-        return view('company_info.history', compact('history', 'searchTerm'));
+        return view('company_info.history', compact('history', 'searchTerm','country','city'));
     }
 
     /**
@@ -76,7 +82,7 @@ class CompanyInfoController extends Controller
      */
     public function show($companyInfo)
     {
-        $entry = CompanyInfoHistory::with('user')->findOrFail($companyInfo);
+        $entry = CompanyInfoHistory::with('user','country,')->findOrFail($companyInfo);
 
         // Make sure your blade is at: resources/views/company_info/show.blade.php
         return view('company_info.show', ['company' => $entry]);
