@@ -50,6 +50,8 @@ class CompanyInfoRequest extends FormRequest
             'twitter'=>'nullable|url|max:255',
             'instagram'=>'nullable||url|max:255',
             'facebook'=>'nullable|url|max:255',
+            'country_id' => 'nullable|integer|exists:country,id',
+            'city_id' => 'nullable|integer|exists:cities,id',
              // Assuming
             'is_active' => 'boolean', // Assuming this is a boolean field for branch activity status
             // Assuming this is

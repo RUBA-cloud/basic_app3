@@ -141,13 +141,7 @@ class MenuBuilder
                 'icon_color' => $iconColor,
             ];
 
-            // Add the 'notifications_module' and 'countries_module' items
-            $menu[] = [
-                'text'       => 'notifications_module',
-                'url'        => '/notifications_module',
-                'icon'       => 'fas fa-fw fa-bell',
-                'icon_color' => $iconColor,
-            ];
+            
             $menu[] = [
                 'text'       => 'countries',
                 'url'        => '/countries',

@@ -45,7 +45,13 @@ return [
     'cities'=>'Cities',
     'transpartation_type'=>'Transpartation Type',
     'trasportation_way'=>'Trasportation Way',
-
+    'company_info_history'=>'Company Info History',
+    'company_info_history_show'=>'Company Info History Show',
+    'company_info_history_search'=>'Company Info History Search',
+    'company_name'=>'Company Name',
+    'next'=>'Next',
+    'previous'=>'Previous',
+    
 
 
 ];

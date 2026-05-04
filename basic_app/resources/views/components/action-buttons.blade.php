@@ -1,58 +1,84 @@
 {{-- resources/views/components/action_buttons.blade.php --}}
 @props([
     'label'         => __('adminlte::adminlte.actions'),
+    'subLabel'      => null,
     'addRoute'      => null,
     'historyRoute'  => null,
     'historyParams' => null,
     'showAdd'       => true,
     'goBack'        => true,
+    'icon'          => null,   {{-- optional override: e.g. 'fa-users' --}}
 ])
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+@php
+    $lang  = session('locale', app()->getLocale());
+    $isRtl = ($lang === 'ar');
 
-    {{-- ── Left: Title ── --}}
-    <div>
-        @if($showAdd && $addRoute)
-            <h5 class="mb-0 font-weight-bold" style="color: var(--brand-main, #343a40);">
-                <i class="fas fa-tasks mr-2" style="color: var(--brand-icon, #6c757d);"></i>
-                {{ $label }}
-            </h5>
-        @elseif(!$showAdd)
-            <h5 class="mb-0 font-weight-bold" style="color: var(--brand-main, #343a40);">
-                <i class="fas fa-edit mr-2" style="color: var(--brand-icon, #6c757d);"></i>
-                {{ $label }}
-            </h5>
-        @endif
+    $defaultIcon = $showAdd ? 'fa-list-ul' : 'fa-edit';
+    $resolvedIcon = $icon ?? $defaultIcon;
+
+    $iconColor  = $showAdd ? 'ab-icon--green'  : 'ab-icon--purple';
+@endphp
+
+
+<div class="ab-wrap {{ $isRtl ? 'ab-rtl' : '' }}">
+
+    {{-- ── Title side ── --}}
+    <div class="ab-title-group">
+        <div class="ab-icon {{ $iconColor }}">
+            <i class="fas {{ $resolvedIcon }}"></i>
+        </div>
+        <div>
+            <p class="ab-title-text">{{ $label }}</p>
+            @if($subLabel)
+                <p class="ab-title-sub">{{ $subLabel }}</p>
+            @endif
+        </div>
     </div>
 
-    {{-- ── Right: Buttons ── --}}
-    <div class="d-flex align-items-center" style="gap: 8px;">
+    {{-- ── Buttons side ── --}}
+    <div class="ab-actions">
 
-        {{-- Go Back button (shown when not on list page) --}}
+        {{-- Go Back (edit / detail pages) --}}
         @if(!$showAdd && $goBack && $historyRoute)
             <a href="{{ route($historyRoute, $historyParams ?? []) }}"
-               class="btn btn-secondary btn-sm">
-                <i class="fas fa-arrow-left mr-1"></i>
-                {{ __('adminlte::adminlte.go_back') }}
+               class="ab-btn ab-btn--back">
+                @if($isRtl)
+                    {{ __('adminlte::adminlte.go_back') }}
+                    <i class="fas fa-arrow-right"></i>
+                @else
+                    <i class="fas fa-arrow-left"></i>
+                    {{ __('adminlte::adminlte.go_back') }}
+                @endif
             </a>
         @endif
 
-        {{-- Add button (shown on list page) --}}
-        @if($showAdd && $addRoute)
-            <a href="{{ route($addRoute) }}"
-               class="btn btn-success btn-sm">
-                <i class="fas fa-plus mr-1"></i>
-                {{ __('adminlte::adminlte.add') }}
-            </a>
-        @endif
-
-        {{-- History button (shown on list page) --}}
+        {{-- View History (list pages) --}}
         @if($showAdd && $historyRoute)
             <a href="{{ route($historyRoute, ['isHistory' => true]) }}"
-               class="btn btn-info btn-sm"
+               class="ab-btn ab-btn--history"
                target="_blank">
-                <i class="fas fa-history mr-1"></i>
-                {{ __('adminlte::adminlte.view_history') }}
+                @if($isRtl)
+                    {{ __('adminlte::adminlte.view_history') }}
+                    <i class="fas fa-history"></i>
+                @else
+                    <i class="fas fa-history"></i>
+                    {{ __('adminlte::adminlte.view_history') }}
+                @endif
+            </a>
+        @endif
+
+        {{-- Add New (list pages) --}}
+        @if($showAdd && $addRoute)
+            <a href="{{ route($addRoute) }}"
+               class="ab-btn ab-btn--add">
+                @if($isRtl)
+                    {{ __('adminlte::adminlte.add') }}
+                    <i class="fas fa-plus"></i>
+                @else
+                    <i class="fas fa-plus"></i>
+                    {{ __('adminlte::adminlte.add') }}
+                @endif
             </a>
         @endif
 

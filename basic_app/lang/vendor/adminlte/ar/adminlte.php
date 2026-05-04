@@ -38,6 +38,19 @@ return [
     'company_info_create_success' => 'تم إنشاء معلومات الشركة بنجاح.',
     'company_info_create_error' => 'حدث خطأ أثناء إنشاء معلومات الشركة. يرجى المحاولة مرة أخرى.',
     'company_info_settings' => 'إعدادات معلومات الشركة',
+    'contact_location' => 'الاتصال والموقع',
+    'branding' => 'العلامة التجارية',
+    'logo_hint' => 'PNG، JPG حتى 2 ميغابايت — تُعرض في شريط التنقل والفواتير',
+    'about_mission_vision' => 'نبذة · مهمة · رؤية',
+    'about_us' => 'معلومات عنا',
+    'mission' => 'المهمة',
+    'vision' => 'الرؤية',
+    'contact_details' => 'تفاصيل الاتصال',
+    'brand_colors_hint' => 'انقر على العينة لفتح منتقي الألوان، أو اكتب رمز هكس مباشرة.',
+    'step_1_of_3' => 'الخطوة 1 من 3',
+    'step_2_of_3' => 'الخطوة 2 من 3',
+    'step_3_of_3' => 'الخطوة 3 من 3',
+    'saved_successfully' => 'تم الحفظ بنجاح.',
 
     // Titles / headings
     'modules' => 'الوحدات',
@@ -560,7 +573,12 @@ return [
     'footer' => 'وصلتك هذه الرسالة لأن لديك حسابًا في :app. إذا لم تكن أنت، يمكنك تجاهل هذه الرسالة.',
     'copyright' => '© :year :app. جميع الحقوق محفوظة.',
     'days_count' => 'أيام',
-
+ 'company_info_history_show'=>'عرض سجل معلومات الشركة',
+    'company_info_history_search'=>'بحث في سجل معلومات الشركة',
+    'company_name'=>  'اسم الشركة',
+    'next'=>'التالي',
+    'previous'=>'السابق',
+    
     'auth' => [
         'user' => 'المستخدم',
     ],

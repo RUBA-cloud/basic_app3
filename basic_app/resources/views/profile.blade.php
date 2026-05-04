@@ -7,421 +7,289 @@
     $avatarUrl = !empty($user?->avatar)
         ? asset('storage/' . $user->avatar)
         : 'https://ui-avatars.com/api/?name=' . urlencode($user->name ?? 'U')
-          . '&size=128&background=random&color=fff';
+          . '&size=192&background=2a1f16&color=c9855a&bold=true&format=png';
 @endphp
 
 @section('title', __('adminlte::adminlte.profile'))
 
-@push('css')
-<style>
-    .profile-wrap *           { box-sizing: border-box; }
-    .profile-wrap label       { display: block; }
-    .profile-wrap .form-group { margin-bottom: 1.2rem; }
 
-    [dir="rtl"] .profile-wrap .custom-file-label::after {
-        right: auto; left: 0;
-        border-radius: .25rem 0 0 .25rem;
-    }
-    [dir="ltr"] .profile-wrap .custom-file-label::after {
-        left: auto; right: 0;
-        border-radius: 0 .25rem .25rem 0;
-    }
-
-    /* ── Profile hero banner ── */
-    .profile-hero {
-        background: linear-gradient(135deg, var(--brand-main, #c0392b), var(--brand-sub, #922b21));
-        padding: 36px 32px;
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        border-radius: 0;
-    }
-    [dir="rtl"] .profile-hero { flex-direction: row-reverse; }
-
-    .profile-hero__avatar {
-        width: 90px; height: 90px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid rgba(255,255,255,.8);
-        box-shadow: 0 4px 16px rgba(0,0,0,.25);
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: opacity .2s;
-    }
-    .profile-hero__avatar:hover { opacity: .85; }
-
-    .profile-hero__info { flex: 1; }
-    .profile-hero__name  { color:#fff; font-size:20px; font-weight:700; margin:0 0 4px; }
-    .profile-hero__email { color:rgba(255,255,255,.75); font-size:13px; margin:0; }
-    .profile-hero__badge {
-        display: inline-flex; align-items: center; gap: 5px;
-        margin-top: 8px;
-        background: rgba(255,255,255,.15);
-        color: #fff;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        cursor: pointer;
-        transition: background .2s;
-    }
-    .profile-hero__badge:hover { background: rgba(255,255,255,.28); }
-
-    /* ── Section divider ── */
-    .profile-section {
-        padding: 24px 28px 8px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: #aaa;
-        border-bottom: 1px solid #f2f2f2;
-        margin-bottom: 20px;
-    }
-
-    /* ── Fields ── */
-    .profile-wrap .form-control {
-        border: 1.5px solid #e8e8e8 !important;
-        border-radius: 8px !important;
-        background: #fafafa !important;
-        transition: border-color .2s, box-shadow .2s;
-    }
-    .profile-wrap .form-control:focus {
-        border-color: var(--brand-main, #c0392b) !important;
-        box-shadow: 0 0 0 3px rgba(192,57,43,.1) !important;
-        background: #fff !important;
-    }
-    .profile-wrap .form-control.is-invalid {
-        border-color: #e74c3c !important;
-    }
-    .profile-wrap label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #666;
-        margin-bottom: 5px;
-    }
-
-    /* ── Two-column grid for fields ── */
-    .profile-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0 28px;
-        padding: 0 28px;
-    }
-    .profile-grid-full {
-        grid-column: 1 / -1;
-    }
-    @media (max-width: 640px) {
-        .profile-grid { grid-template-columns: 1fr; }
-        .profile-hero { flex-direction: column; text-align: center; }
-        [dir="rtl"] .profile-hero { flex-direction: column; }
-    }
-
-    /* ── Password strength ── */
-    .pwd-bar-wrap {
-        height: 4px; border-radius: 2px;
-        background: #eee; margin-top: 6px; overflow: hidden;
-    }
-    .pwd-bar-fill {
-        height: 100%; width: 0; border-radius: 2px;
-        transition: width .3s, background .3s;
-    }
-
-    /* ── Footer ── */
-    .profile-footer {
-        display: flex;
-        gap: .6rem;
-        padding: 18px 28px;
-        border-top: 1px solid #f0f0f0;
-        background: #fafafa;
-    }
-    [dir="rtl"] .profile-footer { flex-direction: row-reverse; }
-
-    .btn-save {
-        padding: 9px 28px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 14px;
-        background: var(--brand-main, #c0392b);
-        color: #fff !important;
-        border: none;
-        transition: opacity .2s;
-    }
-    .btn-save:hover { opacity: .88; }
-
-    .btn-back {
-        padding: 9px 18px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 14px;
-        background: #efefef;
-        color: #555 !important;
-        border: none;
-        text-decoration: none !important;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: background .2s;
-    }
-    .btn-back:hover { background: #e2e2e2; }
-</style>
-@endpush
 
 @section('content_header')
     <h1 class="m-0">{{ __('adminlte::adminlte.profile') }}</h1>
 @endsection
 
 @section('content')
-<div class="container-fluid px-0">
-    <div class="row no-gutters">
-        <div class="col-12">
+<div class="pg-root" dir="{{ $dir }}">
 
-            {{-- Flash --}}
-            @if(session('status'))
-                <div class="alert alert-success alert-dismissible fade show mx-3 mt-3" role="alert">
-                    <i class="fas fa-check-circle {{ $isRtl ? 'ml-2' : 'mr-2' }}"></i>
-                    {{ session('status') }}
-                    <button type="button" class="close" data-dismiss="alert">
-                        <span>&times;</span>
-                    </button>
+    {{-- ══ FLASH MESSAGE ══ --}}
+    @if(session('status'))
+        <div class="pg-alert" role="alert">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="#5dcc8a" stroke-width="1.5"/>
+                <path d="M5 8l2 2 4-4" stroke="#5dcc8a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {{ session('status') }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    @endif
+
+    {{-- ══ HERO ══ --}}
+    <div class="profile-hero">
+        <div class="hero-avatar-wrap" onclick="document.getElementById('avatarFile').click()" title="{{ $isRtl ? 'تغيير الصورة' : 'Change photo' }}">
+            <img id="avatarPreview"
+                 src="{{ $avatarUrl }}"
+                 alt="avatar"
+                 class="hero-avatar">
+            <div class="hero-cam">
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
+                    <rect x="1" y="5" width="18" height="13" rx="3" stroke="#fff" stroke-width="1.6"/>
+                    <circle cx="10" cy="11.5" r="3.2" stroke="#fff" stroke-width="1.6"/>
+                    <path d="M7 5l1.5-2h3L13 5" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="hero-text">
+            <div class="hero-name" id="heroName">{{ $user->name ?? '' }}</div>
+            <div class="hero-email" id="heroEmail">{{ $user->email ?? '' }}</div>
+            <div class="hero-pills">
+                <div class="hero-pill" onclick="document.getElementById('avatarFile').click()">
+                    <svg width="10" height="10" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    {{ $isRtl ? 'تغيير الصورة' : 'Change photo' }}
                 </div>
-            @endif
-
-            <div class="card mb-0 profile-wrap border-0 shadow-sm" dir="{{ $dir }}">
-
-                {{-- ══ HERO ══ --}}
-                <div class="profile-hero">
-                    <img id="avatarPreview"
-                         src="{{ $avatarUrl }}"
-                         alt="avatar"
-                         class="profile-hero__avatar"
-                         onclick="document.getElementById('avatarFile').click()">
-
-                    <div class="profile-hero__info">
-                        <p class="profile-hero__name" id="heroName">
-                            {{ $user->name ?? '' }}
-                        </p>
-                        <p class="profile-hero__email" id="heroEmail">
-                            {{ $user->email ?? '' }}
-                        </p>
-                        <span class="profile-hero__badge"
-                              onclick="document.getElementById('avatarFile').click()">
-                            <i class="fas fa-camera"></i>
-                            {{ $isRtl ? 'تغيير الصورة' : 'Change photo' }}
-                        </span>
-                    </div>
-                </div>
-
-                <form method="POST"
-                      action="{{ route('profile.update') }}"
-                      enctype="multipart/form-data"
-                      novalidate>
-                    @csrf
-                    @method('PUT')
-
-                    {{-- Hidden file input --}}
-                    <input type="file" id="avatarFile" name="avatar"
-                           accept="image/*" style="display:none;">
-                    @error('avatar')
-                        <div class="text-danger px-4 pt-2" style="font-size:12px;
-                             text-align:{{ $isRtl ? 'right' : 'left' }};">
-                            <i class="fas fa-exclamation-circle {{ $isRtl ? 'ml-1' : 'mr-1' }}"></i>
-                            {{ $message }}
-                        </div>
-                    @enderror
-
-                    {{-- ══ SECTION: Personal Info ══ --}}
-                    <div class="profile-section">
-                        <i class="fas fa-id-card {{ $isRtl ? 'ml-2' : 'mr-2' }}"></i>
-                        {{ __('adminlte::adminlte.your_information') }}
-                    </div>
-
-                    <div class="profile-grid">
-
-                        {{-- Name --}}
-                        <div class="form-group">
-                            <label style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                <i class="fas fa-user {{ $isRtl ? 'ml-1' : 'mr-1' }}"
-                                   style="color:var(--brand-main,#c0392b);"></i>
-                                {{ __('adminlte::adminlte.name') }}
-                            </label>
-                            <input type="text"
-                                   name="name"
-                                   id="nameInput"
-                                   dir="{{ $dir }}"
-                                   class="form-control @error('name') is-invalid @enderror"
-                                   style="text-align:{{ $isRtl ? 'right' : 'left' }};"
-                                   value="{{ old('name', $user->name ?? '') }}"
-                                   required autocomplete="off">
-                            @error('name')
-                                <div class="invalid-feedback d-block"
-                                     style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        {{-- Email --}}
-                        <div class="form-group">
-                            <label style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                <i class="fas fa-envelope {{ $isRtl ? 'ml-1' : 'mr-1' }}"
-                                   style="color:var(--brand-main,#c0392b);"></i>
-                                {{ __('adminlte::adminlte.email') }}
-                            </label>
-                            <input type="email"
-                                   name="email"
-                                   id="emailInput"
-                                   dir="ltr"
-                                   class="form-control @error('email') is-invalid @enderror"
-                                   style="text-align:{{ $isRtl ? 'right' : 'left' }};"
-                                   value="{{ old('email', $user->email ?? '') }}"
-                                   required autocomplete="off">
-                            @error('email')
-                                <div class="invalid-feedback d-block"
-                                     style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        {{-- Language --}}
-                        <div class="form-group">
-                            <label style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                <i class="fas fa-language {{ $isRtl ? 'ml-1' : 'mr-1' }}"
-                                   style="color:var(--brand-main,#c0392b);"></i>
-                                {{ __('adminlte::adminlte.language') }}
-                            </label>
-                            <select name="locale"
-                                    id="localeSelect"
-                                    class="form-control @error('locale') is-invalid @enderror"
-                                    style="text-align:{{ $isRtl ? 'right' : 'left' }};
-                                           text-align-last:{{ $isRtl ? 'right' : 'left' }};">
-                                <option value="en"
-                                    @selected(old('locale', $user->locale ?? app()->getLocale()) === 'en')>
-                                    🇬🇧 {{ __('adminlte::adminlte.english') }}
-                                </option>
-                                <option value="ar"
-                                    @selected(old('locale', $user->locale ?? app()->getLocale()) === 'ar')>
-                                    🇸🇦 {{ __('adminlte::adminlte.arabic') }}
-                                </option>
-                            </select>
-                            @error('locale')
-                                <div class="invalid-feedback d-block"
-                                     style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                            <small class="text-muted d-block mt-1"
-                                   style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                {{ __('adminlte::adminlte.direction_notice') }}
-                            </small>
-                        </div>
-
-                        {{-- Photo upload button --}}
-                        <div class="form-group">
-                            <label style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                <i class="fas fa-image {{ $isRtl ? 'ml-1' : 'mr-1' }}"
-                                   style="color:var(--brand-main,#c0392b);"></i>
-                                {{ __('adminlte::adminlte.avatar') }}
-                            </label>
-                            <div class="d-flex align-items-center"
-                                 style="{{ $isRtl ? 'flex-direction:row-reverse;' : '' }} gap:10px;">
-                                <button type="button"
-                                        onclick="document.getElementById('avatarFile').click()"
-                                        class="btn btn-outline-secondary btn-sm"
-                                        style="border-radius:7px; white-space:nowrap;">
-                                    <i class="fas fa-upload {{ $isRtl ? 'ml-1' : 'mr-1' }}"></i>
-                                    {{ __('adminlte::adminlte.choose_file') }}
-                                </button>
-                                <small id="avatarFileName" class="text-muted">
-                                    {{ __('adminlte::adminlte.png_jpg') }}
-                                </small>
-                            </div>
-                        </div>
-
-                    </div>{{-- /.profile-grid --}}
-
-                    {{-- ══ SECTION: Security ══ --}}
-                    <div class="profile-section">
-                        <i class="fas fa-shield-alt {{ $isRtl ? 'ml-2' : 'mr-2' }}"></i>
-                        {{ __('adminlte::adminlte.change_password_optional') }}
-                    </div>
-
-                    <div class="profile-grid">
-
-                        {{-- Current password --}}
-                        <div class="form-group">
-                            <label style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                <i class="fas fa-key {{ $isRtl ? 'ml-1' : 'mr-1' }}"
-                                   style="color:var(--brand-main,#c0392b);"></i>
-                                {{ __('adminlte::adminlte.current_password') }}
-                            </label>
-                            <input type="password"
-                                   name="current_password"
-                                   class="form-control @error('current_password') is-invalid @enderror"
-                                   autocomplete="new-password">
-                            @error('current_password')
-                                <div class="invalid-feedback d-block"
-                                     style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        {{-- New password --}}
-                        <div class="form-group">
-                            <label style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                <i class="fas fa-lock-open {{ $isRtl ? 'ml-1' : 'mr-1' }}"
-                                   style="color:var(--brand-main,#c0392b);"></i>
-                                {{ __('adminlte::adminlte.new_password') }}
-                            </label>
-                            <input type="password"
-                                   name="password"
-                                   id="newPassword"
-                                   class="form-control @error('password') is-invalid @enderror"
-                                   autocomplete="new-password">
-                            @error('password')
-                                <div class="invalid-feedback d-block"
-                                     style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                            <div class="pwd-bar-wrap">
-                                <div class="pwd-bar-fill" id="pwdBar"></div>
-                            </div>
-                            <small id="pwdLabel" class="text-muted" style="font-size:11px;"></small>
-                        </div>
-
-                        {{-- Confirm password --}}
-                        <div class="form-group">
-                            <label style="text-align:{{ $isRtl ? 'right' : 'left' }};">
-                                <i class="fas fa-check-double {{ $isRtl ? 'ml-1' : 'mr-1' }}"
-                                   style="color:var(--brand-main,#c0392b);"></i>
-                                {{ __('adminlte::adminlte.confirm_new_password') }}
-                            </label>
-                            <input type="password"
-                                   name="password_confirmation"
-                                   class="form-control"
-                                   autocomplete="new-password">
-                        </div>
-
-                    </div>{{-- /.profile-grid --}}
-
-                    {{-- ══ FOOTER ══ --}}
-                    <div class="profile-footer">
-                        <button type="submit" class="btn-save">
-                            <i class="fas fa-save {{ $isRtl ? 'ml-2' : 'mr-2' }}"></i>
-                            {{ __('adminlte::adminlte.save_changes') }}
-                        </button>
-                        <a href="{{ url()->previous() }}" class="btn-back">
-                            <i class="fas fa-arrow-{{ $isRtl ? 'right' : 'left' }}"></i>
-                            {{ __('adminlte::adminlte.back') }}
-                        </a>
-                    </div>
-
-                </form>
-            </div>{{-- /.card --}}
+                @if($user->roles?->first())
+                    <div class="hero-pill hero-pill-ghost">{{ $user->roles->first()->name }}</div>
+                @endif
+            </div>
         </div>
     </div>
+
+    {{-- ══ FORM ══ --}}
+    <form method="POST"
+          action="{{ route('profile.update') }}"
+          enctype="multipart/form-data"
+          novalidate>
+        @csrf
+        @method('PUT')
+
+        {{-- Hidden file input --}}
+        <input type="file" id="avatarFile" name="avatar" accept="image/*" style="display:none;">
+
+        @error('avatar')
+            <div class="pg-error" style="max-width:900px; margin:12px auto 0; padding:0 32px;">
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="8" stroke="#e74c3c" stroke-width="1.5"/>
+                    <path d="M10 6v5M10 13v1" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                {{ $message }}
+            </div>
+        @enderror
+
+        <div class="profile-body">
+
+            {{-- ── SECTION: Personal Info ── --}}
+            <div class="pg-section">
+                <div class="pg-section__icon">
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="7" r="3.5" stroke="#c9855a" stroke-width="1.5"/>
+                        <path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#c9855a" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="pg-section__text">{{ __('adminlte::adminlte.your_information') }}</div>
+                <div class="pg-section__line"></div>
+            </div>
+
+            {{-- Name --}}
+            <div class="pg-field">
+                <label class="pg-label" for="nameInput">
+                    <span class="pg-label-dot"></span>
+                    {{ __('adminlte::adminlte.name') }}
+                </label>
+                <input type="text"
+                       id="nameInput"
+                       name="name"
+                       dir="{{ $dir }}"
+                       class="pg-input @error('name') is-invalid @enderror"
+                       style="text-align:{{ $isRtl ? 'right' : 'left' }};"
+                       value="{{ old('name', $user->name ?? '') }}"
+                       placeholder="{{ $isRtl ? 'اسمك الكامل' : 'Your full name' }}"
+                       required autocomplete="off">
+                @error('name')
+                    <div class="pg-error">
+                        <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 6v5M10 13v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            {{-- Email --}}
+            <div class="pg-field">
+                <label class="pg-label" for="emailInput">
+                    <span class="pg-label-dot"></span>
+                    {{ __('adminlte::adminlte.email') }}
+                </label>
+                <input type="email"
+                       id="emailInput"
+                       name="email"
+                       dir="ltr"
+                       class="pg-input @error('email') is-invalid @enderror"
+                       style="text-align:{{ $isRtl ? 'right' : 'left' }};"
+                       value="{{ old('email', $user->email ?? '') }}"
+                       placeholder="you@example.com"
+                       required autocomplete="off">
+                @error('email')
+                    <div class="pg-error">
+                        <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 6v5M10 13v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            {{-- Language --}}
+            <div class="pg-field">
+                <label class="pg-label" for="localeSelect">
+                    <span class="pg-label-dot"></span>
+                    {{ __('adminlte::adminlte.language') }}
+                </label>
+                <select id="localeSelect"
+                        name="locale"
+                        class="pg-input @error('locale') is-invalid @enderror"
+                        style="text-align:{{ $isRtl ? 'right' : 'left' }};">
+                    <option value="en" @selected(old('locale', $user->locale ?? app()->getLocale()) === 'en')>
+                        🇬🇧 {{ __('adminlte::adminlte.english') }}
+                    </option>
+                    <option value="ar" @selected(old('locale', $user->locale ?? app()->getLocale()) === 'ar')>
+                        🇸🇦 {{ __('adminlte::adminlte.arabic') }}
+                    </option>
+                </select>
+                @error('locale')
+                    <div class="pg-error">{{ $message }}</div>
+                @enderror
+                <div class="pg-hint">{{ __('adminlte::adminlte.direction_notice') }}</div>
+            </div>
+
+            {{-- Avatar upload --}}
+            <div class="pg-field">
+                <label class="pg-label">
+                    <span class="pg-label-dot"></span>
+                    {{ __('adminlte::adminlte.avatar') }}
+                </label>
+                <div>
+                    <button type="button"
+                            class="upload-btn"
+                            onclick="document.getElementById('avatarFile').click()">
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 14V4M6 8l4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 16h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                        {{ __('adminlte::adminlte.choose_file') }}
+                    </button>
+                </div>
+                <div class="pg-hint" id="avatarFileName">{{ __('adminlte::adminlte.png_jpg') }}</div>
+            </div>
+
+            {{-- ── SECTION: Security ── --}}
+            <div class="pg-section">
+                <div class="pg-section__icon">
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 2l7 3v5c0 4.4-3 8.1-7 9-4-.9-7-4.6-7-9V5l7-3z" stroke="#c9855a" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M7.5 10l2 2 3-3" stroke="#c9855a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="pg-section__text">{{ __('adminlte::adminlte.change_password_optional') }}</div>
+                <div class="pg-section__line"></div>
+            </div>
+
+            {{-- Current password --}}
+            <div class="pg-field">
+                <label class="pg-label" for="currentPassword">
+                    <span class="pg-label-dot"></span>
+                    {{ __('adminlte::adminlte.current_password') }}
+                </label>
+                <input type="password"
+                       id="currentPassword"
+                       name="current_password"
+                       class="pg-input @error('current_password') is-invalid @enderror"
+                       placeholder="••••••••"
+                       autocomplete="new-password">
+                @error('current_password')
+                    <div class="pg-error">{{ $message }}</div>
+                @enderror
+            </div>
+
+            {{-- New password --}}
+            <div class="pg-field">
+                <label class="pg-label" for="newPassword">
+                    <span class="pg-label-dot"></span>
+                    {{ __('adminlte::adminlte.new_password') }}
+                </label>
+                <input type="password"
+                       id="newPassword"
+                       name="password"
+                       class="pg-input @error('password') is-invalid @enderror"
+                       placeholder="{{ $isRtl ? '٨ أحرف على الأقل' : 'Min. 8 characters' }}"
+                       autocomplete="new-password">
+                @error('password')
+                    <div class="pg-error">{{ $message }}</div>
+                @enderror
+                <div class="pwd-bar-wrap">
+                    <div class="pwd-bar-fill" id="pwdBar"></div>
+                </div>
+                <div class="pwd-hint" id="pwdLabel"></div>
+            </div>
+
+            {{-- Confirm password --}}
+            <div class="pg-field">
+                <label class="pg-label" for="confirmPassword">
+                    <span class="pg-label-dot"></span>
+                    {{ __('adminlte::adminlte.confirm_new_password') }}
+                </label>
+                <input type="password"
+                       id="confirmPassword"
+                       name="password_confirmation"
+                       class="pg-input"
+                       placeholder="{{ $isRtl ? 'أعد كتابة كلمة المرور' : 'Repeat password' }}"
+                       autocomplete="new-password">
+                <div class="pwd-hint" id="matchLabel"></div>
+            </div>
+
+            {{-- empty grid cell for alignment --}}
+            <div></div>
+
+            {{-- ── ACTIONS ── --}}
+            <div class="pg-actions">
+                <button type="submit" class="btn-pg-save">
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+                        <path d="M15 17H5a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v7a2 2 0 01-2 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M13 17v-5H7v5M7 3v4h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    {{ __('adminlte::adminlte.save_changes') }}
+                </button>
+
+                <a href="{{ url()->previous() }}" class="btn-pg-back">
+                    @if($isRtl)
+                        <svg width="13" height="13" viewBox="0 0 20 20" fill="none">
+                            <path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    @else
+                        <svg width="13" height="13" viewBox="0 0 20 20" fill="none">
+                            <path d="M12 5L7 10l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    @endif
+                    {{ __('adminlte::adminlte.back') }}
+                </a>
+            </div>
+
+        </div>{{-- /.profile-body --}}
+    </form>
 </div>
 @endsection
 
@@ -429,7 +297,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ── Avatar pick ── */
+    /* ── Avatar preview ── */
     var fileInput  = document.getElementById('avatarFile');
     var preview    = document.getElementById('avatarPreview');
     var fileNameEl = document.getElementById('avatarFileName');
@@ -447,14 +315,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ── Live hero name / email ── */
+    /* ── Live hero name / email sync ── */
     var nameInput  = document.getElementById('nameInput');
     var emailInput = document.getElementById('emailInput');
     var heroName   = document.getElementById('heroName');
     var heroEmail  = document.getElementById('heroEmail');
 
-    if (nameInput  && heroName)  nameInput.addEventListener('input',  function () { heroName.textContent  = this.value; });
-    if (emailInput && heroEmail) emailInput.addEventListener('input', function () { heroEmail.textContent = this.value; });
+    if (nameInput  && heroName)  nameInput.addEventListener('input',  function () { heroName.textContent  = this.value || ''; });
+    if (emailInput && heroEmail) emailInput.addEventListener('input', function () { heroEmail.textContent = this.value || ''; });
 
     /* ── Language switcher → live dir flip ── */
     var localeSelect = document.getElementById('localeSelect');
@@ -462,44 +330,56 @@ document.addEventListener('DOMContentLoaded', function () {
         localeSelect.addEventListener('change', function () {
             var isAr   = this.value === 'ar';
             var newDir = isAr ? 'rtl' : 'ltr';
+            var align  = isAr ? 'right' : 'left';
 
             document.documentElement.setAttribute('dir',  newDir);
             document.documentElement.setAttribute('lang', this.value);
 
-            document.querySelectorAll('[dir]').forEach(function (el) {
-                el.setAttribute('dir', newDir);
-            });
+            // flip root
+            var root = document.querySelector('.pg-root');
+            if (root) root.setAttribute('dir', newDir);
 
-            var align = isAr ? 'right' : 'left';
-            document.querySelectorAll('.profile-wrap input, .profile-wrap label, .profile-wrap small, .profile-wrap select')
-                .forEach(function (el) { el.style.textAlign = align; });
-
-            // flip hero row
+            // flip hero
             var hero = document.querySelector('.profile-hero');
             if (hero) hero.style.flexDirection = isAr ? 'row-reverse' : 'row';
 
-            // flip footer
-            var footer = document.querySelector('.profile-footer');
-            if (footer) footer.style.flexDirection = isAr ? 'row-reverse' : 'row';
+            // flip actions
+            var actions = document.querySelector('.pg-actions');
+            if (actions) actions.style.flexDirection = isAr ? 'row-reverse' : 'row';
+
+            // text align on inputs
+            document.querySelectorAll('.pg-input').forEach(function (el) {
+                el.style.textAlign = align;
+            });
         });
     }
 
     /* ── Password strength ── */
-    var pwdInput = document.getElementById('newPassword');
-    var pwdBar   = document.getElementById('pwdBar');
-    var pwdLabel = document.getElementById('pwdLabel');
-    var levels   = [
-        { pct:'20%',  color:'#e74c3c', en:'Weak',   ar:'ضعيفة'  },
-        { pct:'45%',  color:'#e67e22', en:'Fair',   ar:'مقبولة' },
-        { pct:'72%',  color:'#f1c40f', en:'Good',   ar:'جيدة'   },
-        { pct:'100%', color:'#27ae60', en:'Strong', ar:'قوية'   },
+    var pwdInput     = document.getElementById('newPassword');
+    var pwdBar       = document.getElementById('pwdBar');
+    var pwdLabel     = document.getElementById('pwdLabel');
+    var confirmInput = document.getElementById('confirmPassword');
+    var matchLabel   = document.getElementById('matchLabel');
+
+    var levels = [
+        { pct: '22%',  color: '#e74c3c', en: 'Weak',   ar: 'ضعيفة'  },
+        { pct: '48%',  color: '#e67e22', en: 'Fair',   ar: 'مقبولة' },
+        { pct: '74%',  color: '#d4ac0d', en: 'Good',   ar: 'جيدة'   },
+        { pct: '100%', color: '#27ae60', en: 'Strong', ar: 'قوية'   },
     ];
+
+    function isArabic() {
+        return document.documentElement.getAttribute('dir') === 'rtl';
+    }
 
     if (pwdInput) {
         pwdInput.addEventListener('input', function () {
-            var val  = this.value;
-            var isAr = document.documentElement.getAttribute('dir') === 'rtl';
-            if (!val) { pwdBar.style.width = '0'; pwdLabel.textContent = ''; return; }
+            var val = this.value;
+            if (!val) {
+                pwdBar.style.width  = '0';
+                pwdLabel.textContent = '';
+                return;
+            }
             var score = 0;
             if (val.length >= 8)          score++;
             if (/[A-Z]/.test(val))        score++;
@@ -508,9 +388,26 @@ document.addEventListener('DOMContentLoaded', function () {
             var lvl = levels[Math.max(0, score - 1)];
             pwdBar.style.width      = lvl.pct;
             pwdBar.style.background = lvl.color;
-            pwdLabel.textContent    = isAr ? lvl.ar : lvl.en;
+            pwdLabel.textContent    = isArabic() ? lvl.ar : lvl.en;
             pwdLabel.style.color    = lvl.color;
+            checkMatch();
         });
+    }
+
+    if (confirmInput) {
+        confirmInput.addEventListener('input', checkMatch);
+    }
+
+    function checkMatch() {
+        if (!confirmInput || !confirmInput.value) {
+            if (matchLabel) matchLabel.textContent = '';
+            return;
+        }
+        var matches = confirmInput.value === (pwdInput ? pwdInput.value : '');
+        matchLabel.textContent = matches
+            ? (isArabic() ? 'كلمتا المرور متطابقتان' : 'Passwords match')
+            : (isArabic() ? 'كلمتا المرور غير متطابقتين' : 'Does not match');
+        matchLabel.style.color = matches ? '#27ae60' : '#e74c3c';
     }
 
 });

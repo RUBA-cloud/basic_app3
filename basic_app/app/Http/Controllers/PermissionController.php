@@ -34,7 +34,7 @@ public function create()
     {
         // Get the current user's modules row (the one with feature flags)
         $modulesRow = Module::where('is_active', true)->latest()->first();
-        abort_if(!$modulesRow, 404, '');
+       
 
         // Feature labels (requires Module::FEATURES and Module::featureLabels())
         $allLabels = Module::featureLabels();

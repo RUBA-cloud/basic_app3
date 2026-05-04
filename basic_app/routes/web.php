@@ -412,7 +412,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::post('/restore',           'restore')->middleware('perm:company_delivery_module,can_edit')->name('reactivate');
                 Route::get('/history/{isHistory?}', 'history')->middleware('perm:company_info_module,can_view_history')->name('history');
             });
-
+ Route::resource('permissions', PermissionController::class);
 Route::controller(CountryController::class)
             ->prefix('countries')
             ->name('countries.')
@@ -505,7 +505,7 @@ Route::controller(CountryController::class)
             });
 
         // Permissions
-        Route::resource('permissions', PermissionController::class);
+       
  Route::controller(TranspartationWayController::class)
             ->prefix('transpartation_ways')
             ->name('transpartation_ways.')

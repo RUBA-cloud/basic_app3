@@ -82,7 +82,7 @@ $company = CompanyInfo::with('country','city')->first();
      */
     public function show($companyInfo)
     {
-        $entry = CompanyInfoHistory::with('user','country,')->findOrFail($companyInfo);
+        $entry = CompanyInfoHistory::with('user','country','city')->findOrFail($companyInfo);
 
         // Make sure your blade is at: resources/views/company_info/show.blade.php
         return view('company_info.show', ['company' => $entry]);
@@ -112,6 +112,9 @@ $company = CompanyInfo::with('country','city')->first();
                 $historyData = $company->toArray();
                 unset($historyData['id']);         // avoid collisions
                 $historyData['user_id'] = Auth::id();
+                $historyData['country_id'] = $company->country_id;
+                $historyData['city_id'] = $company->city_id;
+
 
                 CompanyInfoHistory::create($historyData);
 

@@ -96,7 +96,13 @@ public function orderStatus():BelongsTo{
     {
         return $this->belongsTo(Offer::class, 'offer_id');
     }
+// app/Models/Order.php
 
+public function statusRel()
+{
+    return $this->belongsTo(\App\Models\OrderStatus::class, 'status_id');
+    // adjust the foreign key and model name to match your schema
+}
     /** Line items */
     public function items(): HasMany
     {
