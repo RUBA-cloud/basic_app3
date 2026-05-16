@@ -150,6 +150,14 @@ class MenuBuilder
             ];
 
             $menu[] = [
+                'text'       => 'brands',
+                'url'        => '/brands',
+                'icon'       => 'fas fa-fw fa-tags',
+                'icon_color' => $iconColor,
+            ];
+
+
+            $menu[] = [
                 'text'       => 'cities',
                 'url'        => '/cities',
                 'icon'       => 'fas fa-fw fa-city',

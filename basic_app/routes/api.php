@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\FilterApiController;
 use App\Http\Controllers\Api\FaviorateController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\BrandController;
 
 
  Broadcast::routes([
@@ -24,7 +25,8 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthApiController::class, 'login']);
     Route::post('forgot-password', [AuthApiController::class, 'forgotPassword']);
     Route::post('resend-forgot-password', [AuthApiController::class, 'resendForgotPassword']);
-    Route::post('resend-verify_email', [AuthApiController::class, 'resendVerificationEmail']);
+    Route::post('resend-verify-email', [AuthApiController::class, 'resendVerificationEmail']);
+       Route::post('check-verify-email', [AuthApiController::class, 'checkVerificationStatus']);   
 });
     Route::get('company-info', [CompanyInfoController::class, 'index']);
 
@@ -45,7 +47,7 @@ Route::middleware([JWTAuthMiddleware::class])->group(function () {
     });
     Route::get('categories',[CategoryController::class,'index']);
     Route::get('category/{id}',[CategoryController::class,'show']);
-  Route::post('category_search', [CategoryController::class, 'search']);
+    Route::post('category_search', [CategoryController::class, 'search']);
 
     Route::get('filter',[FilterApiController::class,'index']);
     Route::post('filter',[FilterApiController::class,'filter']);
@@ -64,6 +66,7 @@ Route::middleware([JWTAuthMiddleware::class])->group(function () {
 
     Route::post('make_order',[OrderController::class,'store']);
     Route::get('orders',[OrderController::class,'index']);
+    Route::get('brands',[BrandController::class,'index']);
 
 
 });

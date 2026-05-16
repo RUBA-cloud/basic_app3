@@ -63,4 +63,13 @@ class Product extends Model
     public function products(){
         return $this->belongsToMany(Category::class,'id','category_id');
     }
+    public function brands(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Brand::class,
+            'brand_product',  // pivot table name
+            'product_id',     // FK for THIS model on pivot
+            'brand_id'        // FK for the RELATED model on pivot
+        )->withTimestamps();
+    }
 }

@@ -26,6 +26,7 @@ use Illuminate\Validation\Rule;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
+
 class AuthApiController extends Controller
 {
     protected Configuration $jwtConfig;
@@ -106,158 +107,209 @@ class AuthApiController extends Controller
     /**
      * Login a user and return JWT token.
      */
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email'        => ['required', 'email'],
+            'password'     => ['required', 'string'],
+            'device_token' => ['nullable', 'string'],
+            'country'      => ['required', 'string', 'max:150'],
+            'city'         => ['required', 'string', 'max:150'],
+            'language'     => ['nullable', 'string', 'in:en,ar'],
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'validation_error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
 
+        $credentials = $request->only(['email', 'password']);
+        if (!Auth::attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-public function login(Request $request)
-{
-    // ✅ 1) Validate FIRST
-    $validator = Validator::make($request->all(), [
-        'email'        => ['required', 'email'],
-        'password'     => ['required', 'string'],
-        'device_token' => ['nullable', 'string'],
-        'country'      => ['required', 'string', 'max:150'],
-        'city'         => ['required', 'string', 'max:150'],
-        'language'     => ['nullable', 'string', 'in:en,ar'],
-    ]);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-    if ($validator->fails()) {
+        if (method_exists($user, 'hasVerifiedEmail') && !$user->hasVerifiedEmail()) {
+            return response()->json(['error' => 'Email not verified'], 403);
+        }
+
+        $countryNameEn = trim((string) $request->input('country'));
+        $cityNameEn    = trim((string) $request->input('city'));
+
+        try {
+            DB::transaction(function () use ($countryNameEn, $cityNameEn, $request, $user) {
+                $this->setCountryAndCity($user, $countryNameEn, $cityNameEn);
+
+                if (Schema::hasColumn('users', 'device_token') && $request->filled('device_token')) {
+                    $user->device_token = (string) $request->input('device_token');
+                }
+                if (Schema::hasColumn('users', 'language') && $request->filled('language')) {
+                    $user->language = (string) $request->input('language');
+                }
+
+                $user->save();
+            });
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error'   => 'Failed to update location data',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
+        $token = $this->generateJwtToken($user);
+
+        $user->load('country');
+        $user->load('city');
+
         return response()->json([
-            'status' => 'validation_error',
-            'errors' => $validator->errors(),
-        ], 422);
+            'data'       => $user,
+            'country'    => $countryNameEn,
+            'city'       => $cityNameEn,
+            'token_type' => 'Bearer',
+            'expires_in' => 86400,
+        ], 200);
     }
 
-    // ✅ 2) Auth attempt
-    $credentials = $request->only(['email', 'password']);
-    if (!Auth::attempt($credentials)) {
-        return response()->json(['error' => 'Unauthorized'], 401);
-    }
+    /**
+     * Check email verification status and return JWT token if verified.
+     */
+    public function checkVerificationStatus(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
 
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+        $user = User::where('email', $request->email)->first();
 
-    if (method_exists($user, 'hasVerifiedEmail') && !$user->hasVerifiedEmail()) {
-        return response()->json(['error' => 'Email not verified'], 403);
-    }
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found.',
+            ], 404);
+        }
 
-    $countryNameEn = trim((string) $request->input('country'));
-    $cityNameEn    = trim((string) $request->input('city'));
+        if (!method_exists($user, 'hasVerifiedEmail')) {
+            return response()->json([
+                'email_verified' => null,
+                'message'        => 'Email verification not implemented for this user model.',
+            ], 200);
+        }
 
-    // if you don't have Arabic names from mobile, fallback to english
-    $countryNameAr = $countryNameEn;
-    $cityNameAr    = $cityNameEn;
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'email_verified' => false,
+                'message'        => 'Email is not verified yet.',
+            ], 403);
+        }
 
-    // ✅ 3) Get or Create Country + City + Way safely
-    try {
-        DB::transaction(function () use (
-            $countryNameEn,
-            $cityNameEn,
-            $request, $user
-        ) {
-            $this->setCountryAndCity($user,$countryNameEn,$cityNameEn);
-            // -------- Country --------
+        // ✅ Verified — generate JWT (same as login)
+        $now    = new CarbonImmutable();
+        $expiry = $now->addHours(24);
 
+        $token = $this->jwtConfig->builder()
+            ->issuedBy(config('app.url'))
+            ->permittedFor(config('app.url'))
+            ->issuedAt($now)
+            ->canOnlyBeUsedAfter($now)
+            ->expiresAt($expiry)
+            ->relatedTo((string) $user->id)
+            ->withClaim('email', $user->email)
+            ->getToken(
+                $this->jwtConfig->signer(),
+                $this->jwtConfig->signingKey()
+            );
 
-            // optional fields
-            if (Schema::hasColumn('users', 'device_token') && $request->filled('device_token')) {
-                $user->device_token = (string) $request->input('device_token');
-            }
-            if (Schema::hasColumn('users', 'language') && $request->filled('language')) {
-                $user->language = (string) $request->input('language');
-            }
-
-            $user->save();
-        });
-    } catch (\Throwable $e) {
-        // If DB ops fail, return clear error
         return response()->json([
-            'error'   => 'Failed to update location data',
-            'message' => $e->getMessage(),
-        ], 500);
+            'email_verified' => true,
+            'message'        => 'Email verified successfully.',
+            'access_token'   => $token->toString(),
+            'token_type'     => 'Bearer',
+            'expires_in'     => $expiry->diffInSeconds($now),
+            'user'           => $user,
+        ], 200);
     }
 
-    // ✅ 4) JWT token (same logic)
-    $now    = new CarbonImmutable();
-    $expiry = $now->addHours(24);
+    /**
+     * Generate a JWT token for a user.
+     */
+    private function generateJwtToken(User $user): string
+    {
+        $now    = new CarbonImmutable();
+        $expiry = $now->addHours(24);
 
-    $token = $this->jwtConfig->builder()
-        ->issuedBy(config('app.url'))
-        ->permittedFor(config('app.url'))
-        ->issuedAt($now)
-        ->canOnlyBeUsedAfter($now)
-        ->expiresAt($expiry)
-        ->relatedTo((string) $user->id)
-        ->withClaim('email', $user->email)
-        ->getToken(
-            $this->jwtConfig->signer(),
-            $this->jwtConfig->signingKey()
+        $token = $this->jwtConfig->builder()
+            ->issuedBy(config('app.url'))
+            ->permittedFor(config('app.url'))
+            ->issuedAt($now)
+            ->canOnlyBeUsedAfter($now)
+            ->expiresAt($expiry)
+            ->relatedTo((string) $user->id)
+            ->withClaim('email', $user->email)
+            ->getToken(
+                $this->jwtConfig->signer(),
+                $this->jwtConfig->signingKey()
+            );
+
+        $user->access_token = $token->toString();
+
+        return $token->toString();
+    }
+
+    /**
+     * Set country and city for a user.
+     */
+    public function setCountryAndCity($user, $countryName, $cityName): void
+    {
+        $country = Country::firstOrCreate(
+            ['name_en' => $countryName],
+            ['name_ar' => $countryName, 'is_active' => true]
         );
 
-    $user->access_token = $token->toString();
-    $user->load('country');
-    $user->load('city');
-    return response()->json([
-        'data'       => $user,
-        'country'=> $cityNameEn,
-        'city'=> $cityNameEn,
-        'token_type' => 'Bearer',
-        'expires_in' => $expiry->diffInSeconds($now),
-    ], 200);
-}
+        if (isset($country->is_active) && !$country->is_active) {
+            $country->is_active = true;
+            $country->save();
+        }
 
+        $city = City::firstOrCreate(
+            ['country_id' => $country->id, 'name_en' => $cityName],
+            ['name_ar' => $cityName, 'is_active' => true]
+        );
 
-function setCountryAndCity($user,$countryName,$cityName){
-       $country = Country::firstOrCreate(
-                ['name_en' => $countryName],
-                ['name_ar' => $countryName, 'is_active' => true]
+        if (isset($city->is_active) && !$city->is_active) {
+            $city->is_active = true;
+            $city->save();
+        }
+
+        if ($country->wasRecentlyCreated || $city->wasRecentlyCreated) {
+            $nameEn = trim(($country->name_en ?? '') . ' - ' . ($city->name_en ?? ''));
+            $nameAr = trim(($country->name_ar ?? $country->name_en ?? '') . ' - ' . ($city->name_ar ?? $city->name_en ?? ''));
+
+            TraspartationWay::firstOrCreate(
+                [
+                    'country_id' => $country->id,
+                    'city_id'    => $city->id,
+                    'type_id'    => ($city->city_id ?? TranspartationType::where('is_active', true)->first()->id ?? null),
+                ],
+                [
+                    'name_en'    => $nameEn,
+                    'name_ar'    => $nameAr,
+                    'days_count' => 5,
+                    'is_active'  => true,
+                ]
             );
+        }
 
-            if (isset($country->is_active) && !$country->is_active) {
-                $country->is_active = true;
-                $country->save();
-            }
+        if (Schema::hasColumn('users', 'country_id')) {
+            $user->country_id = $country->id;
+        }
+        if (Schema::hasColumn('users', 'city_id')) {
+            $user->city_id = $city->id;
+        }
+    }
 
-            // -------- City --------
-            $city = City::firstOrCreate(
-                ['country_id' => $country->id, 'name_en' => $cityName],
-                ['name_ar' => $cityName, 'is_active' => true]
-            );
-
-            if (isset($city->is_active) && !$city->is_active) {
-                $city->is_active = true;
-                $city->save();
-            }
-
-
-            // ✅ Create way ONLY when either country/city was newly created
-            if ($country->wasRecentlyCreated || $city->wasRecentlyCreated) {
-                $nameEn = trim(($country->name_en ?? '') . ' - ' . ($city->name_en ?? ''));
-                $nameAr = trim(($country->name_ar ?? $country->name_en ?? '') . ' - ' . ($city->name_ar ?? $city->name_en ?? ''));
-
-                TraspartationWay::firstOrCreate(
-                    [
-                        'country_id' => $country->id,
-                        'city_id'    => $city->id,
-                        'type_id'=>($city->city_id ?? TranspartationType::where('is_active', true)->first()->id ?? null),
-                    ],
-                    [
-                        'name_en'    => $nameEn,
-                        'name_ar'    => $nameAr,
-                        'days_count' => 5,
-                        'is_active'  => true,
-                    ]
-                );
-            }
-
-            // ✅ Update user location always
-            if (Schema::hasColumn('users', 'country_id')) {
-                $user->country_id = $country->id;
-            }
-            if (Schema::hasColumn('users', 'city_id')) {
-                $user->city_id = $city->id;
-            }
-}
     /**
      * Update language/theme settings.
      */
@@ -312,7 +364,7 @@ function setCountryAndCity($user,$countryName,$cityName){
     }
 
     /**
-     * Forgot password: send reset link (no user enumeration).
+     * Forgot password: send reset link.
      */
     public function forgotPassword(Request $request)
     {
@@ -334,17 +386,17 @@ function setCountryAndCity($user,$countryName,$cityName){
     }
 
     /**
-     * Resend verification email for current user.
+     * Resend verification email.
      */
     public function resendVerificationEmail(Request $request)
     {
-        /** @var \App\Models\User|null $user */
-        $user = Auth::user();
+        $user = User::where('email', $request->email)->first();
+
         if (!$user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['message' => 'User not found'], 404);
         }
 
-        if (method_exists($user, 'hasVerifiedEmail') && $user->hasVerifiedEmail()) {
+        if ($user->hasVerifiedEmail()) {
             return response()->json(['message' => 'Email already verified'], 409);
         }
 
@@ -352,76 +404,70 @@ function setCountryAndCity($user,$countryName,$cityName){
 
         return response()->json(['message' => 'Verification email sent'], 200);
     }
-  public function refresh(Request $request)
-{
-    try {
-        // 1) نقرأ التوكن القديم من الهيدر
-        $oldTokenString = $request->bearerToken();
 
-        if (!$oldTokenString) {
-            return response()->json([
-                'message' => 'Token not provided.',
-            ], 401);
-        }
-
-        // 2) نحاول نحلّل التوكن
+    /**
+     * Refresh JWT token.
+     */
+    public function refresh(Request $request)
+    {
         try {
-            $parsedToken = $this->jwtConfig->parser()->parse($oldTokenString);
+            $oldTokenString = $request->bearerToken();
+
+            if (!$oldTokenString) {
+                return response()->json(['message' => 'Token not provided.'], 401);
+            }
+
+            try {
+                $parsedToken = $this->jwtConfig->parser()->parse($oldTokenString);
+            } catch (\Throwable $e) {
+                return response()->json(['message' => 'Invalid token format.'], 401);
+            }
+
+            $userId = $parsedToken->claims()->get('sub', null);
+
+            if (!$userId) {
+                return response()->json(['message' => 'Token has no subject.'], 401);
+            }
+
+            /** @var \App\Models\User|null $user */
+            $user = User::find($userId);
+
+            if (!$user) {
+                return response()->json(['message' => 'User not found.'], 404);
+            }
+
+            $now    = new CarbonImmutable();
+            $expiry = $now->addHour();
+
+            $newToken = $this->jwtConfig->builder()
+                ->issuedBy(config('app.url'))
+                ->permittedFor(config('app.url'))
+                ->issuedAt($now)
+                ->canOnlyBeUsedAfter($now)
+                ->expiresAt($expiry)
+                ->relatedTo((string) $user->id)
+                ->withClaim('email', $user->email)
+                ->getToken(
+                    $this->jwtConfig->signer(),
+                    $this->jwtConfig->signingKey()
+                );
+
+            return response()->json([
+                'access_token' => $newToken->toString(),
+                'token_type'   => 'bearer',
+                'expires_in'   => $expiry->diffInSeconds($now),
+            ], 200);
+
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Invalid token format.',
+                'message' => 'Token is invalid, expired, or cannot be refreshed.',
             ], 401);
         }
-
-
-        // 3) نجيب user_id من claim sub (relatedTo اللي حطيتيه في login)
-        $userId = $parsedToken->claims()->get('sub', null);
-
-        if (!$userId) {
-            return response()->json([
-                'message' => 'Token has no subject.',
-            ], 401);
-        }
-
-        /** @var \App\Models\User|null $user */
-        $user = User::find($userId);
-
-        if (!$user) {
-            return response()->json([
-                'message' => 'User not found.',
-            ], 404);
-        }
-
-        // 4) نبني توكن جديد لنفس المستخدم
-        $now    = new CarbonImmutable();
-        $expiry = $now->addHour();
-
-        $newToken = $this->jwtConfig->builder()
-            ->issuedBy(config('app.url'))
-            ->permittedFor(config('app.url'))
-            ->issuedAt($now)
-            ->canOnlyBeUsedAfter($now)
-            ->expiresAt($expiry)
-            ->relatedTo((string) $user->id)
-            ->withClaim('email', $user->email)
-            ->getToken(
-                $this->jwtConfig->signer(),
-                $this->jwtConfig->signingKey()
-            );
-
-        return response()->json([
-            'access_token' => $newToken->toString(),
-            'token_type'   => 'bearer',
-            'expires_in'   => $expiry->diffInSeconds($now), // مثلاً ساعة
-        ], 200);
-
-    } catch (\Throwable $e) {
-        return response()->json([
-            'message' => 'Token is invalid, expired, or cannot be refreshed.',
-        ], 401);
     }
-}
 
+    /**
+     * Resend forgot password email with cooldown.
+     */
     public function resendForgotPassword(Request $request)
     {
         $request->validate([
@@ -433,11 +479,11 @@ function setCountryAndCity($user,$countryName,$cityName){
             try { App::setLocale($request->string('language')); } catch (\Throwable $e) {}
         }
 
-        $email = strtolower(trim((string) $request->input('email')));
-        $ip    = (string) $request->ip();
-        $key   = "pwd_reset_cooldown:{$email}:{$ip}";
-
+        $email   = strtolower(trim((string) $request->input('email')));
+        $ip      = (string) $request->ip();
+        $key     = "pwd_reset_cooldown:{$email}:{$ip}";
         $seconds = 60;
+
         if (Cache::has($key)) {
             return response()->json([
                 'message' => __('passwords.sent'),
@@ -454,6 +500,9 @@ function setCountryAndCity($user,$countryName,$cityName){
         ], 200);
     }
 
+    /**
+     * Reset password.
+     */
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -482,105 +531,9 @@ function setCountryAndCity($user,$countryName,$cityName){
     }
 
     /**
-     * Update user profile (+ avatar).
-     *
-     * Send as multipart/form-data:
-     * - file:   avatar        (image)
-     * - string: avatar_path   (URL or relative storage path) [optional alternative]
+     * Update user profile.
      */
-
-
     public function updateProfile(Request $request)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-    if (!$user) {
-        return response()->json(['error' => 'Unauthenticated'], 401);
-    }
-
-    $validator = Validator::make($request->all(), [
-        'name'    => 'nullable|string|max:255',
-        'email'   => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
-        'street'  => 'nullable|string|max:255',
-        'address' => 'nullable|string|max:255',
-        'phone'   => [
-            'nullable','string','max:255',
-            Rule::unique('users', 'phone')->ignore($user->id),
-            'regex:/^\+?[0-9\s\-\(\)]{7,20}$/',
-        ],
-        'avatar'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
-        'avatar_path' => 'nullable|string|max:1024',
-        'country' => 'nullable|string|max:1024',
-        'city' => 'nullable|string|max:1024',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'validation_error',
-            'errors' => $validator->errors(),
-        ], 422);
-    }
-
-    $emailChanged = false;
-
-    if ($request->filled('name'))    $user->name    = (string) $request->input('name');
-    if ($request->filled('street'))  $user->street  = (string) $request->input('street');
-    if ($request->filled('address')) $user->address = (string) $request->input('address');
-    if ($request->filled('phone'))   $user->phone   = (string) $request->input('phone');
-
-    if ($request->filled('email') && $request->input('email') !== $user->email) {
-        $user->email = (string) $request->input('email');
-        if (Schema::hasColumn('users', 'email_verified_at')) {
-            $user->email_verified_at = null;
-            $emailChanged = true;
-        }
-    }
-
-    // ================== AVATAR ==================
-    // إذا العميل بعث ملف avatar
-    if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
-        // خزّن في public disk
-        $path = $request->file('avatar')->store('users', 'public'); // users/xxx.webp
-      $user->avatar_path = asset('storage/' . $path);
-
-        // زن "path" فقط داخل DB
-    }
-    // إذا العميل بعث avatar_path (رابط جاهز)
-    // elseif ($request->filled('avatar_path')) {
-    //     $user->avatar_path = trim((string) $request->input('avatar_path'));
-    // }
-    // ✅ إذا avatar null وما في avatar_path => لا تعمل شيء (تبقي الصورة القديمة)
-
-                $this->setCountryAndCity($user,$request->country,$request->city,$request->city);
-
-    $user->save();
-
-    if ($emailChanged && method_exists($user, 'sendEmailVerificationNotification')) {
-        try { $user->sendEmailVerificationNotification(); } catch (\Throwable $e) {}
-    }
-
-    // ================== RESPONSE URL ==================
-
-
-    return response()->json([
-        'message' => 'Profile updated successfully.',
-        'user' => [
-            'id'          => $user->id,
-            'name'        => $user->name,
-            'email'       => $user->email,
-            'street'      => $user->street,
-            'address'     => $user->address,
-            'phone'       => $user->phone,
-            'avatar_path' => $user->avatar_path, // path أو url
-      // url جاهز للعرض
-        ],
-    ], 200);
-}
-
-
-
-
-    public function changePassword(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -589,9 +542,21 @@ function setCountryAndCity($user,$countryName,$cityName){
         }
 
         $validator = Validator::make($request->all(), [
-            'old_password' => 'required|string',
-            'new_password'         => 'required|string|min:6|confirmed',
+            'name'        => 'nullable|string|max:255',
+            'email'       => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
+            'street'      => 'nullable|string|max:255',
+            'address'     => 'nullable|string|max:255',
+            'phone'       => [
+                'nullable', 'string', 'max:255',
+                Rule::unique('users', 'phone')->ignore($user->id),
+                'regex:/^\+?[0-9\s\-\(\)]{7,20}$/',
+            ],
+            'avatar'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'avatar_path' => 'nullable|string|max:1024',
+            'country'     => 'nullable|string|max:1024',
+            'city'        => 'nullable|string|max:1024',
         ]);
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'validation_error',
@@ -599,13 +564,47 @@ function setCountryAndCity($user,$countryName,$cityName){
             ], 422);
         }
 
-        if (!Hash::check($request->string('current_password'), $user->password)) {
-            return response()->json(['error' => 'Current password is incorrect'], 403);
+        $emailChanged = false;
+
+        if ($request->filled('name'))    $user->name    = (string) $request->input('name');
+        if ($request->filled('street'))  $user->street  = (string) $request->input('street');
+        if ($request->filled('address')) $user->address = (string) $request->input('address');
+        if ($request->filled('phone'))   $user->phone   = (string) $request->input('phone');
+
+        if ($request->filled('email') && $request->input('email') !== $user->email) {
+            $user->email = (string) $request->input('email');
+            if (Schema::hasColumn('users', 'email_verified_at')) {
+                $user->email_verified_at = null;
+                $emailChanged = true;
+            }
         }
 
-        $user->password = Hash::make($request->string('password'));
+        if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
+            $path = $request->file('avatar')->store('users', 'public');
+            $user->avatar_path = asset('storage/' . $path);
+        }
+
+        if ($request->filled('country') && $request->filled('city')) {
+            $this->setCountryAndCity($user, $request->country, $request->city);
+        }
+
         $user->save();
 
-        return response()->json(['message' => 'Password changed successfully'], 200);
+        if ($emailChanged && method_exists($user, 'sendEmailVerificationNotification')) {
+            try { $user->sendEmailVerificationNotification(); } catch (\Throwable $e) {}
+        }
+
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user'    => [
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+                'street'      => $user->street,
+                'address'     => $user->address,
+                'phone'       => $user->phone,
+                'avatar_path' => $user->avatar_path,
+            ],
+        ], 200);
     }
 }

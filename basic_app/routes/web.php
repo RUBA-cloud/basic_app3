@@ -18,6 +18,7 @@ use App\Http\Controllers\{
     OfferController, OfferTypeController, ModulesController, TypeController,
     PermissionController, OrderController, RegionController, PaymentController,
     OrderStatusController, CompanyDeliveryController, NotificationController,
+    BrandController,
     DeviceTokenController, ProfileController, ChatController, CountryController,CityController,
 
 };
@@ -410,6 +411,22 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::delete('/{company_delivery}','destroy')->middleware('perm:company_delivery_module,can_delete')->name('destroy');
                 Route::post('/search',            'search')->middleware('perm:company_delivery_module,can_view_history')->name('search');
                 Route::post('/restore',           'restore')->middleware('perm:company_delivery_module,can_edit')->name('reactivate');
+                Route::get('/history/{isHistory?}', 'history')->middleware('perm:company_info_module,can_view_history')->name('history');
+            });
+             Route::controller(BrandController::class)
+            ->prefix('brands')
+            ->name('brands.')
+            ->middleware('module:brands_module')
+            ->group(function () {
+                Route::get('/',                   'index')->name('index');
+                Route::get('/create',             'create')->middleware('perm:brands_module,can_add')->name('create');
+                Route::post('/',                  'store')->middleware('perm:brands_module,can_add')->name('store');
+                Route::get('/{brand}', 'show')->name('show');
+                Route::get('/{brand}/edit','edit')->middleware('perm:brands_module,can_edit')->name('edit');
+                Route::put('/{brand}', 'update')->middleware('perm:brands_module,can_edit')->name('update');
+                Route::delete('/{brand}','destroy')->middleware('perm:brands_module,can_delete')->name('destroy');
+                Route::post('/search',            'search')->middleware('perm:brands_module,can_view_history')->name('search');
+                Route::post('/restore',           'restore')->middleware('perm:brands_module,can_edit')->name('reactivate');
                 Route::get('/history/{isHistory?}', 'history')->middleware('perm:company_info_module,can_view_history')->name('history');
             });
  Route::resource('permissions', PermissionController::class);

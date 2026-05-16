@@ -53,7 +53,9 @@
     <form method="POST"
           action="{{ route('companyInfo.store') }}"
           enctype="multipart/form-data"
-          id="company-info-form">
+          id="company-info-form"
+          data-channel="company-info"
+          data-events='@json(["company_info_updated"])'>
         @csrf
 
         @if($errors->any())
@@ -384,22 +386,22 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Stage elements ──────────────────────────────────────── */
-    var stages   = [
+    var stages  = [
         document.getElementById('stage-1'),
         document.getElementById('stage-2'),
         document.getElementById('stage-3'),
     ];
-    var circles  = [
+    var circles = [
         document.getElementById('sc1'),
         document.getElementById('sc2'),
         document.getElementById('sc3'),
     ];
-    var labels   = [
+    var labels  = [
         document.getElementById('sl1'),
         document.getElementById('sl2'),
         document.getElementById('sl3'),
     ];
-    var lines    = [
+    var lines   = [
         document.getElementById('sl-line-1'),
         document.getElementById('sl-line-2'),
     ];
@@ -412,13 +414,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         circles.forEach(function (c, i) {
             c.classList.remove('active', 'done');
-            if (i < idx)       c.classList.add('done');
+            if (i < idx)        c.classList.add('done');
             else if (i === idx) c.classList.add('active');
         });
 
         labels.forEach(function (l, i) {
             l.classList.remove('active', 'done');
-            if (i < idx)       l.classList.add('done');
+            if (i < idx)        l.classList.add('done');
             else if (i === idx) l.classList.add('active');
         });
 
@@ -445,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
         logoFile.addEventListener('change', function () {
             if (!this.files || !this.files[0]) return;
             var url = URL.createObjectURL(this.files[0]);
-            logoPreview.src     = url;
+            logoPreview.src           = url;
             logoPreview.style.display = 'block';
             if (logoHolder) logoHolder.style.display = 'none';
         });
@@ -476,41 +478,77 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ── Jump to stage 3 if branding field has validation error ─ */
-    var stage3Fields = colorNames;
-    var hasStage3Err = stage3Fields.some(function (n) {
+    var hasStage3Err = colorNames.some(function (n) {
         return document.querySelector('small.text-danger[data-field="' + n + '"]');
     });
     if (hasStage3Err) goTo(2);
 
-    /* ── Broadcast: field setter ─────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════
+       BROADCASTING  —  same pattern as categories/_form.blade.php
+    ══════════════════════════════════════════════════════════ */
+    var form   = document.getElementById('company-info-form');
+    var anchor = document.getElementById('company-info-form-listener');
+
+    if (!form || !anchor) {
+        console.warn('[company-info-form] form or listener anchor not found');
+        return;
+    }
+
+    var channelName = anchor.dataset.channel || 'company-info';
+
+    var events;
+    try {
+        events = JSON.parse(anchor.dataset.events || '["company_info_updated"]');
+    } catch (_) {
+        events = ['company_info_updated'];
+    }
+    if (!Array.isArray(events) || !events.length) {
+        events = ['company_info_updated'];
+    }
+
+    /* ── Field setter (shared helper) ───────────────────────── */
     function setField(name, value) {
-        if (value == null) return;
-        var el = document.querySelector('[name="' + name + '"]');
+        if (value === undefined || value === null) return;
+        var el = form.querySelector('[name="' + name + '"]');
         if (!el) return;
         el.value = value;
         el.dispatchEvent(new Event('input',  { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
+    /* ── Apply incoming broadcast payload ───────────────────── */
     function applyPayload(payload) {
-        var data = (payload && payload.company) ? payload.company : (payload || {});
+        // Accept { company: {...} } or direct {...}  — same pattern as category
+        var data = payload?.company ?? payload ?? {};
 
+        console.log('[company-info-form] applying broadcast payload:', data);
+
+        // Text / textarea fields
         [
             'name_en','name_ar','email','phone',
             'address_en','address_ar','location',
             'about_us_en','about_us_ar',
             'mission_en','mission_ar',
             'vision_en','vision_ar',
-        ].forEach(function (f) { setField(f, data[f]); });
+        ].forEach(function (f) {
+            if (data[f] !== undefined) setField(f, data[f]);
+        });
 
+        // Color fields — also sync the hex text input
         colorNames.forEach(function (f) {
-            setField(f, data[f]);
-            if (window.AppBrand && data[f]) {
-                var cssVar = window.AppBrand.map && window.AppBrand.map[f];
+            if (data[f] === undefined) return;
+            setField(f, data[f]);                // updates the <input type="color">
+            var hexEl = document.getElementById('hex-' + f);
+            if (hexEl) hexEl.value = String(data[f]).toUpperCase();
+
+            // Update live CSS variable if AppBrand mapping exists
+            if (window.AppBrand && window.AppBrand.map) {
+                var cssVar = window.AppBrand.map[f];
                 if (cssVar) document.documentElement.style.setProperty(cssVar, data[f]);
             }
         });
 
+        // Logo preview
         var src = data.image_url || data.image;
         if (src && logoPreview) {
             logoPreview.src           = src;
@@ -518,17 +556,29 @@ document.addEventListener('DOMContentLoaded', function () {
             if (logoHolder) logoHolder.style.display = 'none';
         }
 
-        if (window.toastr) toastr.success('{{ __('adminlte::adminlte.saved_successfully') }}');
+        if (window.toastr) {
+            toastr.success(@json(__('adminlte::adminlte.saved_successfully')));
+        }
     }
 
-    /* ── Register with AppBroadcast ──────────────────────────── */
-    var CH = 'company-info', EV = 'company_info_updated';
-    if (window.AppBroadcast && typeof window.AppBroadcast.subscribe === 'function') {
-        window.AppBroadcast.subscribe(CH, EV, applyPayload);
-    } else {
-        window.__pageBroadcasts = window.__pageBroadcasts || [];
-        window.__pageBroadcasts.push({ channel: CH, event: EV, handler: applyPayload });
-    }
+    /* ── Register with AppBroadcast — identical to category pattern ── */
+    window.AppBroadcast = window.AppBroadcast || [];
+
+    events.forEach(function (ev) {
+        if (typeof window.AppBroadcast.subscribe === 'function') {
+            // Manager already booted: subscribe directly
+            window.AppBroadcast.subscribe(channelName, ev, applyPayload);
+            console.info('[company-info-form] listening via AppBroadcast →', channelName, '/', ev);
+        } else {
+            // Pre-boot: push entry so the layout's JS picks it up
+            window.AppBroadcast.push({
+                channel: channelName,
+                event:   ev,
+                handler: applyPayload,
+            });
+            console.info('[company-info-form] registered broadcast entry →', channelName, '/', ev);
+        }
+    });
 
 });
 </script>

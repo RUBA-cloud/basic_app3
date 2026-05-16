@@ -30,6 +30,7 @@
         'region_module'            => __('adminlte::adminlte.region_module'),
         'payment_module'           => __('adminlte::adminlte.payment_module'),
         'company_delivery_module'  => __('adminlte::adminlte.company_delivery_module'),
+    
 
 
     ];
@@ -43,6 +44,7 @@
         'transportation_way_module'  => __('adminlte::adminlte.transportation_way_module'),
         'country_module'           => __('adminlte::adminlte.country_module'),
         'city_module'              => __('adminlte::adminlte.city_module'),
+        'brands_module'              => __('adminlte::adminlte.brands_module'),
         'is_active'       => __('adminlte::adminlte.is_active'),
     ];
 

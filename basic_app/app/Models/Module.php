@@ -32,11 +32,12 @@ class Module extends Model
         'payment_module',
         'additional_module',
         'notifications_module',
-
         'countries_module',
         'cities_module',
         'transportation_type_module',
         'transportation_way_module',
+        'company_info_history_module',
+        'brands_module',
 
     ];
 
@@ -65,7 +66,7 @@ class Module extends Model
         'cities_module'              => 'boolean',
         'transportation_type_module' => 'boolean',
         'transportation_way_module'  => 'boolean',
-
+        'brands_module'              => 'boolean',
 
     ];
 
@@ -124,6 +125,7 @@ class Module extends Model
             'cities_module'              => __('adminlte::adminlte.cities_module'),
             'transportation_type_module' => __('adminlte::adminlte.transportation_type_module'),
             'transportation_way_module'  => __('adminlte::adminlte.transportation_way_module'),
+            'brands_module'              => __('adminlte::adminlte.brands_module'),
         ];
     }
 
